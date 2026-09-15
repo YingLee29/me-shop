@@ -1,0 +1,28 @@
+# Dependencies
+**/node_modules/
+**/.next/
+**/vendor/
+
+# Laravel
+backend/.env
+backend/storage/logs/
+backend/storage/framework/cache/
+backend/storage/framework/sessions/
+backend/storage/framework/views/
+backend/bootstrap/cache/
+
+# Next.js
+frontend/.env.local
+admin/.env.local
+
+# Docker volumes (không commit data)
+docker/mysql/data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp

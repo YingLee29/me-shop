@@ -1,0 +1,186 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────
+# 🌾 NôngSản – Docker Compose
+# Services: nginx | php | mysql | redis | frontend | admin | mailpit
+# ─────────────────────────────────────────────────────
+
+networks:
+  nongsan_net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+services:
+
+  # ──────────────────────────────────────
+  # 🌐 NGINX – Reverse Proxy
+  # ──────────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nongsan_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"       # Laravel API  → http://localhost/api
+      - "3000:3000"   # Frontend     → http://localhost:3000
+      - "3001:3001"   # Admin        → http://localhost:3001
+    volumes:
+      - ./backend:/var/www/backend
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php
+      - frontend
+      - admin
+    networks:
+      - nongsan_net
+
+  # ──────────────────────────────────────
+  # 🐘 PHP-FPM – Laravel Backend
+  # ──────────────────────────────────────
+  php:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: nongsan_php
+    restart: unless-stopped
+    working_dir: /var/www/backend
+    volumes:
+      - ./backend:/var/www/backend
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - nongsan_net
+
+  # ──────────────────────────────────────
+  # 🗄️ MySQL 8 – Database
+  # ──────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: nongsan_mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"   # Truy cập từ host bằng TablePlus/DBeaver
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_DATABASE:-nongsan_db}
+      MYSQL_USER: ${DB_USERNAME:-nongsan_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-nongsan_pass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nongsan_net
+
+  # ──────────────────────────────────────
+  # ⚡ Redis – Cache & Queue
+  # ──────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: nongsan_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"   # Truy cập từ host bằng RedisInsight
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - nongsan_net
+
+  # ──────────────────────────────────────
+  # 🛍️ FRONTEND – Next.js (Port 3000)
+  # ──────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile.frontend
+    container_name: nongsan_frontend
+    restart: unless-stopped
+    # Không expose port trực tiếp – nginx làm reverse proxy
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules      # anonymous volume – tránh overwrite node_modules
+      - /app/.next             # anonymous volume – cache build
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://nginx/api/v1}
+      - WATCHPACK_POLLING=true  # Hot reload trong Docker
+    depends_on:
+      - php
+    networks:
+      - nongsan_net
+
+  # ──────────────────────────────────────
+  # 🔧 ADMIN – Next.js (Port 3001)
+  # ──────────────────────────────────────
+  admin:
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile.admin
+    container_name: nongsan_admin
+    restart: unless-stopped
+    # Không expose port trực tiếp – nginx làm reverse proxy
+    volumes:
+      - ./admin:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://nginx/api/v1}
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - php
+    networks:
+      - nongsan_net
+
+  # ──────────────────────────────────────
+  # 📧 MAILPIT – Email Testing (Dev only)
+  # ──────────────────────────────────────
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: nongsan_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"   # Web UI xem email → http://localhost:8025
+      - "1025:1025"   # SMTP server
+    networks:
+      - nongsan_net
+
+  # ──────────────────────────────────────
+  # ⚙️ QUEUE WORKER – Laravel Horizon
+  # ──────────────────────────────────────
+  queue:
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: nongsan_queue
+    restart: unless-stopped
+    working_dir: /var/www/backend
+    volumes:
+      - ./backend:/var/www/backend
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    depends_on:
+      - php
+      - redis
+    networks:
+      - nongsan_net

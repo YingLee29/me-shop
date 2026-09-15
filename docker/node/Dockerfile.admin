@@ -1,0 +1,14 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Cài dependencies trước (cache layer)
+COPY admin/package*.json ./
+RUN npm install
+
+# Copy source
+COPY admin/ .
+
+EXPOSE 3001
+
+CMD ["npm", "run", "dev"]
