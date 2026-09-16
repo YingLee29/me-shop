@@ -306,7 +306,7 @@ class ProductSeeder extends Seeder
             // Tạo ảnh đại diện placeholder
             ProductImage::create([
                 'product_id' => $product->id,
-                'image_url'  => "https://placehold.co/600x600/4a7c4e/white?text=" . urlencode($product->name),
+                'url'  => "https://placehold.co/600x600/4a7c4e/white?text=" . urlencode($product->name),
                 'alt_text'   => $product->name,
                 'is_primary' => true,
                 'sort_order' => 0,

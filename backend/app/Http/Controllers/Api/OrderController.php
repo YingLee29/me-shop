@@ -7,6 +7,8 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\OrderStatusLog;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,10 +42,16 @@ class OrderController extends Controller
      */
     public function show(Request $request, string $code): JsonResponse
     {
-        $order = Order::where('user_id', $request->user()->id)
-            ->where('order_code', $code)
-            ->with(['items.product.primaryImage', 'items.variant', 'statusLogs'])
-            ->firstOrFail();
+        $user = auth('sanctum')->user();
+
+        $query = Order::where('order_code', $code)
+            ->with(['items.product.primaryImage', 'items.variant', 'statusLogs']);
+
+        if ($user && !$user->hasRole(['admin', 'super-admin'])) {
+            $query->where('user_id', $user->id);
+        }
+
+        $order = $query->firstOrFail();
 
         return response()->json(['data' => $this->formatOrder($order, true)]);
     }
@@ -55,24 +63,51 @@ class OrderController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'shipping_name'    => ['required', 'string', 'max:255'],
-            'shipping_phone'   => ['required', 'string', 'max:20'],
-            'shipping_address' => ['required', 'string', 'max:500'],
-            'payment_method'   => ['required', 'in:cod,bank_transfer,momo,vnpay'],
-            'note'             => ['nullable', 'string', 'max:1000'],
-            'coupon_code'      => ['nullable', 'string'],
+            'shipping_name'      => ['required', 'string', 'max:255'],
+            'shipping_phone'     => ['required', 'string', 'max:20'],
+            'shipping_address'   => ['required', 'string', 'max:500'],
+            'payment_method'     => ['required', 'in:cod,bank_transfer,momo,vnpay'],
+            'note'               => ['nullable', 'string', 'max:1000'],
+            'coupon_code'        => ['nullable', 'string'],
+            'items'              => ['nullable', 'array'],
+            'items.*.product_id' => ['required_with:items', 'integer', 'exists:products,id'],
+            'items.*.variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
+            'items.*.quantity'   => ['required_with:items', 'integer', 'min:1'],
         ]);
 
-        $cartItems = Cart::with(['product', 'variant'])
-            ->where('user_id', $request->user()->id)
-            ->get();
+        $user = auth('sanctum')->user();
+        $userId = $user?->id;
 
-        if ($cartItems->isEmpty()) {
+        $orderItemsData = collect();
+
+        if (!empty($data['items'])) {
+            foreach ($data['items'] as $it) {
+                $product = Product::active()->findOrFail($it['product_id']);
+                $variant = !empty($it['variant_id']) ? ProductVariant::find($it['variant_id']) : null;
+                $price = $product->current_price + ($variant?->price_adjust ?? 0);
+
+                $orderItemsData->push((object)[
+                    'product_id' => $product->id,
+                    'variant_id' => $variant?->id,
+                    'product'    => $product,
+                    'variant'    => $variant,
+                    'price'      => $price,
+                    'quantity'   => $it['quantity'],
+                ]);
+            }
+        } elseif ($userId) {
+            $cartItems = Cart::with(['product', 'variant'])
+                ->where('user_id', $userId)
+                ->get();
+            $orderItemsData = $cartItems;
+        }
+
+        if ($orderItemsData->isEmpty()) {
             return response()->json(['message' => 'Giỏ hàng trống.'], 422);
         }
 
         // Kiểm tra tồn kho trước khi đặt
-        foreach ($cartItems as $item) {
+        foreach ($orderItemsData as $item) {
             $stock = $item->variant ? $item->variant->stock : $item->product->stock_quantity;
             if ($item->quantity > $stock) {
                 return response()->json([
@@ -81,14 +116,14 @@ class OrderController extends Controller
             }
         }
 
-        $order = DB::transaction(function () use ($data, $cartItems, $request) {
-            $subtotal  = $cartItems->sum(fn($i) => $i->price * $i->quantity);
-            $discount  = 0; // TODO: áp dụng coupon Phase 2
-            $shipping  = 0; // TODO: tính phí ship Phase 4
+        $order = DB::transaction(function () use ($data, $orderItemsData, $userId) {
+            $subtotal  = $orderItemsData->sum(fn($i) => $i->price * $i->quantity);
+            $discount  = 0;
+            $shipping  = $subtotal >= 300000 ? 0 : 25000;
             $total     = $subtotal - $discount + $shipping;
 
             $order = Order::create([
-                'user_id'          => $request->user()->id,
+                'user_id'          => $userId,
                 'order_code'       => $this->generateOrderCode(),
                 'status'           => 'pending',
                 'payment_method'   => $data['payment_method'],
@@ -104,16 +139,16 @@ class OrderController extends Controller
             ]);
 
             // Tạo order items + trừ tồn kho
-            foreach ($cartItems as $item) {
+            foreach ($orderItemsData as $item) {
                 OrderItem::create([
-                    'order_id'    => $order->id,
-                    'product_id'  => $item->product_id,
-                    'variant_id'  => $item->variant_id,
+                    'order_id'     => $order->id,
+                    'product_id'   => $item->product_id,
+                    'variant_id'   => $item->variant_id,
                     'product_name' => $item->product->name,
                     'variant_name' => $item->variant ? ($item->variant->name . ': ' . $item->variant->value) : null,
-                    'price'       => $item->price,
-                    'quantity'    => $item->quantity,
-                    'subtotal'    => $item->price * $item->quantity,
+                    'price'        => $item->price,
+                    'quantity'     => $item->quantity,
+                    'subtotal'     => $item->price * $item->quantity,
                 ]);
 
                 // Trừ tồn kho
@@ -130,17 +165,23 @@ class OrderController extends Controller
                 'order_id'   => $order->id,
                 'status'     => 'pending',
                 'note'       => 'Đơn hàng được tạo thành công.',
-                'created_by' => $request->user()->id,
+                'created_by' => $userId,
             ]);
 
-            // Xóa giỏ hàng
-            Cart::where('user_id', $request->user()->id)->delete();
+            // Xóa giỏ hàng DB nếu đã đăng nhập
+            if ($userId) {
+                Cart::where('user_id', $userId)->delete();
+            }
 
             return $order;
         });
 
         return response()->json([
             'message'    => 'Đặt hàng thành công!',
+            'data'       => [
+                'order_code' => $order->order_code,
+                'total'      => (float) $order->total,
+            ],
             'order_code' => $order->order_code,
             'total'      => (float) $order->total,
         ], 201);

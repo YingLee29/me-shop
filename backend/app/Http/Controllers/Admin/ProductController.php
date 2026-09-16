@@ -203,7 +203,7 @@ class ProductController extends Controller
 
             ProductImage::create([
                 'product_id' => $product->id,
-                'image_url'  => Storage::url($path),
+                'url'        => Storage::url($path),
                 'alt_text'   => $product->name,
                 'is_primary' => !$hasPrimary,
                 'sort_order' => $order,

@@ -55,14 +55,16 @@ Route::prefix('v1')->group(function () {
             Route::delete('/',       [CartController::class, 'clear']);
         });
 
-        // Orders (customer)
+        // Orders (customer history)
         Route::prefix('orders')->group(function () {
-            Route::get('/',          [OrderController::class, 'index']);
-            Route::post('/',         [OrderController::class, 'store']);
-            Route::get('{code}',     [OrderController::class, 'show']);
+            Route::get('/',              [OrderController::class, 'index']);
             Route::post('{code}/cancel', [OrderController::class, 'cancel']);
         });
     });
+
+    // Public / Guest Orders
+    Route::post('orders',        [OrderController::class, 'store']);
+    Route::get('orders/{code}',  [OrderController::class, 'show']);
 
     // ── Admin routes ───────────────────────────────────────────────────────
     Route::middleware(['auth:sanctum', 'role:admin|super-admin'])->prefix('admin')->group(function () {
