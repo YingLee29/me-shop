@@ -55,6 +55,11 @@ class Order extends Model
         return $this->hasMany(OrderStatusLog::class)->orderBy('created_at');
     }
 
+    public function paymentTransactions(): HasMany
+    {
+        return $this->hasMany(PaymentTransaction::class)->orderByDesc('created_at');
+    }
+
     /** Sinh mã đơn hàng: NS + yyyymmdd + random 4 số */
     public static function generateCode(): string
     {

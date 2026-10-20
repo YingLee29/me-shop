@@ -14,6 +14,8 @@ interface SearchParams {
   is_flash_sale?: string;
   is_featured?: string;
   page?: string;
+  price_min?: string;
+  price_max?: string;
 }
 
 async function getProductsData(searchParams: SearchParams) {
@@ -25,6 +27,8 @@ async function getProductsData(searchParams: SearchParams) {
     if (searchParams.is_flash_sale) params.append('is_flash_sale', searchParams.is_flash_sale);
     if (searchParams.is_featured) params.append('is_featured', searchParams.is_featured);
     if (searchParams.page) params.append('page', searchParams.page);
+    if (searchParams.price_min) params.append('price_min', searchParams.price_min);
+    if (searchParams.price_max) params.append('price_max', searchParams.price_max);
 
     const [productsRes, categoriesRes] = await Promise.all([
       fetchApi(`/products?${params.toString()}`),
@@ -243,6 +247,46 @@ export default async function ProductsPage({
                 </Link>
               </div>
             </div>
+
+            <div style={{ borderTop: '1px solid var(--color-gray-light)', paddingTop: '20px', marginTop: '20px' }}>
+              <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-brown)', marginBottom: '12px' }}>
+                Khoảng giá
+              </h4>
+              <form method="get" action="/products" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {searchParams.category && <input type="hidden" name="category" value={searchParams.category} />}
+                {searchParams.search && <input type="hidden" name="search" value={searchParams.search} />}
+                {searchParams.sort && <input type="hidden" name="sort" value={searchParams.sort} />}
+                {searchParams.is_flash_sale && <input type="hidden" name="is_flash_sale" value={searchParams.is_flash_sale} />}
+                {searchParams.is_featured && <input type="hidden" name="is_featured" value={searchParams.is_featured} />}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <input
+                    type="number"
+                    name="price_min"
+                    min={0}
+                    defaultValue={searchParams.price_min || ''}
+                    placeholder="Từ"
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem' }}
+                  />
+                  <span style={{ color: 'var(--color-gray-mid)' }}>–</span>
+                  <input
+                    type="number"
+                    name="price_max"
+                    min={0}
+                    defaultValue={searchParams.price_max || ''}
+                    placeholder="Đến"
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem' }}
+                  />
+                </div>
+                <button type="submit" className="btn-primary" style={{ padding: '8px 12px', fontSize: '0.82rem' }}>
+                  Áp dụng
+                </button>
+                {(searchParams.price_min || searchParams.price_max) && (
+                  <Link href="/products" style={{ textAlign: 'center', fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
+                    Xóa khoảng giá
+                  </Link>
+                )}
+              </form>
+            </div>
           </aside>
 
           {/* Product Grid */}
@@ -271,6 +315,43 @@ export default async function ProductsPage({
                 {products.map((p: Product) => (
                   <ProductCard key={p.id} product={p} />
                 ))}
+              </div>
+            )}
+
+            {meta.last_page > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '32px', flexWrap: 'wrap' }}>
+                {Array.from({ length: meta.last_page }, (_, index) => index + 1).map((pageNumber) => {
+                  const query = new URLSearchParams();
+                  Object.entries(searchParams).forEach(([key, value]) => {
+                    if (value && key !== 'page') query.set(key, String(value));
+                  });
+                  query.set('page', String(pageNumber));
+
+                  const active = pageNumber === (meta.current_page || 1);
+
+                  return (
+                    <Link
+                      key={pageNumber}
+                      href={`/products?${query.toString()}`}
+                      style={{
+                        minWidth: 38,
+                        height: 38,
+                        padding: '0 10px',
+                        borderRadius: 'var(--radius-sm)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                        background: active ? 'var(--color-brown)' : '#FFF',
+                        color: active ? '#FFF' : 'var(--color-gray-dark)',
+                        border: '1px solid var(--color-border)',
+                      }}
+                    >
+                      {pageNumber}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

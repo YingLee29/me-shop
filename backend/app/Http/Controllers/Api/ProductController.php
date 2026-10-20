@@ -30,6 +30,25 @@ class ProductController extends Controller
             }
         }
 
+        // Tìm kiếm theo từ khóa
+        if ($request->filled('search')) {
+            $this->applySearch($query, $request->search);
+        }
+
+        // Lọc nhanh
+        if ($request->boolean('is_featured')) {
+            $query->where('is_featured', true);
+        }
+
+        if ($request->boolean('is_flash_sale')) {
+            $query->where(function ($q) {
+                $q->where(fn($legacy) => $legacy
+                    ->where('is_flash_sale', true)
+                    ->where('flash_sale_end_at', '>', now()))
+                  ->orWhereHas('activeFlashSaleItem');
+            });
+        }
+
         // Filter giá
         if ($request->filled('price_min')) {
             $query->where(fn($q) => $q->where('sale_price', '>=', $request->price_min)
@@ -159,26 +178,45 @@ class ProductController extends Controller
      */
     public function search(Request $request): JsonResponse
     {
-        $q = $request->get('q', '');
+        $q = trim((string) $request->get('q', ''));
 
-        if (strlen($q) < 2) {
+        if (mb_strlen($q) < 2) {
             return response()->json(['data' => []]);
         }
 
-        $products = Product::with(['primaryImage', 'activeFlashSaleItem'])
-            ->active()
-            ->where(function ($query) use ($q) {
-                $query->where('name', 'LIKE', "%{$q}%")
-                    ->orWhere('sku', 'LIKE', "%{$q}%")
-                    ->orWhere('short_description', 'LIKE', "%{$q}%");
-            })
-            ->take(10)
-            ->get();
+        $query = Product::with(['primaryImage', 'category', 'activeFlashSaleItem'])->active();
+        $this->applySearch($query, $q);
 
-        return response()->json(['data' => ProductResource::collection($products)]);
+        if ($request->filled('category')) {
+            $category = Category::where('slug', $request->category)->first();
+            if ($category) {
+                $query->whereIn('category_id', $this->getCategoryIds($category));
+            }
+        }
+
+        $products = $query->take(min((int) $request->input('limit', 8), 20))->get();
+
+        return response()->json([
+            'data' => ProductResource::collection($products),
+            'query' => $q,
+        ]);
     }
 
     // ── Helpers ───────────────────────────────────────────
+
+    /** Áp dụng tìm kiếm FULLTEXT + fallback LIKE cho từ khóa ngắn/không dấu. */
+    private function applySearch($query, string $search): void
+    {
+        $term = trim($search);
+        $like = "%{$term}%";
+
+        $query->where(function ($q) use ($term, $like) {
+            $q->whereFullText(['name', 'short_description', 'description'], $term)
+              ->orWhere('name', 'LIKE', $like)
+              ->orWhere('sku', 'LIKE', $like)
+              ->orWhere('short_description', 'LIKE', $like);
+        });
+    }
 
     /** Lấy tất cả ID của danh mục và các danh mục con */
     private function getCategoryIds(Category $category): array

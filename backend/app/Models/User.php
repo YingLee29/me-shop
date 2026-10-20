@@ -58,4 +58,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(LoyaltyTransaction::class)->orderByDesc('created_at');
     }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class)->orderByDesc('created_at');
+    }
 }

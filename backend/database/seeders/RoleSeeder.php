@@ -20,6 +20,8 @@ class RoleSeeder extends Seeder
             'products.create',
             'products.update',
             'products.delete',
+            'categories.view',
+            'categories.manage',
             'inventory.view',
             'inventory.update',
             // Đơn hàng
@@ -35,6 +37,10 @@ class RoleSeeder extends Seeder
             'users.manage',
             'roles.manage',
             // Báo cáo & cài đặt
+            'reviews.view',
+            'reviews.manage',
+            'blogs.view',
+            'blogs.manage',
             'reports.view',
             'settings.manage',
         ];
@@ -56,10 +62,13 @@ class RoleSeeder extends Seeder
 
         $admin->syncPermissions([
             'products.view', 'products.create', 'products.update', 'products.delete',
+            'categories.view', 'categories.manage',
             'inventory.view', 'inventory.update',
             'orders.view', 'orders.update-status',
             'coupons.view', 'coupons.manage',
             'flash-sales.view', 'flash-sales.manage',
+            'reviews.view', 'reviews.manage',
+            'blogs.view', 'blogs.manage',
             'users.view', 'users.manage',
             'reports.view', 'settings.manage',
         ]);
@@ -67,6 +76,7 @@ class RoleSeeder extends Seeder
         // Thủ kho: xem/sửa sản phẩm & tồn kho, xem đơn hàng
         $warehouse->syncPermissions([
             'products.view', 'products.update',
+            'categories.view',
             'inventory.view', 'inventory.update',
             'orders.view',
             'flash-sales.view',
@@ -76,6 +86,7 @@ class RoleSeeder extends Seeder
         $support->syncPermissions([
             'products.view',
             'orders.view', 'orders.update-status',
+            'reviews.view',
             'users.view',
         ]);
 

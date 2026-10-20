@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { ShieldCheck, Truck, RefreshCw, Star, MapPin, Award, CheckCircle } from 'lucide-react';
 import { fetchApi, formatPrice } from '../../../lib/api';
 import ProductDetailClient from './ProductDetailClient';
+import ProductReviews from '../../../components/ProductReviews';
 
 export const revalidate = 600;
 
@@ -240,6 +241,8 @@ export default async function ProductDetailPage({
             </div>
           </div>
         </div>
+
+        <ProductReviews slug={product.slug} />
       </div>
     </div>
   );

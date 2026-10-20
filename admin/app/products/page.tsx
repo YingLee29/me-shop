@@ -1,34 +1,53 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit3, Check, X, MapPin } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Plus, Search, Trash2, Edit3, CheckSquare, Square } from 'lucide-react';
 import { fetchAdminApi, formatPrice } from '../../lib/api';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+
+const EMPTY_FORM = {
+  name: '',
+  category_id: '',
+  sku: '',
+  price: '',
+  sale_price: '',
+  stock_quantity: '100',
+  unit: 'kg',
+  origin: 'Đà Lạt, Lâm Đồng',
+  short_description: '',
+  description: '',
+  is_active: true,
+  is_featured: false,
+};
+
+type ProductForm = typeof EMPTY_FORM;
 
 export default function AdminProductsPage() {
   const { user } = useAdminAuth();
   const can = (permission: string) => user?.permissions?.includes(permission) ?? false;
+
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
   const [saving, setSaving] = useState(false);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [formData, setFormData] = useState<ProductForm>({ ...EMPTY_FORM });
 
-  // Form state
-  const [formData, setFormData] = useState({
-    name: '',
-    category_id: '',
-    sku: '',
-    price: '',
-    sale_price: '',
-    stock_quantity: '100',
-    unit: 'kg',
-    origin: 'Đà Lạt, Lâm Đồng',
-    short_description: '',
-    is_active: true,
-    is_featured: false,
-  });
+  const flatCategories = useMemo(() => {
+    const rows: any[] = [];
+    const walk = (items: any[], depth = 0) => {
+      items.forEach((item) => {
+        rows.push({ ...item, depth });
+        if (item.children?.length) walk(item.children, depth + 1);
+      });
+    };
+    walk(categories);
+    return rows;
+  }, [categories]);
 
   const loadData = async () => {
     setLoading(true);
@@ -40,6 +59,7 @@ export default function AdminProductsPage() {
 
       if (productsRes?.data) setProducts(productsRes.data);
       if (categoriesRes?.data) setCategories(categoriesRes.data);
+      setSelected([]);
     } catch (e) {
       console.error('Failed to load products/categories:', e);
     } finally {
@@ -51,43 +71,89 @@ export default function AdminProductsPage() {
     loadData();
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    loadData();
+  const openCreate = () => {
+    setEditing(null);
+    setFormData({ ...EMPTY_FORM });
+    setImageFiles([]);
+    setShowModal(true);
   };
 
-  const handleCreateProduct = async (e: React.FormEvent) => {
+  const openEdit = async (product: any) => {
+    setEditing(product);
+    setImageFiles([]);
+    setFormData({
+      name: product.name || '',
+      category_id: String(product.category?.id || product.category_id || ''),
+      sku: product.sku || '',
+      price: String(product.price ?? ''),
+      sale_price: product.sale_price ? String(product.sale_price) : '',
+      stock_quantity: String(product.stock_quantity ?? 0),
+      unit: product.unit || 'kg',
+      origin: product.origin || '',
+      short_description: product.short_description || '',
+      description: product.description || '',
+      is_active: !!product.is_active,
+      is_featured: !!product.is_featured,
+    });
+    setShowModal(true);
+
+    try {
+      const res = await fetchAdminApi(`/admin/products/${product.id}`);
+      if (res?.data) {
+        const detail = res.data;
+        setEditing({ ...product, ...detail });
+        setFormData({
+          name: detail.name || '',
+          category_id: String(detail.category?.id || ''),
+          sku: detail.sku || '',
+          price: String(detail.price ?? ''),
+          sale_price: detail.sale_price ? String(detail.sale_price) : '',
+          stock_quantity: String(detail.stock_quantity ?? 0),
+          unit: detail.unit || 'kg',
+          origin: detail.origin || '',
+          short_description: detail.short_description || '',
+          description: detail.description || '',
+          is_active: !!detail.is_active,
+          is_featured: !!detail.is_featured,
+        });
+      }
+    } catch {
+      // Dùng dữ liệu từ danh sách nếu không tải được chi tiết
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    try {
-      await fetchAdminApi('/admin/products', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...formData,
-          category_id: Number(formData.category_id),
-          price: Number(formData.price),
-          sale_price: formData.sale_price ? Number(formData.sale_price) : null,
-          stock_quantity: Number(formData.stock_quantity),
-        }),
-      });
 
-      setShowAddModal(false);
-      setFormData({
-        name: '',
-        category_id: '',
-        sku: '',
-        price: '',
-        sale_price: '',
-        stock_quantity: '100',
-        unit: 'kg',
-        origin: 'Đà Lạt, Lâm Đồng',
-        short_description: '',
-        is_active: true,
-        is_featured: false,
-      });
+    try {
+      const body = new FormData();
+      body.append('name', formData.name);
+      body.append('category_id', formData.category_id);
+      body.append('sku', formData.sku);
+      body.append('price', formData.price);
+      if (formData.sale_price) body.append('sale_price', formData.sale_price);
+      body.append('stock_quantity', formData.stock_quantity);
+      body.append('unit', formData.unit);
+      body.append('origin', formData.origin);
+      body.append('short_description', formData.short_description);
+      body.append('description', formData.description);
+      body.append('is_active', formData.is_active ? '1' : '0');
+      body.append('is_featured', formData.is_featured ? '1' : '0');
+      imageFiles.forEach((file) => body.append('images[]', file));
+
+      await fetchAdminApi(
+        editing ? `/admin/products/${editing.id}` : '/admin/products',
+        { method: 'POST', body },
+      );
+
+      setShowModal(false);
+      setEditing(null);
+      setImageFiles([]);
+      setFormData({ ...EMPTY_FORM });
       await loadData();
     } catch (err: any) {
-      alert(err.message || 'Lỗi khi tạo sản phẩm');
+      alert(err.message || 'Lỗi khi lưu sản phẩm');
     } finally {
       setSaving(false);
     }
@@ -103,6 +169,45 @@ export default function AdminProductsPage() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selected.length === 0) return;
+    if (!confirm(`Xóa ${selected.length} sản phẩm đã chọn?`)) return;
+
+    try {
+      await fetchAdminApi('/admin/products/bulk-delete', {
+        method: 'DELETE',
+        body: JSON.stringify({ ids: selected }),
+      });
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || 'Không thể xóa sản phẩm');
+    }
+  };
+
+  const toggleSelected = (id: number) => {
+    setSelected((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
+    );
+  };
+
+  const toggleAll = () => {
+    setSelected(selected.length === products.length ? [] : products.map((p) => p.id));
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '10px',
+    borderRadius: '6px',
+    border: '1px solid var(--admin-border)',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: '0.85rem',
+    fontWeight: 700,
+    marginBottom: '6px',
+  };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
@@ -111,44 +216,38 @@ export default function AdminProductsPage() {
             Quản Lý Sản Phẩm
           </h1>
           <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.88rem', marginTop: '4px' }}>
-            Danh mục và tồn kho nông sản đang bán
+            Thêm, sửa, xóa và cập nhật hình ảnh nông sản
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <form onSubmit={(e) => { e.preventDefault(); loadData(); }} style={{ display: 'flex', gap: '8px' }}>
             <input
               type="text"
               placeholder="Tìm tên sản phẩm, mã SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                padding: '9px 14px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--admin-border)',
-                outline: 'none',
-                fontSize: '0.88rem',
-                width: '240px',
-              }}
+              style={{ padding: '9px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--admin-border)', fontSize: '0.88rem', width: '220px' }}
             />
             <button type="submit" className="btn-primary" style={{ padding: '9px 14px' }}>
               <Search size={16} />
             </button>
           </form>
 
+          {can('products.delete') && selected.length > 0 && (
+            <button onClick={handleBulkDelete} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', borderRadius: 'var(--radius-sm)', background: '#FFEBEE', color: '#D32F2F', fontWeight: 700 }}>
+              <Trash2 size={16} /> Xóa {selected.length} sản phẩm
+            </button>
+          )}
+
           {can('products.create') && (
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="btn-primary"
-              style={{ background: 'var(--color-green)' }}
-            >
+            <button onClick={openCreate} className="btn-primary" style={{ background: 'var(--color-green)' }}>
               <Plus size={18} /> Thêm Sản Phẩm Mới
             </button>
           )}
         </div>
       </div>
 
-      {/* Table */}
       {loading ? (
         <div style={{ background: '#FFF', padding: '60px', textAlign: 'center', borderRadius: 'var(--radius-md)' }}>
           Đang tải danh sách sản phẩm...
@@ -162,13 +261,17 @@ export default function AdminProductsPage() {
           <table>
             <thead>
               <tr>
+                <th style={{ width: '46px' }}>
+                  <button onClick={toggleAll} title="Chọn tất cả" style={{ display: 'inline-flex' }}>
+                    {selected.length === products.length ? <CheckSquare size={18} /> : <Square size={18} />}
+                  </button>
+                </th>
                 <th style={{ width: '60px' }}>Ảnh</th>
                 <th>Tên sản phẩm</th>
                 <th>SKU</th>
                 <th>Danh mục</th>
                 <th>Giá bán</th>
                 <th>Tồn kho</th>
-                <th>Xuất xứ</th>
                 <th>Trạng thái</th>
                 <th style={{ textAlign: 'right' }}>Thao tác</th>
               </tr>
@@ -176,6 +279,11 @@ export default function AdminProductsPage() {
             <tbody>
               {products.map((p) => (
                 <tr key={p.id}>
+                  <td>
+                    <button onClick={() => toggleSelected(p.id)} style={{ display: 'inline-flex' }}>
+                      {selected.includes(p.id) ? <CheckSquare size={18} color="var(--color-green)" /> : <Square size={18} />}
+                    </button>
+                  </td>
                   <td>
                     <img
                       src={p.primary_image?.url || 'https://placehold.co/60x60/FAF7F0/6B4226?text=NS'}
@@ -206,7 +314,6 @@ export default function AdminProductsPage() {
                       {p.stock_quantity}
                     </strong> {p.unit}
                   </td>
-                  <td style={{ fontSize: '0.82rem', color: '#666' }}>{p.origin || 'Đà Lạt'}</td>
                   <td>
                     <span className="badge" style={{
                       background: p.is_active ? 'var(--color-green-light)' : 'var(--color-red-light)',
@@ -215,13 +322,14 @@ export default function AdminProductsPage() {
                       {p.is_active ? 'Đang bán' : 'Đã ẩn'}
                     </span>
                   </td>
-                  <td style={{ textAlign: 'right' }}>
+                  <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    {can('products.update') && (
+                      <button onClick={() => openEdit(p)} style={{ color: '#1976D2', padding: '6px' }} title="Sửa sản phẩm">
+                        <Edit3 size={16} />
+                      </button>
+                    )}
                     {can('products.delete') && (
-                      <button
-                        onClick={() => handleDeleteProduct(p.id)}
-                        style={{ color: '#E53935', padding: '6px' }}
-                        title="Xóa sản phẩm"
-                      >
+                      <button onClick={() => handleDeleteProduct(p.id)} style={{ color: '#E53935', padding: '6px' }} title="Xóa sản phẩm">
                         <Trash2 size={16} />
                       </button>
                     )}
@@ -233,203 +341,112 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      {/* Modal Add Product */}
-      {showAddModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '20px',
-        }}>
-          <div style={{
-            background: '#FFF',
-            borderRadius: 'var(--radius-lg)',
-            maxWidth: '620px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            padding: '32px',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          }}>
+      {showModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div style={{ background: '#FFF', borderRadius: 'var(--radius-lg)', maxWidth: '680px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '32px', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--admin-brown-dark)' }}>
-                Thêm Nông Sản Mới
+                {editing ? 'Chỉnh Sửa Nông Sản' : 'Thêm Nông Sản Mới'}
               </h3>
-              <button onClick={() => setShowAddModal(false)} style={{ fontSize: '1.4rem', color: '#999' }}>✕</button>
+              <button onClick={() => setShowModal(false)} style={{ fontSize: '1.4rem', color: '#999' }}>✕</button>
             </div>
 
-            <form onSubmit={handleCreateProduct} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
-                  Tên sản phẩm <span style={{ color: 'red' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ví dụ: Cải Kale Hữu Cơ"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--admin-border)' }}
-                />
+                <label style={labelStyle}>Tên sản phẩm <span style={{ color: 'red' }}>*</span></label>
+                <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} style={inputStyle} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
-                    Danh mục <span style={{ color: 'red' }}>*</span>
-                  </label>
-                  <select
-                    required
-                    value={formData.category_id}
-                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--admin-border)' }}
-                  >
+                  <label style={labelStyle}>Danh mục <span style={{ color: 'red' }}>*</span></label>
+                  <select required value={formData.category_id} onChange={(e) => setFormData({ ...formData, category_id: e.target.value })} style={inputStyle}>
                     <option value="">-- Chọn danh mục --</option>
-                    {categories.map((c: any) => (
-                      <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
+                    {flatCategories.map((c: any) => (
+                      <option key={c.id} value={c.id}>{'— '.repeat(c.depth)}{c.icon} {c.name}</option>
                     ))}
                   </select>
                 </div>
-
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
-                    Mã SKU
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="RAU-005"
-                    value={formData.sku}
-                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--admin-border)' }}
-                  />
+                  <label style={labelStyle}>Mã SKU</label>
+                  <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} style={inputStyle} />
                 </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
-                    Giá bán (VNĐ) <span style={{ color: 'red' }}>*</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    placeholder="35000"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--admin-border)' }}
-                  />
+                  <label style={labelStyle}>Giá bán (VNĐ) <span style={{ color: 'red' }}>*</span></label>
+                  <input type="number" min={0} required value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} style={inputStyle} />
                 </div>
-
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
-                    Giá khuyến mãi (VNĐ)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="30000"
-                    value={formData.sale_price}
-                    onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })}
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--admin-border)' }}
-                  />
+                  <label style={labelStyle}>Giá khuyến mãi (VNĐ)</label>
+                  <input type="number" min={0} value={formData.sale_price} onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })} style={inputStyle} />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
-                    Số lượng tồn kho <span style={{ color: 'red' }}>*</span>
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.stock_quantity}
-                    onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--admin-border)' }}
-                  />
+                  <label style={labelStyle}>Tồn kho <span style={{ color: 'red' }}>*</span></label>
+                  <input type="number" min={0} required value={formData.stock_quantity} onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })} style={inputStyle} />
                 </div>
-
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
-                    Đơn vị tính
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="kg, bó, vỉ, hộp..."
-                    value={formData.unit}
-                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--admin-border)' }}
-                  />
+                  <label style={labelStyle}>Đơn vị</label>
+                  <input type="text" value={formData.unit} onChange={(e) => setFormData({ ...formData, unit: e.target.value })} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Xuất xứ</label>
+                  <input type="text" value={formData.origin} onChange={(e) => setFormData({ ...formData, origin: e.target.value })} style={inputStyle} />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
-                  Xuất xứ / Nông trại
-                </label>
+                <label style={labelStyle}>Mô tả ngắn</label>
+                <textarea rows={2} value={formData.short_description} onChange={(e) => setFormData({ ...formData, short_description: e.target.value })} style={inputStyle} />
+              </div>
+
+              <div>
+                <label style={labelStyle}>Mô tả chi tiết</label>
+                <textarea rows={5} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} style={inputStyle} />
+              </div>
+
+              <div>
+                <label style={labelStyle}>Hình ảnh sản phẩm</label>
                 <input
-                  type="text"
-                  placeholder="Đà Lạt, Lâm Đồng"
-                  value={formData.origin}
-                  onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--admin-border)' }}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
+                  style={{ fontSize: '0.85rem' }}
                 />
+                <p style={{ fontSize: '0.75rem', color: '#777', marginTop: '6px' }}>
+                  JPG/PNG/WebP, tối đa 5MB/ảnh. Ảnh đầu tiên của sản phẩm mới sẽ làm ảnh chính.
+                </p>
+                {editing?.images?.length > 0 && (
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}>
+                    {editing.images.map((img: any) => (
+                      <img key={img.id} src={img.url} alt="" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6, border: img.is_primary ? '2px solid var(--color-green)' : '1px solid #ddd' }} />
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '6px' }}>
-                  Mô tả ngắn
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Rau trồng theo tiêu chuẩn hữu cơ, thu hoạch vào buổi sáng..."
-                  value={formData.short_description}
-                  onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--admin-border)' }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '24px', marginTop: '6px' }}>
+              <div style={{ display: 'flex', gap: '24px', marginTop: '6px', flexWrap: 'wrap' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.is_active}
-                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  />
-                  Đang hoạt động (hiển thị trên web)
+                  <input type="checkbox" checked={formData.is_active} onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })} />
+                  Đang hoạt động
                 </label>
-
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.is_featured}
-                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                  />
+                  <input type="checkbox" checked={formData.is_featured} onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })} />
                   Sản phẩm nổi bật
                 </label>
               </div>
 
               <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  style={{ flex: 1, padding: '12px', borderRadius: '6px', border: '1px solid #CCC' }}
-                >
+                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '6px', border: '1px solid #CCC' }}>
                   Hủy
                 </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="btn-primary"
-                  style={{ flex: 2, padding: '12px', justifyContent: 'center' }}
-                >
-                  {saving ? 'Đang lưu...' : 'Lưu Sản Phẩm'}
+                <button type="submit" disabled={saving} className="btn-primary" style={{ flex: 2, padding: '12px', justifyContent: 'center' }}>
+                  {saving ? 'Đang lưu...' : editing ? 'Cập Nhật Sản Phẩm' : 'Lưu Sản Phẩm'}
                 </button>
               </div>
             </form>

@@ -663,21 +663,21 @@ composer require momo/momo-payment  # hoặc tự implement
 ```
 
 **Tasks:**
-- [ ] Config MoMo credentials trong `.env` (sandbox trước)
-- [ ] `PaymentController@createMoMo`: tạo QR/link thanh toán
-- [ ] `PaymentController@momoCallback`: xác thực chữ ký HMAC
-- [ ] Cập nhật `Order.payment_status` = `paid` sau khi xác nhận
-- [ ] Frontend: redirect page + trạng thái chờ xác nhận
+- [x] Config MoMo credentials trong `.env` (sandbox trước) – mẫu trong `backend/.env.example`
+- [x] `PaymentController@createMoMo`: tạo QR/link thanh toán, lưu `payment_transactions`
+- [x] `PaymentController@momoIpn` + `momoReturn`: xác thực chữ ký HMAC, idempotent
+- [x] Cập nhật `Order.payment_status` = `paid` sau khi xác nhận + ghi log
+- [x] Frontend: redirect page + trạng thái chờ xác nhận + nút thanh toán lại
 
 ### 📦 Bước 6.2 – Tích hợp VNPAY
 
 **Flow VNPAY tương tự MoMo.**
 
 **Tasks:**
-- [ ] Config VNPAY credentials (sandbox)
-- [ ] Tạo URL thanh toán VNPAY với checksum SHA512
-- [ ] Xử lý IPN (Instant Payment Notification) từ VNPAY
-- [ ] Frontend: hiển thị QR code / chuyển hướng cổng VNPAY
+- [x] Config VNPAY credentials (sandbox) – mẫu trong `backend/.env.example`
+- [x] Tạo URL thanh toán VNPAY với checksum SHA512
+- [x] Xử lý Return URL + IPN (Instant Payment Notification) từ VNPAY
+- [x] Frontend: chuyển hướng cổng VNPAY / hướng dẫn thanh toán lại
 
 ---
 
@@ -692,13 +692,13 @@ php artisan make:model Review
 ```
 
 **Tasks:**
-- [ ] Migration `reviews` (product_id, user_id, order_item_id, rating 1-5, title, content, images json, is_approved)
-- [ ] Chỉ cho phép review khi đã mua hàng (check order_item_id)
-- [ ] API: `GET /api/v1/products/{id}/reviews` (phân trang, lọc theo rating)
-- [ ] API: `POST /api/v1/products/{id}/reviews` (auth required)
-- [ ] Tự động tính lại `avg_rating` và `review_count` trên bảng `products`
-- [ ] Admin: duyệt review (is_approved), xóa review vi phạm
-- [ ] Frontend: Form review với star rating + upload ảnh, hiển thị danh sách reviews
+- [x] Migration `reviews` (product_id, user_id, order_item_id, rating 1-5, title, content, images json, is_approved)
+- [x] Chỉ cho phép review khi đã mua hàng (check order_item_id, đơn delivered/completed)
+- [x] API: `GET /api/v1/products/{slug}/reviews` (phân trang, lọc theo rating)
+- [x] API: `POST /api/v1/products/{slug}/reviews` (auth + upload ảnh)
+- [x] Tự động tính lại `avg_rating` và `review_count` trên bảng `products`
+- [x] Admin: duyệt review (is_approved), xóa review vi phạm
+- [x] Frontend: Form review với star rating + upload ảnh, hiển thị danh sách reviews
 
 ---
 
@@ -714,12 +714,12 @@ php artisan make:model Blog
 ```
 
 **Tasks:**
-- [ ] Migration `blog_categories` (id, name, slug)
-- [ ] Migration `blogs` (id, blog_category_id, author_id, title, slug, excerpt, content, thumbnail, is_published, views_count, seo_*, published_at)
-- [ ] API public: danh sách bài viết + chi tiết + theo danh mục
-- [ ] Admin: CRUD bài viết với TipTap rich text editor
-- [ ] Frontend: Trang `/blog` (grid 3 cột) + `/blog/[slug]` (chi tiết)
-- [ ] SEO: generateMetadata dynamic từ blog data
+- [x] Migration `blog_categories` (id, name, slug)
+- [x] Migration `blogs` (id, blog_category_id, user_id, title, slug, excerpt, content, thumbnail, is_published, view_count, meta_*, published_at)
+- [x] API public: danh sách bài viết + chi tiết + theo danh mục + tìm kiếm
+- [x] Admin: CRUD bài viết với TipTap rich text editor + quản lý danh mục
+- [x] Frontend: Trang `/blog` (grid responsive) + `/blog/[slug]` (chi tiết, bài liên quan)
+- [x] SEO: generateMetadata dynamic, JSON-LD Article, canonical, sitemap
 
 ---
 
@@ -742,10 +742,10 @@ php artisan scout:import "App\Models\Product"
 ```
 
 **Tasks:**
-- [ ] Chọn Option A hoặc B tùy infrastructure
-- [ ] API `GET /api/v1/products/search?q=cải bó xôi&category=rau-cu`
-- [ ] Autocomplete: trả về gợi ý khi gõ (debounce 300ms phía frontend)
-- [ ] Frontend: Search bar trong Header với dropdown kết quả gợi ý
+- [x] Chọn Option A (MySQL FULLTEXT) + fallback LIKE
+- [x] API `GET /api/v1/products/search?q=cải bó xôi&category=rau-cu`
+- [x] Autocomplete: trả về gợi ý khi gõ (debounce 300ms phía frontend)
+- [x] Frontend: Search bar trong Header với dropdown kết quả gợi ý
 
 ---
 
@@ -756,35 +756,35 @@ php artisan make:controller Admin/ReportController
 ```
 
 **Tasks:**
-- [ ] `GET /api/v1/admin/reports/revenue?period=monthly&year=2026`
-- [ ] Trả về: tổng doanh thu, số đơn, đơn trung bình theo từng ngày/tuần/tháng
-- [ ] `GET /api/v1/admin/reports/top-products?period=this_month&limit=10`
-- [ ] Admin frontend: biểu đồ doanh thu (SVG/plain CSS – không dùng Ant Design Charts)
-- [ ] Filter theo khoảng ngày tùy chỉnh (DatePicker range)
+- [x] `GET /api/v1/admin/reports/revenue?date_from=&date_to=&group_by=day|month`
+- [x] Trả về: tổng doanh thu, số đơn, AOV, sản phẩm bán, chuỗi ngày/tháng
+- [x] `GET /api/v1/admin/reports/top-products?date_from=&date_to=&limit=10`
+- [x] Admin frontend: biểu đồ doanh thu plain CSS + top sản phẩm + xuất CSV
+- [x] Filter theo khoảng ngày tùy chỉnh + preset 7/30/90 ngày
 
 ---
 
 ### 📦 Bước 8.3 – Admin: Quản Lý Kho
 
 **Tasks:**
-- [ ] `GET /api/v1/admin/inventory` → sản phẩm kèm tồn kho
-- [ ] Filter: sắp hết hàng (stock < threshold), hết hàng (stock = 0)
-- [ ] Cập nhật tồn kho inline trong bảng (editable cell)
-- [ ] Xuất báo cáo tồn kho ra Excel (Laravel Excel)
+- [x] `GET /api/v1/admin/inventory` → sản phẩm kèm tồn kho
+- [x] Filter: sắp hết hàng (stock ≤ threshold), hết hàng (stock = 0), còn nhiều
+- [x] Cập nhật tồn kho inline trong bảng + lưu hàng loạt
+- [x] Xuất báo cáo tồn kho ra CSV UTF-8 (mở bằng Excel, không cần Laravel Excel)
 
 ---
 
 ### 📦 Bước 8.4 – Phase 2 Testing & Checklist
 
 **Acceptance Criteria Phase 2:**
-- [ ] ✅ Flash sale hoạt động với countdown timer
-- [ ] ✅ Mã giảm giá được validate và áp dụng đúng
-- [ ] ✅ Thanh toán MoMo / VNPAY thành công (sandbox)
-- [ ] ✅ Người dùng có thể viết review sau khi mua hàng
-- [ ] ✅ Blog hiển thị và SEO tốt
-- [ ] ✅ Tìm kiếm nhanh và có autocomplete
-- [ ] ✅ Admin xem báo cáo doanh thu theo tháng
-- [ ] ✅ Admin quản lý kho và cảnh báo hàng sắp hết
+- [x] ✅ Flash sale hoạt động với countdown timer
+- [x] ✅ Mã giảm giá được validate và áp dụng đúng
+- [!] ✅ Thanh toán MoMo / VNPAY: code + callback/IPN hoàn chỉnh, cần credentials sandbox để test giao dịch thật
+- [x] ✅ Người dùng có thể viết review sau khi mua hàng
+- [x] ✅ Blog hiển thị và SEO tốt
+- [x] ✅ Tìm kiếm nhanh và có autocomplete
+- [x] ✅ Admin xem báo cáo doanh thu theo ngày/tháng
+- [x] ✅ Admin quản lý kho và cảnh báo hàng sắp hết
 
 ---
 

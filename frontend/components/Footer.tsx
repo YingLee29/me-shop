@@ -106,6 +106,7 @@ export default function Footer() {
               Chăm Sóc Khách Hàng
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.88rem' }}>
+              <li><Link href="/blog" style={{ color: '#C8B8A6' }}>Tin tức & mẹo nấu ăn</Link></li>
               <li><Link href="/orders" style={{ color: '#C8B8A6' }}>Tra cứu đơn hàng</Link></li>
               <li><span style={{ color: '#C8B8A6' }}>Chính sách giao hàng 2h</span></li>
               <li><span style={{ color: '#C8B8A6' }}>Chính sách đổi trả & hoàn tiền</span></li>

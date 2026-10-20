@@ -17,19 +17,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, changeFrequency: 'daily', priority: 1 },
     { url: `${SITE_URL}/products`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${SITE_URL}/blog`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${SITE_URL}/cart`, changeFrequency: 'monthly', priority: 0.2 },
     { url: `${SITE_URL}/login`, changeFrequency: 'yearly', priority: 0.2 },
     { url: `${SITE_URL}/register`, changeFrequency: 'yearly', priority: 0.2 },
   ];
 
   try {
-    const [productsRes, categoriesRes] = await Promise.all([
+    const [productsRes, categoriesRes, blogsRes] = await Promise.all([
       fetchApi('/products?per_page=100'),
       fetchApi('/categories'),
+      fetchApi('/blogs?per_page=100'),
     ]);
 
     const products: ApiItem[] = productsRes?.data || [];
     const categories = flattenCategories(categoriesRes?.data || []);
+    const blogs: ApiItem[] = blogsRes?.data || [];
 
     const productRoutes: MetadataRoute.Sitemap = products.map((product) => ({
       url: `${SITE_URL}/products/${product.slug}`,
@@ -44,7 +47,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-    return [...staticRoutes, ...categoryRoutes, ...productRoutes];
+    const blogRoutes: MetadataRoute.Sitemap = blogs.map((blog) => ({
+      url: `${SITE_URL}/blog/${blog.slug}`,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    }));
+
+    return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...blogRoutes];
   } catch {
     return staticRoutes;
   }

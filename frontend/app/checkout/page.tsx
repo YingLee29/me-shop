@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheck, Truck, CreditCard, Banknote, ArrowLeft, CheckCircle2, AlertCircle, Gift } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, Banknote, ArrowLeft, CheckCircle2, AlertCircle, Gift, Wallet, QrCode } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { fetchApi, formatPrice } from '../../lib/api';
@@ -108,10 +108,27 @@ export default function CheckoutPage() {
       });
 
       if (res?.data?.order_code) {
+        const orderCode = res.data.order_code;
+
         // Clear local cart
         await clearCart();
+
+        // Thanh toán online: tạo URL và chuyển sang cổng thanh toán
+        if (['momo', 'vnpay'].includes(formData.payment_method)) {
+          try {
+            const payment = await fetchApi(`/payments/${orderCode}/create`, { method: 'POST' });
+            if (payment?.payment_url) {
+              window.location.href = payment.payment_url;
+              return;
+            }
+          } catch (paymentError: any) {
+            router.push(`/orders/${orderCode}?payment=unavailable`);
+            return;
+          }
+        }
+
         // Redirect to success / tracking page
-        router.push(`/orders/${res.data.order_code}`);
+        router.push(`/orders/${orderCode}`);
       } else {
         throw new Error(res?.message || 'Không thể tạo đơn hàng, vui lòng thử lại.');
       }
@@ -316,6 +333,62 @@ export default function CheckoutPage() {
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
                         Quét mã VietQR chuyển khoản nhanh 24/7.
+                      </div>
+                    </div>
+                  </label>
+
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '14px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: formData.payment_method === 'momo' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                    background: formData.payment_method === 'momo' ? 'var(--color-cream)' : '#FFF',
+                    cursor: 'pointer',
+                  }}>
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      value="momo"
+                      checked={formData.payment_method === 'momo'}
+                      onChange={() => setFormData({ ...formData, payment_method: 'momo' })}
+                    />
+                    <Wallet size={20} color="#A50064" />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--color-brown-dark)' }}>
+                        Ví điện tử MoMo
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
+                        Thanh toán an toàn qua ứng dụng MoMo (cổng sandbox khi chưa cấu hình).
+                      </div>
+                    </div>
+                  </label>
+
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '14px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: formData.payment_method === 'vnpay' ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                    background: formData.payment_method === 'vnpay' ? 'var(--color-cream)' : '#FFF',
+                    cursor: 'pointer',
+                  }}>
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      value="vnpay"
+                      checked={formData.payment_method === 'vnpay'}
+                      onChange={() => setFormData({ ...formData, payment_method: 'vnpay' })}
+                    />
+                    <QrCode size={20} color="#005BAA" />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--color-brown-dark)' }}>
+                        VNPAY – Thẻ ATM / QR Code
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
+                        Hỗ trợ thẻ ATM nội địa, tài khoản ngân hàng và quét QR.
                       </div>
                     </div>
                   </label>

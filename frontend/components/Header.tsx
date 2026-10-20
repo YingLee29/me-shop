@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ShoppingBag, Search, User, Phone, MapPin, Sparkles, Menu, X, ShieldCheck, Heart, Gift } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useWishlist } from '../context/WishlistContext';
+import { fetchApi, formatPrice } from '../lib/api';
 
 export default function Header() {
   const router = useRouter();
@@ -16,12 +17,45 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+
+  useEffect(() => {
+    const term = searchQuery.trim();
+    if (term.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSuggesting(true);
+      try {
+        const res = await fetchApi(`/products/search?q=${encodeURIComponent(term)}&limit=6`);
+        setSuggestions(res?.data || []);
+        setShowSuggestions(true);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSuggesting(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setShowSuggestions(false);
       router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
     }
+  };
+
+  const goToProduct = (slug: string) => {
+    setShowSuggestions(false);
+    router.push(`/products/${slug}`);
   };
 
   return (
@@ -110,9 +144,58 @@ export default function Header() {
                 outline: 'none',
                 transition: 'border-color 0.2s, box-shadow 0.2s',
               }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
-              onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--color-primary)';
+                if (suggestions.length > 0) setShowSuggestions(true);
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--color-border)';
+                window.setTimeout(() => setShowSuggestions(false), 150);
+              }}
             />
+
+            {showSuggestions && searchQuery.trim().length >= 2 && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0,
+                background: '#FFF', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
+                boxShadow: '0 12px 32px rgba(60, 40, 20, 0.16)', zIndex: 200,
+                overflow: 'hidden', textAlign: 'left',
+              }}>
+                {suggesting && suggestions.length === 0 ? (
+                  <div style={{ padding: '14px 16px', fontSize: '0.84rem', color: 'var(--color-gray-mid)' }}>Đang tìm kiếm...</div>
+                ) : suggestions.length === 0 ? (
+                  <div style={{ padding: '14px 16px', fontSize: '0.84rem', color: 'var(--color-gray-mid)' }}>Không tìm thấy sản phẩm phù hợp.</div>
+                ) : (
+                  <>
+                    {suggestions.map((product) => (
+                      <button
+                        key={product.id}
+                        type="button"
+                        onMouseDown={(e) => { e.preventDefault(); goToProduct(product.slug); }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 13px', borderBottom: '1px solid var(--color-gray-light)', textAlign: 'left', background: '#FFF' }}
+                      >
+                        <img
+                          src={product.primary_image?.url || 'https://placehold.co/48x48/FAF7F0/6B4226?text=NS'}
+                          alt={product.name}
+                          style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: 7, flexShrink: 0 }}
+                        />
+                        <span style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ display: 'block', fontSize: '0.84rem', fontWeight: 700, color: 'var(--color-brown-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</span>
+                          <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-red)', fontWeight: 700 }}>{formatPrice(product.current_price)}</span>
+                        </span>
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setShowSuggestions(false); router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`); }}
+                      style={{ width: '100%', padding: '11px 14px', fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-primary-dark)', background: 'var(--color-cream)', textAlign: 'center' }}
+                    >
+                      Xem tất cả kết quả cho “{searchQuery.trim()}”
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
             <button
               type="submit"
               className="btn-primary"
@@ -359,6 +442,9 @@ export default function Header() {
             </Link>
             <Link href="/products?category=gao-ngu-coc" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
               Gạo & Ngũ Cốc
+            </Link>
+            <Link href="/blog" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
+              Tin Tức
             </Link>
           </div>
 

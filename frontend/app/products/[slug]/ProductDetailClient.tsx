@@ -137,7 +137,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
               <Star size={15} fill="#F5A623" />
             </div>
             <strong style={{ color: 'var(--color-dark)' }}>{product.avg_rating || 5.0}</strong>
-            <span style={{ color: 'var(--color-gray-mid)' }}>({product.review_count || 12} đánh giá)</span>
+            <span style={{ color: 'var(--color-gray-mid)' }}>({product.review_count || 0} đánh giá)</span>
           </div>
           {product.sku && (
             <span style={{ color: 'var(--color-gray-mid)' }}>Mã SP: <strong>{product.sku}</strong></span>

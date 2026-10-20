@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Package, LogOut, User, Store, Zap, Ticket, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, LogOut, User, Store, Zap, Ticket, ShieldCheck, FolderTree, Star, Newspaper, BarChart3, Warehouse } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function AdminLayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -30,8 +30,13 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
     { label: 'Tổng Quan (Dashboard)', href: '/', icon: LayoutDashboard, permission: null },
     { label: 'Quản Lý Đơn Hàng', href: '/orders', icon: ShoppingBag, permission: 'orders.view' },
     { label: 'Quản Lý Sản Phẩm', href: '/products', icon: Package, permission: 'products.view' },
+    { label: 'Quản Lý Danh Mục', href: '/categories', icon: FolderTree, permission: 'categories.view' },
     { label: 'Flash Sale', href: '/flash-sales', icon: Zap, permission: 'flash-sales.view' },
     { label: 'Mã Giảm Giá', href: '/coupons', icon: Ticket, permission: 'coupons.view' },
+    { label: 'Quản Lý Đánh Giá', href: '/reviews', icon: Star, permission: 'reviews.view' },
+    { label: 'Quản Lý Bài Viết', href: '/blogs', icon: Newspaper, permission: 'blogs.view' },
+    { label: 'Quản Lý Tồn Kho', href: '/inventory', icon: Warehouse, permission: 'inventory.view' },
+    { label: 'Báo Cáo Doanh Thu', href: '/reports', icon: BarChart3, permission: 'reports.view' },
     { label: 'Phân Quyền', href: '/roles', icon: ShieldCheck, permission: 'roles.manage' },
   ].filter((item) => !item.permission || can(item.permission));
 
