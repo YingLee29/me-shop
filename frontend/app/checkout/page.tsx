@@ -360,7 +360,7 @@ export default function CheckoutPage() {
                         Ví điện tử MoMo
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
-                        Thanh toán an toàn qua ứng dụng MoMo (cổng sandbox khi chưa cấu hình).
+                        Tính năng minh hoạ – chưa kết nối cổng thanh toán thật.
                       </div>
                     </div>
                   </label>
@@ -388,7 +388,7 @@ export default function CheckoutPage() {
                         VNPAY – Thẻ ATM / QR Code
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
-                        Hỗ trợ thẻ ATM nội địa, tài khoản ngân hàng và quét QR.
+                        Tính năng minh hoạ – đơn hàng vẫn được ghi nhận để thanh toán sau.
                       </div>
                     </div>
                   </label>

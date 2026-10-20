@@ -108,7 +108,7 @@ export default async function OrderSuccessPage({
         )}
         {searchParams?.payment === 'unavailable' && (
           <div style={{ background: '#FFF4E5', border: '1px solid #FFCC80', color: '#ED6C02', padding: '14px 18px', borderRadius: 'var(--radius-md)', marginBottom: '20px', fontWeight: 600 }}>
-            Cổng thanh toán online chưa được cấu hình. Đơn hàng đã được tạo – vui lòng thanh toán khi nhận hàng hoặc liên hệ hotline 1900 6868.
+            Cổng thanh toán online đang ở chế độ minh hoạ. Đơn hàng đã được tạo – vui lòng thanh toán khi nhận hàng hoặc liên hệ hotline 1900 6868.
           </div>
         )}
 

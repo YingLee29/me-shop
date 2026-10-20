@@ -13,7 +13,7 @@
 |-----------|----------|
 | **Cập nhật lúc** | 20/10/2026 |
 | **Người cập nhật** | AI Pair Programmer |
-| **Trạng thái chung** | 🟢 Phase 1–3 hoàn thành về chức năng; còn Lighthouse/device test và credentials sandbox MoMo/VNPAY |
+| **Trạng thái chung** | 🟢 Phase 1–3 hoàn thành về chức năng; thanh toán online ở mức minh hoạ, còn Lighthouse/device test |
 
 ---
 
@@ -275,7 +275,7 @@
 
 ### 📦 Bước 6.1 – Tích hợp MoMo
 
-- [x] Config MoMo credentials trong `.env` (sandbox) – mẫu trong `backend/.env.example`
+- [x] Khung cấu hình MoMo trong `.env.example` – chế độ minh hoạ, không cần credentials thật
 - [x] `PaymentController@createMoMo` (HMAC SHA256, lưu `payment_transactions`)
 - [x] `PaymentController@momoIpn` + `momoReturn`: xác thực chữ ký HMAC, idempotent
 - [x] Cập nhật `Order.payment_status` = `paid`, ghi log và `paid_at`
@@ -283,11 +283,11 @@
 
 ### 📦 Bước 6.2 – Tích hợp VNPAY
 
-- [x] Config VNPAY credentials (sandbox) – mẫu trong `backend/.env.example`
+- [x] Khung cấu hình VNPAY trong `.env.example` – chế độ minh hoạ, không cần credentials thật
 - [x] Tạo URL thanh toán với checksum SHA512
 - [x] Xử lý Return URL + IPN từ VNPAY, kiểm tra số tiền và trạng thái giao dịch
 - [x] Frontend: chuyển hướng cổng VNPAY / hiển thị hướng dẫn thanh toán lại
-- [!] Cần điền `MOMO_*`, `VNPAY_*` sandbox thật để chạy giao dịch end-to-end
+- [x] Thanh toán online chỉ để tượng trưng: khi chưa cấu hình, hệ thống tạo đơn và hướng dẫn COD/chuyển khoản
 
 ---
 
@@ -341,7 +341,7 @@
 
 - [x] ✅ Flash sale hoạt động với countdown timer
 - [x] ✅ Mã giảm giá được validate và áp dụng đúng
-- [!] ✅ Thanh toán MoMo / VNPAY: code + callback/IPN hoàn chỉnh, chờ credentials sandbox để test giao dịch thật
+- [x] ✅ Thanh toán MoMo / VNPAY: giao diện + luồng xử lý minh hoạ, chưa kết nối cổng thật
 - [x] ✅ Người dùng có thể viết review sau khi mua hàng, admin duyệt trước khi hiển thị
 - [x] ✅ Blog hiển thị và SEO tốt (metadata động, JSON-LD, sitemap)
 - [x] ✅ Tìm kiếm nhanh và có autocomplete (FULLTEXT + debounce 300ms)
@@ -451,7 +451,7 @@
 > - Email queue qua Redis; Mailpit dùng để kiểm thử.
 > - SEO: metadata động, JSON-LD Product/Breadcrumb/Organization/Article, sitemap + robots.
 > - RBAC: super-admin (toàn bộ quyền), admin, warehouse, support được cập nhật thêm quyền categories/reviews/blogs; menu admin ẩn theo quyền.
-> - Payment sandbox: cần điền `MOMO_*` / `VNPAY_*` trong `backend/.env` trước khi test giao dịch thật.
+> - Thanh toán online: giữ ở mức tượng trưng/minh hoạ, không cần cấu hình `MOMO_*` / `VNPAY_*`.
 
 ---
 
@@ -502,6 +502,7 @@
 | 20/10/2026 | AI | Rà soát & bổ sung Phase 1: trang `/orders`, lọc khoảng giá + phân trang sản phẩm, admin sửa SP/upload ảnh/xóa hàng loạt, CRUD danh mục. |
 | 20/10/2026 | AI | Bổ sung Phase 2 Tuần 6–8: MoMo/VNPAY + `payment_transactions`, review & duyệt review, blog/CMS + TipTap, FULLTEXT autocomplete, báo cáo doanh thu, quản lý tồn kho/CSV. |
 | 20/10/2026 | AI | Verify: PHP lint, route cache, `tsc --noEmit`, `next build` (frontend + admin), smoke test API/CRUD/trang mới; thêm seeder review mẫu. |
+| 20/10/2026 | AI | Chốt thanh toán online ở mức tượng trưng/minh hoạ, không yêu cầu credentials sandbox; cập nhật UI và tài liệu. |
 
 ---
 

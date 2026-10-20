@@ -663,7 +663,7 @@ composer require momo/momo-payment  # hoặc tự implement
 ```
 
 **Tasks:**
-- [x] Config MoMo credentials trong `.env` (sandbox trước) – mẫu trong `backend/.env.example`
+- [x] Khung cấu hình MoMo trong `.env.example` – chế độ minh hoạ, không cần credentials thật
 - [x] `PaymentController@createMoMo`: tạo QR/link thanh toán, lưu `payment_transactions`
 - [x] `PaymentController@momoIpn` + `momoReturn`: xác thực chữ ký HMAC, idempotent
 - [x] Cập nhật `Order.payment_status` = `paid` sau khi xác nhận + ghi log
@@ -674,7 +674,7 @@ composer require momo/momo-payment  # hoặc tự implement
 **Flow VNPAY tương tự MoMo.**
 
 **Tasks:**
-- [x] Config VNPAY credentials (sandbox) – mẫu trong `backend/.env.example`
+- [x] Khung cấu hình VNPAY trong `.env.example` – chế độ minh hoạ, không cần credentials thật
 - [x] Tạo URL thanh toán VNPAY với checksum SHA512
 - [x] Xử lý Return URL + IPN (Instant Payment Notification) từ VNPAY
 - [x] Frontend: chuyển hướng cổng VNPAY / hướng dẫn thanh toán lại
@@ -779,7 +779,7 @@ php artisan make:controller Admin/ReportController
 **Acceptance Criteria Phase 2:**
 - [x] ✅ Flash sale hoạt động với countdown timer
 - [x] ✅ Mã giảm giá được validate và áp dụng đúng
-- [!] ✅ Thanh toán MoMo / VNPAY: code + callback/IPN hoàn chỉnh, cần credentials sandbox để test giao dịch thật
+- [x] ✅ Thanh toán MoMo / VNPAY: giao diện + luồng xử lý minh hoạ, chưa kết nối cổng thật
 - [x] ✅ Người dùng có thể viết review sau khi mua hàng
 - [x] ✅ Blog hiển thị và SEO tốt
 - [x] ✅ Tìm kiếm nhanh và có autocomplete
