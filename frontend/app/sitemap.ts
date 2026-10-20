@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { fetchApi } from '../lib/api';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5000';
 
 interface ApiItem {
   slug: string;

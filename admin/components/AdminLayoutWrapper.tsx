@@ -104,7 +104,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
         {/* View store link */}
         <div style={{ padding: '12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <a
-            href="http://localhost:3000"
+            href={process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5000'}
             target="_blank"
             rel="noreferrer"
             style={{

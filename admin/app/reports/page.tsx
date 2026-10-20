@@ -176,7 +176,7 @@ export default function AdminReportsPage() {
                 <td><strong>{index + 1}</strong></td>
                 <td>
                   <div style={{ fontWeight: 700, color: 'var(--admin-brown-dark)' }}>{product.product_name}</div>
-                  {product.slug && <a href={`http://localhost:3000/products/${product.slug}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', color: '#1976D2' }}>Xem trên website</a>}
+                  {product.slug && <a href={`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5000'}/products/${product.slug}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', color: '#1976D2' }}>Xem trên website</a>}
                 </td>
                 <td>{product.quantity}</td>
                 <td style={{ fontWeight: 700, color: 'var(--color-red)' }}>{formatPrice(product.revenue)}</td>

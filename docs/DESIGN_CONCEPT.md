@@ -161,7 +161,7 @@ DATABASE & STORAGE
             ▼                          ▼
 ┌───────────────────┐      ┌───────────────────────┐
 │  Next.js Frontend │      │  Next.js Admin Panel  │
-│  (Port 3000)      │      │  (Port 3002)           │
+│  (Port 5000)      │      │  (Port 5002)           │
 │  /app/shop/*      │      │  /app/admin/*          │
 └─────────┬─────────┘      └──────────┬────────────┘
           │                           │

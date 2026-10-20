@@ -140,8 +140,8 @@ setup: ## Setup toàn bộ dự án lần đầu
 	docker compose exec php php artisan migrate --seed
 	@echo "$(GREEN)✅ Setup complete!$(RESET)"
 	@echo ""
-	@echo "  Frontend : http://localhost:3000"
-	@echo "  Admin    : http://localhost:3002"
+	@echo "  Frontend : http://localhost:5000"
+	@echo "  Admin    : http://localhost:5002"
 	@echo "  API      : http://localhost/api/v1"
 	@echo "  Mailpit  : http://localhost:8025"
 	@echo "  MySQL    : localhost:3306"

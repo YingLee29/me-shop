@@ -7,7 +7,7 @@ import { fetchApi } from '../../../lib/api';
 
 export const revalidate = 300;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5000';
 
 async function getBlog(slug: string) {
   try {

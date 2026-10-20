@@ -49,8 +49,9 @@
 | 4 | Toàn bộ API admin trả 500 `Target class [role] does not exist` | Spatie v8 không tự đăng ký alias → khai báo middleware alias trong `bootstrap/app.php` | ✅ |
 | 5 | Giá flash sale chỉ đúng ở endpoint flash-sale, đặt hàng dùng giá cũ | Thêm quan hệ `activeFlashSaleItem` + áp dụng trong `Product::current_price` cho mọi API | ✅ |
 | 6 | Guest checkout không gửi `items` nên không đặt được đơn | Checkout gửi kèm `items[]`; server kiểm tra lại variant/giá/tồn kho | ✅ |
-| 7 | `make setup` fail do port 6379/3001 bị project khác chiếm | Đổi host port: Redis `6380`, Admin `3002` (container giữ nguyên) | ✅ |
-| 8 | Container PHP (UID 1000) không ghi được file mount | Truyền `PHP_UID/PHP_GID` của host qua compose (Makefile tự export) | ✅ |
+| 7 | `make setup` fail do port 6379/3001 bị project khác chiếm | Đổi host port: Redis `6380`, Admin `5002` (container giữ nguyên) | ✅ |
+| 8 | Chuẩn hoá URL truy cập frontend/admin | Frontend `5000 → 3000`, Admin `5002 → 3001`; cập nhật CORS, Sanctum, SEO URL, payment return URL và tài liệu | ✅ |
+| 9 | Container PHP (UID 1000) không ghi được file mount | Truyền `PHP_UID/PHP_GID` của host qua compose (Makefile tự export) | ✅ |
 
 ---
 
@@ -492,7 +493,7 @@
 |------|-----------|-------------------|
 | 14/09/2026 | _(team)_ | Tạo file PROGRESS.md. Docker infrastructure đã sẵn sàng (9 files). |
 | 20/10/2026 | AI | Fix 4 bug Phase 1 (bulk-delete, guest cart, `.env` tracked, middleware `role`) + 2 bug giá/checkout. |
-| 20/10/2026 | AI | Hạ tầng: đổi host port Redis → 6380, Admin → 3002; container dùng UID/GID host; `make setup` chạy thành công, 8/8 container Up. |
+| 20/10/2026 | AI | Hạ tầng: đổi host port Redis → 6380, Admin → 5002, Frontend → 5000; container dùng UID/GID host; `make setup` chạy thành công, 8/8 container Up. |
 | 20/10/2026 | AI | Hoàn thành Tuần 5 Phase 2: Flash Sale (migrations, models, API, countdown, admin CRUD) + Coupon (migrations, service, validate, usage tracking, admin CRUD, UI Cart/Checkout). |
 | 20/10/2026 | AI | Verify: PHP lint OK, route list OK, `tsc --noEmit` sạch (frontend + admin), test API end-to-end (guest order, coupon limit, cart sync, admin CRUD). |
 | 20/10/2026 | AI | Phase 3 Tuần 9: Wishlist (API + context + trang account) và Loyalty Points (tích/hoàn/thu hồi điểm, dùng điểm khi checkout, trang lịch sử). |
@@ -503,6 +504,7 @@
 | 20/10/2026 | AI | Bổ sung Phase 2 Tuần 6–8: MoMo/VNPAY + `payment_transactions`, review & duyệt review, blog/CMS + TipTap, FULLTEXT autocomplete, báo cáo doanh thu, quản lý tồn kho/CSV. |
 | 20/10/2026 | AI | Verify: PHP lint, route cache, `tsc --noEmit`, `next build` (frontend + admin), smoke test API/CRUD/trang mới; thêm seeder review mẫu. |
 | 20/10/2026 | AI | Chốt thanh toán online ở mức tượng trưng/minh hoạ, không yêu cầu credentials sandbox; cập nhật UI và tài liệu. |
+| 20/10/2026 | AI | Chuẩn hoá URL truy cập: Frontend `http://localhost:5000`, Admin `http://localhost:5002`; cập nhật Docker port mapping, CORS, Sanctum, SEO và tài liệu. |
 
 ---
 

@@ -21,8 +21,8 @@
 ```
 my-shop/
 ├── backend/          Laravel 12 – REST API
-├── frontend/         Next.js 14 – Website bán hàng (Port 3000)
-├── admin/            Next.js 14 – Admin Dashboard (Port 3002 → container 3001)
+├── frontend/         Next.js 14 – Website bán hàng (Host 5000 → container 3000)
+├── admin/            Next.js 14 – Admin Dashboard (Host 5002 → container 3001)
 ├── docs/             Tài liệu dự án
 │   ├── DESIGN_CONCEPT.md
 │   └── IMPLEMENTATION_PLAN.md   (file này)
@@ -83,8 +83,8 @@ my-shop/
 | `nongsan_php` | php:8.4-fpm-alpine (custom) | 9000 | Laravel API |
 | `nongsan_mysql` | mysql:8.0 | 3306 | Database |
 | `nongsan_redis` | redis:7-alpine | 6380 → 6379 | Cache & Queue |
-| `nongsan_frontend` | node:20-alpine | 3000 | Next.js Frontend |
-| `nongsan_admin` | node:20-alpine | 3002 → 3001 | Next.js Admin |
+| `nongsan_frontend` | node:20-alpine | 5000 → 3000 | Next.js Frontend |
+| `nongsan_admin` | node:20-alpine | 5002 → 3001 | Next.js Admin |
 | `nongsan_mailpit` | mailpit:latest | 8025 | Email testing UI |
 | `nongsan_queue` | php:8.4-fpm-alpine (custom) | — | Laravel Queue Worker |
 
@@ -115,8 +115,8 @@ make cache-clear                     # Xóa cache Laravel
 
 **Truy cập sau khi chạy:**
 ```
-http://localhost:3000   → Website bán hàng (Frontend)
-http://localhost:3002   → Admin Dashboard
+http://localhost:5000   → Website bán hàng (Frontend)
+http://localhost:5002   → Admin Dashboard
 http://localhost/api/v1 → Laravel API
 http://localhost:8025   → Mailpit (xem email test)
 localhost:3306          → MySQL (dùng TablePlus)
