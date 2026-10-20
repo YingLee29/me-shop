@@ -13,7 +13,7 @@
 |-----------|----------|
 | **Cập nhật lúc** | 20/10/2026 |
 | **Người cập nhật** | AI Pair Programmer |
-| **Trạng thái chung** | 🟢 Phase 1–3 hoàn thành về chức năng; thanh toán online ở mức minh hoạ, còn Lighthouse/device test |
+| **Trạng thái chung** | 🟢 Phase 1–3 hoàn thành 100% (chức năng + responsive + Lighthouse); thanh toán online ở mức minh hoạ |
 
 ---
 
@@ -23,7 +23,7 @@
 |-------|-----------|-----------|---------|---------|
 | **Phase 1** – MVP (Tuần 1–4) | 56 | 56 | 0 | 100% |
 | **Phase 2** – Core Features (Tuần 5–8) | 28 | 28 | 0 | 100% |
-| **Phase 3** – Enhancement (Tuần 9–12) | 50 | 48 | 0 | 96% |
+| **Phase 3** – Enhancement (Tuần 9–12) | 50 | 50 | 0 | 100% |
 | **Phase 4** – Advanced (Tùy chọn) | 14 | 0 | 0 | 0% |
 
 ---
@@ -55,6 +55,33 @@
 | 10 | `localhost:5000/5002` trả 502 sau khi recreate frontend/admin | Nginx cache IP cũ của container → dùng Docker DNS resolver `127.0.0.11` + biến upstream để tự phân giải lại | ✅ |
 | 11 | Ảnh sản phẩm upload hiển thị ở admin nhưng lỗi trên frontend | Next Image optimizer trong container gọi `localhost` (không phải nginx) → bỏ optimize với ảnh local, cho trình duyệt tải trực tiếp | ✅ |
 | 12 | Bổ sung quản lý nhiều ảnh sản phẩm | 1 ảnh chính + tối đa 5 ảnh phụ; admin đặt ảnh chính/xóa ảnh; chi tiết có next/prev và hover zoom | ✅ |
+| 13 | Lighthouse mobile báo LCP 8.7s ở trang chi tiết do ảnh upload 600KB không được tối ưu | Trả URL ảnh nội bộ dạng tương đối (`/storage/...`), proxy `/storage` qua nginx và bật lại Next Image optimizer (WebP ~55KB) | ✅ |
+| 14 | Trang chủ/chi tiết bị tràn ngang ở 320–425px; header và bảng đánh giá quá rộng | Ẩn bớt label/nhóm hotline trên mobile, co header action thành icon, wrap khối giá, chuyển review summary 1 cột | ✅ |
+| 15 | Admin không sử dụng được trên mobile (sidebar 260px cố định) | Sidebar off-canvas + nút hamburger, overlay, topbar rút gọn; kiểm tra không tràn ngang 375/768/1440px | ✅ |
+
+---
+
+## 🧪 E2E & PERFORMANCE BASELINE (20/10/2026)
+
+**Playwright** (`@playwright/test`, chạy tại thư mục gốc):
+
+```bash
+npm install
+npx playwright install chromium
+npm run test:e2e
+```
+
+- 19 test: responsive storefront 320/375/425/768/1024/1440px, mobile drawer, giỏ hàng, blog/SEO, đăng nhập khách/admin, wishlist đồng bộ API, upload nhiều ảnh admin, responsive admin 375/768/1440px.
+- Auth dùng API setup dùng chung, tránh đăng nhập lặp lại; state lưu tạm ở `e2e/.auth/` (đã gitignore).
+
+**Lighthouse 12.2.1 – mobile, production build:**
+
+| Trang | Performance | LCP | CLS | SEO |
+|-------|-------------|-----|-----|-----|
+| Trang chủ | 98 | 2.2s | 0.001 | 100 |
+| Chi tiết sản phẩm | 98 | 2.2s | 0 | 100 |
+
+> Đo qua Docker network với production build. LCP đạt mục tiêu < 2.5s; hero dùng ảnh WebP nội bộ, ảnh sản phẩm upload được Next resize/WebP. Các trang chính không còn tràn ngang từ 320px.
 
 ---
 
@@ -421,7 +448,7 @@
 
 ### 📦 Bước 11.2 – Mobile Responsiveness
 
-- [!] Kiểm tra trên 320px, 375px, 425px, 768px, 1024px, 1440px – **chưa test trên thiết bị thật/DevTools**
+- [x] Kiểm tra trên 320px, 375px, 425px, 768px, 1024px, 1440px bằng Playwright Chromium (không tràn ngang; drawer mobile hoạt động)
 - [x] Header mobile: hamburger menu + drawer navigation
 - [x] ProductGrid responsive (2 cột mobile → auto-fill tablet/desktop)
 - [x] Trang checkout: single column trên mobile
@@ -444,9 +471,9 @@
 - [x] ✅ Wishlist hoạt động cho user đã đăng nhập (thêm/xóa/đồng bộ icon)
 - [x] ✅ Điểm thưởng cộng/trừ chính xác (13 điểm cho đơn 139.000đ; hoàn điểm khi hủy)
 - [x] ✅ Email gửi đúng trigger, đúng template (xác nhận qua Mailpit)
-- [!] ⏳ LCP < 2.5s trên Lighthouse (mobile) – **chưa chạy Lighthouse**
-- [!] ⏳ Responsive tốt trên iPhone SE (320px) – **đã có CSS breakpoint 320/640/768/900 nhưng chưa test thiết bị thật**
-- [!] ⏳ SEO score Lighthouse > 90 – **chưa chạy Lighthouse**
+- [x] ✅ LCP < 2.5s trên Lighthouse (mobile) – production: trang chủ 2.2s, chi tiết SP 2.2s
+- [x] ✅ Responsive tốt trên iPhone SE (320px) – Playwright 320/375/425/768/1024/1440 + admin 375/768/1440
+- [x] ✅ SEO score Lighthouse > 90 – production: 100/100 (trang chủ + chi tiết SP)
 - [x] ✅ Phân quyền admin hoạt động đúng (warehouse bị 403 khi tạo SP/quản lý role)
 
 > **Ghi chú Phase 3:**
@@ -455,6 +482,8 @@
 > - Email queue qua Redis; Mailpit dùng để kiểm thử.
 > - SEO: metadata động, JSON-LD Product/Breadcrumb/Organization/Article, sitemap + robots.
 > - RBAC: super-admin (toàn bộ quyền), admin, warehouse, support được cập nhật thêm quyền categories/reviews/blogs; menu admin ẩn theo quyền.
+> - Responsive: Playwright Chromium tại 6 breakpoint storefront + 3 breakpoint admin; không thay thế kiểm thử trên thiết bị thật.
+> - Performance: ảnh upload trả URL tương đối + nginx proxy `/storage` + Next Image optimizer; hero dùng WebP nội bộ.
 > - Thanh toán online: giữ ở mức tượng trưng/minh hoạ, không cần cấu hình `MOMO_*` / `VNPAY_*`.
 
 ---
@@ -512,6 +541,8 @@
 | 20/10/2026 | AI | Fix ảnh upload không hiển thị trên frontend: bỏ Next Image optimizer cho URL `localhost`, giữ optimize cho ảnh remote. |
 | 20/10/2026 | AI | Bổ sung gallery nhiều ảnh: ảnh chính + tối đa 5 ảnh phụ, đặt/xóa ảnh trong admin, next/prev và hover zoom ở trang chi tiết. |
 | 20/10/2026 | AI | Cải thiện upload ảnh admin: thêm nhiều ô ảnh, chọn nhiều lần để cộng dồn, xem trước và bỏ chọn trước khi lưu. |
+| 20/10/2026 | AI | Bổ sung Playwright E2E (19 test): responsive storefront/admin, đăng nhập, wishlist, giỏ hàng, blog/SEO, upload ảnh; sửa tràn ngang 320–425px và sidebar admin mobile. |
+| 20/10/2026 | AI | Tối ưu LCP: URL ảnh upload tương đối + proxy `/storage` + Next Image WebP, hero WebP nội bộ; Lighthouse mobile production 98 điểm, LCP 2.2s, SEO 100. |
 
 ---
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Leaf } from 'lucide-react';
 import ProductCard, { Product } from '../components/ProductCard';
 import dynamic from 'next/dynamic';
@@ -52,7 +53,7 @@ export default async function HomePage() {
       }}>
         <div className="container" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))',
           alignItems: 'center',
           gap: '40px',
         }}>
@@ -144,9 +145,13 @@ export default async function HomePage() {
               position: 'relative',
               overflow: 'hidden',
             }}>
-              <img
-                src="https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=800&q=80"
+              <Image
+                src="/hero-rau-cu.webp"
                 alt="Rau củ hữu cơ tươi sạch"
+                width={720}
+                height={540}
+                priority
+                sizes="(max-width: 900px) 100vw, 420px"
                 style={{
                   width: '100%',
                   height: '380px',

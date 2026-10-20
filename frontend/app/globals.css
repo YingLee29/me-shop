@@ -181,6 +181,48 @@ input, textarea, select {
   }
 }
 
+@media (max-width: 640px) {
+  .topbar-contact {
+    display: none !important;
+  }
+
+  .header-actions {
+    gap: 8px !important;
+  }
+
+  .header-account > a,
+  .header-account > div > button {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 !important;
+    gap: 0 !important;
+    justify-content: center;
+  }
+
+  .header-account span {
+    display: none;
+  }
+
+  .header-cart {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 !important;
+    gap: 0 !important;
+    justify-content: center;
+  }
+
+  .header-cart-label {
+    display: none;
+  }
+
+  .header-actions .header-wishlist {
+    width: 40px;
+    height: 40px;
+  }
+}
+
 /* ── Mobile drawer ── */
 .mobile-menu-btn {
   display: none;
@@ -259,6 +301,11 @@ input, textarea, select {
 @media (max-width: 640px) {
   .container {
     padding: 0 16px;
+  }
+
+  .review-summary-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
   }
 
   .topbar {

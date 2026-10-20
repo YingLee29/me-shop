@@ -3,7 +3,7 @@
 # Dùng: make <command>
 # ─────────────────────────────────────────────────────
 
-.PHONY: help up down build restart logs shell artisan composer npm-fe npm-admin optimize optimize-clear analyze-fe
+.PHONY: help up down build restart logs shell artisan composer npm-fe npm-admin optimize optimize-clear analyze-fe test-e2e
 
 # Màu sắc terminal
 GREEN  := \033[0;32m
@@ -118,6 +118,9 @@ npm-admin: ## Chạy npm trong admin: make npm-admin CMD="install"
 
 analyze-fe: ## Phân tích bundle frontend (@next/bundle-analyzer)
 	docker compose exec frontend npm run analyze
+
+test-e2e: ## Chạy Playwright E2E (npm install + npx playwright install chromium trước)
+	npm run test:e2e
 
 # ── Setup (chạy lần đầu) ─────────────────────────────
 setup: ## Setup toàn bộ dự án lần đầu
