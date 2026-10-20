@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '../../../lib/image';
 import { ShoppingCart, Zap, Star, MapPin, Check, Plus, Minus, ShieldCheck } from 'lucide-react';
 import { formatPrice } from '../../../lib/api';
 import { useCart } from '../../../context/CartContext';
@@ -76,6 +77,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
             alt={product.name}
             fill
             priority
+            unoptimized={shouldUnoptimizeImage(activeImage)}
             sizes="(max-width: 768px) 100vw, 50vw"
             style={{ objectFit: 'cover' }}
           />
@@ -98,7 +100,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
                   flexShrink: 0,
                 }}
               >
-                <Image src={img.url} alt={product.name} width={74} height={74} style={{ objectFit: 'cover' }} />
+                <Image src={img.url} alt={product.name} width={74} height={74} unoptimized={shouldUnoptimizeImage(img.url)} style={{ objectFit: 'cover' }} />
               </button>
             ))}
           </div>

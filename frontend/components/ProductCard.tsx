@@ -3,6 +3,7 @@
 import React, { memo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '../lib/image';
 import { ShoppingCart, Check, Star, MapPin, Heart } from 'lucide-react';
 import { formatPrice } from '../lib/api';
 import { useCart } from '../context/CartContext';
@@ -121,6 +122,7 @@ function ProductCard({ product }: { product: Product }) {
           src={imageUrl}
           alt={product.name}
           fill
+          unoptimized={shouldUnoptimizeImage(imageUrl)}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 260px"
           style={{
             objectFit: 'cover',

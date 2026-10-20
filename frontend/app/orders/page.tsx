@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '../../lib/image';
 import { Package, ChevronLeft, ChevronRight, XCircle, ArrowRight, Clock } from 'lucide-react';
 import { fetchApi, formatPrice } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
@@ -147,6 +148,7 @@ export default function OrdersPage() {
                           alt={item.product_name}
                           width={48}
                           height={48}
+                          unoptimized={shouldUnoptimizeImage(item.image)}
                           style={{ borderRadius: '8px', objectFit: 'cover' }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>

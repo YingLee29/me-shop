@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '../../lib/image';
 import { Trash2, Plus, Minus, ArrowRight, ArrowLeft, ShoppingBag, Tag, X, Check } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { formatPrice } from '../../lib/api';
@@ -151,6 +152,7 @@ export default function CartPage() {
                       alt={item.name}
                       width={68}
                       height={68}
+                      unoptimized={shouldUnoptimizeImage(item.image)}
                       style={{ borderRadius: 'var(--radius-sm)', objectFit: 'cover', flexShrink: 0 }}
                     />
                     <div>

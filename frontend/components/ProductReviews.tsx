@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '../lib/image';
 import { Star, Upload, CheckCircle2, ChevronDown } from 'lucide-react';
 import { fetchApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
@@ -260,7 +261,7 @@ export default function ProductReviews({ slug }: { slug: string }) {
                 <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
                   {review.images.map((image, index) => (
                     <a key={index} href={image} target="_blank" rel="noreferrer">
-                      <Image src={image} alt="Ảnh đánh giá" width={72} height={72} style={{ objectFit: 'cover', borderRadius: 8, border: '1px solid var(--color-border)' }} />
+                      <Image src={image} alt="Ảnh đánh giá" width={72} height={72} unoptimized={shouldUnoptimizeImage(image)} style={{ objectFit: 'cover', borderRadius: 8, border: '1px solid var(--color-border)' }} />
                     </a>
                   ))}
                 </div>
