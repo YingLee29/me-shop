@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Check, Star, MapPin } from 'lucide-react';
+import Image from 'next/image';
+import { ShoppingCart, Check, Star, MapPin, Heart } from 'lucide-react';
 import { formatPrice } from '../lib/api';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 
 export interface Product {
   id: number;
@@ -25,9 +27,11 @@ export interface Product {
   category?: { id: number; name: string; slug: string };
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
+  const { has: isWishlisted, toggle: toggleWishlist } = useWishlist();
   const [added, setAdded] = useState(false);
+  const saved = isWishlisted(product.id);
 
   const imageUrl = product.primary_image?.url ||
     (product.images && product.images.length > 0 ? product.images[0].url : 'https://placehold.co/400x400/FAF7F0/6B4226?text=NongSan');
@@ -55,6 +59,37 @@ export default function ProductCard({ product }: { product: Product }) {
       height: '100%',
       position: 'relative',
     }}>
+      {/* Wishlist */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleWishlist(product.id);
+        }}
+        title={saved ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}
+        aria-label={saved ? 'Bỏ khỏi yêu thích' : 'Thêm vào yêu thích'}
+        style={{
+          position: 'absolute',
+          top: 10,
+          right: 10,
+          zIndex: 12,
+          width: 38,
+          height: 38,
+          borderRadius: '50%',
+          background: 'rgba(255,255,255,0.95)',
+          color: saved ? '#E53935' : 'var(--color-gray-mid)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          transition: 'transform 0.15s ease',
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.08)')}
+        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+      >
+        <Heart size={18} fill={saved ? '#E53935' : 'none'} />
+      </button>
+
       {/* Badges */}
       <div style={{
         position: 'absolute',
@@ -82,15 +117,12 @@ export default function ProductCard({ product }: { product: Product }) {
         background: '#FAF7F0',
         overflow: 'hidden',
       }}>
-        <img
+        <Image
           src={imageUrl}
           alt={product.name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 260px"
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
             objectFit: 'cover',
             transition: 'transform 0.4s ease',
           }}
@@ -194,3 +226,5 @@ export default function ProductCard({ product }: { product: Product }) {
     </div>
   );
 }
+
+export default memo(ProductCard);

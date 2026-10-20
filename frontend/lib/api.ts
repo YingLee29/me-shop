@@ -6,7 +6,9 @@ export const API_BASE_URL = isServer
   ? (process.env.INTERNAL_API_URL || 'http://nginx/api/v1')
   : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost/api/v1');
 
-export async function fetchApi(endpoint: string, options: RequestInit = {}) {
+export type ApiRequestInit = RequestInit & { next?: { revalidate?: number } };
+
+export async function fetchApi(endpoint: string, options: ApiRequestInit = {}) {
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
   const headers: Record<string, string> = {
@@ -29,7 +31,7 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(url, {
     ...options,
     headers,
-    cache: options.cache || 'no-store',
+    cache: options.cache ?? (options.next ? undefined : 'no-store'),
   });
 
   const data = await response.json().catch(() => null);

@@ -15,7 +15,7 @@ class Order extends Model
         'user_id', 'order_code', 'status', 'payment_method', 'payment_status',
         'shipping_name', 'shipping_phone', 'shipping_email',
         'shipping_province', 'shipping_district', 'shipping_ward', 'shipping_address',
-        'subtotal', 'shipping_fee', 'discount_amount', 'total',
+        'subtotal', 'shipping_fee', 'discount_amount', 'points_used', 'points_discount', 'total',
         'coupon_code', 'note', 'admin_note', 'paid_at',
     ];
 
@@ -23,6 +23,8 @@ class Order extends Model
         'subtotal'        => 'decimal:0',
         'shipping_fee'    => 'decimal:0',
         'discount_amount' => 'decimal:0',
+        'points_used'     => 'integer',
+        'points_discount' => 'decimal:0',
         'total'           => 'decimal:0',
         'paid_at'         => 'datetime',
     ];

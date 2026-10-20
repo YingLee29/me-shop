@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Product extends Model
 {
@@ -21,6 +22,18 @@ class Product extends Model
         'sold_count', 'view_count', 'avg_rating', 'review_count',
         'meta_title', 'meta_description',
     ];
+
+    protected static function booted(): void
+    {
+        $flush = function () {
+            Cache::forget('products.featured');
+            Cache::forget('products.flash_sale');
+        };
+
+        static::saved($flush);
+        static::deleted($flush);
+        static::restored($flush);
+    }
 
     protected $casts = [
         'price'            => 'decimal:0',

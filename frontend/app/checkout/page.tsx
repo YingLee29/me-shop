@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheck, Truck, CreditCard, Banknote, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, Banknote, ArrowLeft, CheckCircle2, AlertCircle, Gift } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { fetchApi, formatPrice } from '../../lib/api';
@@ -23,6 +23,21 @@ export default function CheckoutPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [availablePoints, setAvailablePoints] = useState(0);
+  const [pointsUsed, setPointsUsed] = useState(0);
+
+  // Tải số điểm khả dụng
+  useEffect(() => {
+    if (!user) {
+      setAvailablePoints(0);
+      setPointsUsed(0);
+      return;
+    }
+
+    fetchApi('/loyalty')
+      .then((res) => setAvailablePoints(res?.summary?.points || 0))
+      .catch(() => setAvailablePoints(0));
+  }, [user]);
 
   // Prefill user profile if logged in
   useEffect(() => {
@@ -62,7 +77,13 @@ export default function CheckoutPage() {
   const shippingDiscount = coupon?.shipping_discount || 0;
   const payableShipping = Math.max(0, shippingFee - shippingDiscount);
   const discountAmount = coupon?.discount_amount || 0;
-  const finalTotal = coupon ? coupon.total : totalAmount + shippingFee;
+  const baseTotal = coupon ? coupon.total : totalAmount + shippingFee;
+
+  // 1 điểm = 100đ, không vượt quá giá trị đơn
+  const maxPoints = Math.min(availablePoints, Math.floor(baseTotal / 100));
+  const appliedPoints = Math.min(pointsUsed, maxPoints);
+  const pointsDiscount = appliedPoints * 100;
+  const finalTotal = Math.max(0, baseTotal - pointsDiscount);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +97,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           ...formData,
           coupon_code: coupon?.code || null,
+          points_used: appliedPoints,
           // Gửi kèm items để guest cũng đặt được đơn và server kiểm tra lại giá/tồn kho
           items: items.map((i) => ({
             product_id: i.product_id,
@@ -132,7 +154,7 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={{
+        <form onSubmit={handleSubmit} className="checkout-layout" style={{
           display: 'grid',
           gridTemplateColumns: '1.2fr 1fr',
           gap: '36px',
@@ -354,6 +376,60 @@ export default function CheckoutPage() {
                 <Link href="/cart" style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
                   Thay đổi mã giảm giá
                 </Link>
+              )}
+
+              {user && availablePoints >= 10 && maxPoints >= 10 && (
+                <div style={{
+                  background: 'var(--color-cream)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '12px',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-brown)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Gift size={15} /> Dùng điểm thưởng ({availablePoints} điểm)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPointsUsed(maxPoints)}
+                      style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary-dark)', background: 'none' }}
+                    >
+                      Dùng tối đa
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="number"
+                      min={0}
+                      max={maxPoints}
+                      value={pointsUsed || ''}
+                      placeholder="0"
+                      onChange={(e) => {
+                        const value = Math.max(0, Math.min(maxPoints, Number(e.target.value) || 0));
+                        setPointsUsed(value > 0 && value < 10 ? 10 : value);
+                      }}
+                      style={{
+                        width: '110px',
+                        padding: '8px 10px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1.5px solid var(--color-border)',
+                        outline: 'none',
+                        fontSize: '0.85rem',
+                        background: '#FFF',
+                      }}
+                    />
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-gray-dark)' }}>
+                      = -{formatPrice(pointsDiscount)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {pointsDiscount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-green)', fontWeight: 600 }}>
+                  <span>Điểm thưởng ({appliedPoints} điểm):</span>
+                  <span>-{formatPrice(pointsDiscount)}</span>
+                </div>
               )}
 
               <div style={{

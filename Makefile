@@ -3,7 +3,7 @@
 # Dùng: make <command>
 # ─────────────────────────────────────────────────────
 
-.PHONY: help up down build restart logs shell artisan composer npm-fe npm-admin
+.PHONY: help up down build restart logs shell artisan composer npm-fe npm-admin optimize optimize-clear analyze-fe
 
 # Màu sắc terminal
 GREEN  := \033[0;32m
@@ -96,6 +96,12 @@ cache-clear: ## Xóa toàn bộ cache Laravel
 	docker compose exec php php artisan route:clear
 	docker compose exec php php artisan view:clear
 
+optimize: ## Cache config/route/view cho production
+	docker compose exec php php artisan optimize
+
+optimize-clear: ## Xóa cache production (config/route/view)
+	docker compose exec php php artisan optimize:clear
+
 # ── Composer ─────────────────────────────────────────
 composer: ## Chạy composer command: make composer CMD="require package/name"
 	docker compose exec php composer $(CMD)
@@ -109,6 +115,9 @@ npm-fe: ## Chạy npm trong frontend: make npm-fe CMD="install"
 
 npm-admin: ## Chạy npm trong admin: make npm-admin CMD="install"
 	docker compose exec admin npm $(CMD)
+
+analyze-fe: ## Phân tích bundle frontend (@next/bundle-analyzer)
+	docker compose exec frontend npm run analyze
 
 # ── Setup (chạy lần đầu) ─────────────────────────────
 setup: ## Setup toàn bộ dự án lần đầu

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderStatusLog;
+use App\Services\LoyaltyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -87,6 +88,8 @@ class OrderController extends Controller
                 'payment_status'   => $order->payment_status,
                 'subtotal'         => (float) $order->subtotal,
                 'discount_amount'  => (float) $order->discount_amount,
+                'points_used'      => (int) $order->points_used,
+                'points_discount'  => (float) $order->points_discount,
                 'shipping_fee'     => (float) $order->shipping_fee,
                 'total'            => (float) $order->total,
                 'shipping_name'    => $order->shipping_name,
@@ -126,7 +129,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, int $id): JsonResponse
     {
         $data = $request->validate([
-            'status'     => ['required', 'in:pending,confirmed,processing,shipping,completed,cancelled,refunded'],
+            'status'     => ['required', 'in:pending,confirmed,preparing,shipping,delivered,completed,cancelled,refunded'],
             'note'       => ['nullable', 'string', 'max:1000'],
             'admin_note' => ['nullable', 'string', 'max:1000'],
         ]);
@@ -136,9 +139,10 @@ class OrderController extends Controller
         // Validate luồng trạng thái hợp lệ
         $allowedTransitions = [
             'pending'    => ['confirmed', 'cancelled'],
-            'confirmed'  => ['processing', 'cancelled'],
-            'processing' => ['shipping', 'cancelled'],
-            'shipping'   => ['completed'],
+            'confirmed'  => ['preparing', 'cancelled'],
+            'preparing'  => ['shipping', 'cancelled'],
+            'shipping'   => ['delivered', 'completed'],
+            'delivered'  => ['completed'],
             'completed'  => ['refunded'],
             'cancelled'  => [],
             'refunded'   => [],
@@ -160,6 +164,21 @@ class OrderController extends Controller
                 'admin_note' => $data['admin_note'] ?? null,
                 'created_by' => $request->user()->id,
             ]);
+
+            $loyalty = app(LoyaltyService::class);
+
+            if ($data['status'] === Order::STATUS_COMPLETED) {
+                $loyalty->awardForOrder($order->fresh());
+            }
+
+            if ($data['status'] === Order::STATUS_CANCELLED) {
+                $loyalty->refundRedeemed($order->fresh());
+            }
+
+            if ($data['status'] === Order::STATUS_REFUNDED) {
+                $loyalty->reverseEarned($order->fresh());
+                $loyalty->refundRedeemed($order->fresh());
+            }
         });
 
         return response()->json(['message' => 'Đã cập nhật trạng thái đơn hàng.']);

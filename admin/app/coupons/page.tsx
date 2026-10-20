@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Edit3, Ticket, Power } from 'lucide-react';
 import { fetchAdminApi, formatPrice } from '../../lib/api';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 
 interface Coupon {
   id: number;
@@ -54,6 +55,8 @@ const emptyForm = () => ({
 });
 
 export default function AdminCouponsPage() {
+  const { user } = useAdminAuth();
+  const canManage = user?.permissions?.includes('coupons.manage') ?? false;
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -204,9 +207,11 @@ export default function AdminCouponsPage() {
           </p>
         </div>
 
-        <button onClick={openCreate} className="btn-primary">
-          <Plus size={16} /> Tạo Mã Giảm Giá
-        </button>
+        {canManage && (
+          <button onClick={openCreate} className="btn-primary">
+            <Plus size={16} /> Tạo Mã Giảm Giá
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -253,6 +258,7 @@ export default function AdminCouponsPage() {
                       <span className="badge" style={{ color: meta.color, background: meta.bg }}>{meta.label}</span>
                     </td>
                     <td>
+                      {canManage && (
                       <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
                         <button onClick={() => handleToggle(coupon)} title="Bật/tắt" style={{ padding: '7px', color: coupon.is_active ? 'var(--color-green)' : 'var(--admin-text-muted)' }}>
                           <Power size={16} />
@@ -264,6 +270,7 @@ export default function AdminCouponsPage() {
                           <Trash2 size={16} />
                         </button>
                       </div>
+                      )}
                     </td>
                   </tr>
                 );

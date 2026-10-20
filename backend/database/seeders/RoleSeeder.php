@@ -15,18 +15,27 @@ class RoleSeeder extends Seeder
 
         // Tạo permissions
         $permissions = [
-            // Products
+            // Sản phẩm & kho
             'products.view',
             'products.create',
             'products.update',
             'products.delete',
-            // Orders
+            'inventory.view',
+            'inventory.update',
+            // Đơn hàng
             'orders.view',
             'orders.update-status',
-            // Users
+            // Khuyến mãi
+            'coupons.view',
+            'coupons.manage',
+            'flash-sales.view',
+            'flash-sales.manage',
+            // Người dùng & phân quyền
             'users.view',
             'users.manage',
-            // Settings
+            'roles.manage',
+            // Báo cáo & cài đặt
+            'reports.view',
             'settings.manage',
         ];
 
@@ -37,6 +46,8 @@ class RoleSeeder extends Seeder
         // Tạo roles
         $superAdmin = Role::firstOrCreate(['name' => 'super-admin']);
         $admin      = Role::firstOrCreate(['name' => 'admin']);
+        $warehouse  = Role::firstOrCreate(['name' => 'warehouse']);
+        $support    = Role::firstOrCreate(['name' => 'support']);
         $staff      = Role::firstOrCreate(['name' => 'staff']);
         Role::firstOrCreate(['name' => 'customer']);
 
@@ -45,10 +56,30 @@ class RoleSeeder extends Seeder
 
         $admin->syncPermissions([
             'products.view', 'products.create', 'products.update', 'products.delete',
+            'inventory.view', 'inventory.update',
+            'orders.view', 'orders.update-status',
+            'coupons.view', 'coupons.manage',
+            'flash-sales.view', 'flash-sales.manage',
+            'users.view', 'users.manage',
+            'reports.view', 'settings.manage',
+        ]);
+
+        // Thủ kho: xem/sửa sản phẩm & tồn kho, xem đơn hàng
+        $warehouse->syncPermissions([
+            'products.view', 'products.update',
+            'inventory.view', 'inventory.update',
+            'orders.view',
+            'flash-sales.view',
+        ]);
+
+        // CSKH: xem & cập nhật trạng thái đơn hàng, xem khách hàng
+        $support->syncPermissions([
+            'products.view',
             'orders.view', 'orders.update-status',
             'users.view',
         ]);
 
+        // Vai trò cũ (tương thích) – quyền tương đương CSKH
         $staff->syncPermissions([
             'products.view',
             'orders.view', 'orders.update-status',

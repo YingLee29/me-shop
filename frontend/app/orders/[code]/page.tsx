@@ -218,6 +218,12 @@ export default async function OrderSuccessPage({
               <span>Phí giao hàng:</span>
               <span>{order.shipping_fee == 0 ? <strong style={{ color: 'var(--color-green)' }}>Miễn phí</strong> : formatPrice(order.shipping_fee)}</span>
             </div>
+            {order.points_discount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-green)' }}>
+                <span>Điểm thưởng ({order.points_used} điểm):</span>
+                <span>-{formatPrice(order.points_discount)}</span>
+              </div>
+            )}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',

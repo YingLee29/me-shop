@@ -1,13 +1,65 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ShieldCheck, Truck, RefreshCw, Star, MapPin, Award, CheckCircle } from 'lucide-react';
 import { fetchApi, formatPrice } from '../../../lib/api';
 import ProductDetailClient from './ProductDetailClient';
 
+export const revalidate = 600;
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+const absoluteUrl = (url?: string | null) => {
+  if (!url) return undefined;
+  try {
+    return new URL(url, SITE_URL).toString();
+  } catch {
+    return undefined;
+  }
+};
+
+const stripHtml = (html?: string | null) =>
+  (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const product = await getProductBySlug(params.slug);
+
+  if (!product) {
+    return { title: 'Không tìm thấy sản phẩm' };
+  }
+
+  const description = stripHtml(product.short_description || product.description).slice(0, 160)
+    || `Mua ${product.name} nông sản sạch chuẩn VietGAP, giao lạnh trong 2h.`;
+  const image = absoluteUrl(product.primary_image?.url);
+
+  return {
+    title: product.meta_title || product.name,
+    description: product.meta_description || description,
+    alternates: { canonical: `/products/${product.slug}` },
+    openGraph: {
+      type: 'website',
+      url: `${SITE_URL}/products/${product.slug}`,
+      title: product.meta_title || product.name,
+      description: product.meta_description || description,
+      images: image ? [{ url: image, alt: product.name }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: product.meta_title || product.name,
+      description: product.meta_description || description,
+      images: image ? [image] : undefined,
+    },
+  };
+}
+
 async function getProductBySlug(slug: string) {
   try {
-    const res = await fetchApi(`/products/${slug}`);
+    const res = await fetchApi(`/products/${slug}`, { next: { revalidate: 600 } });
     return res?.data || null;
   } catch (err) {
     console.error('Error fetching product detail:', err);
@@ -26,8 +78,70 @@ export default async function ProductDetailPage({
     notFound();
   }
 
+  const imageUrl = absoluteUrl(product.primary_image?.url);
+
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: stripHtml(product.short_description || product.description),
+    image: imageUrl ? [imageUrl] : undefined,
+    sku: product.sku || undefined,
+    category: product.category?.name,
+    offers: {
+      '@type': 'Offer',
+      url: `${SITE_URL}/products/${product.slug}`,
+      priceCurrency: 'VND',
+      price: Number(product.current_price),
+      availability: (product.stock_quantity ?? 0) > 0
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      itemCondition: 'https://schema.org/NewCondition',
+    },
+    ...(product.review_count > 0 && product.avg_rating
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: Number(product.avg_rating),
+            reviewCount: Number(product.review_count),
+          },
+        }
+      : {}),
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Trang chủ', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Sản phẩm', item: `${SITE_URL}/products` },
+      ...(product.category
+        ? [{
+            '@type': 'ListItem',
+            position: 3,
+            name: product.category.name,
+            item: `${SITE_URL}/products?category=${product.category.slug}`,
+          }]
+        : []),
+      {
+        '@type': 'ListItem',
+        position: product.category ? 4 : 3,
+        name: product.name,
+        item: `${SITE_URL}/products/${product.slug}`,
+      },
+    ],
+  };
+
   return (
     <div style={{ padding: '40px 0 80px 0' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <div className="container">
         {/* Breadcrumb */}
         <div style={{ fontSize: '0.85rem', color: 'var(--color-gray-mid)', marginBottom: '24px' }}>

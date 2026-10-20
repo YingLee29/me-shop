@@ -3,8 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Trash2, Edit3, Check, X, MapPin } from 'lucide-react';
 import { fetchAdminApi, formatPrice } from '../../lib/api';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 
 export default function AdminProductsPage() {
+  const { user } = useAdminAuth();
+  const can = (permission: string) => user?.permissions?.includes(permission) ?? false;
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,13 +136,15 @@ export default function AdminProductsPage() {
             </button>
           </form>
 
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="btn-primary"
-            style={{ background: 'var(--color-green)' }}
-          >
-            <Plus size={18} /> Thêm Sản Phẩm Mới
-          </button>
+          {can('products.create') && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="btn-primary"
+              style={{ background: 'var(--color-green)' }}
+            >
+              <Plus size={18} /> Thêm Sản Phẩm Mới
+            </button>
+          )}
         </div>
       </div>
 
@@ -211,13 +216,15 @@ export default function AdminProductsPage() {
                     </span>
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <button
-                      onClick={() => handleDeleteProduct(p.id)}
-                      style={{ color: '#E53935', padding: '6px' }}
-                      title="Xóa sản phẩm"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {can('products.delete') && (
+                      <button
+                        onClick={() => handleDeleteProduct(p.id)}
+                        style={{ color: '#E53935', padding: '6px' }}
+                        title="Xóa sản phẩm"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

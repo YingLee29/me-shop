@@ -1,8 +1,11 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 import ProductCard, { Product } from '../../components/ProductCard';
 import { fetchApi } from '../../lib/api';
+
+export const revalidate = 60;
 
 interface SearchParams {
   category?: string;
@@ -37,6 +40,34 @@ async function getProductsData(searchParams: SearchParams) {
     console.error('Error loading products:', err);
     return { products: [], meta: {}, categories: [] };
   }
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const categoryName = searchParams.category
+    ? searchParams.category.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    : null;
+
+  const title = searchParams.search
+    ? `Tìm kiếm "${searchParams.search}"`
+    : categoryName
+      ? `Sản phẩm ${categoryName}`
+      : 'Tất cả nông sản sạch';
+
+  const query = new URLSearchParams();
+  if (searchParams.category) query.set('category', searchParams.category);
+  if (searchParams.search) query.set('search', searchParams.search);
+  const canonical = query.toString() ? `/products?${query.toString()}` : '/products';
+
+  return {
+    title,
+    description: 'Khám phá rau củ quả hữu cơ, gạo sạch, trái cây đặc sản chuẩn VietGAP – giao lạnh trong 2h.',
+    alternates: { canonical },
+    openGraph: { title, url: canonical },
+  };
 }
 
 export default async function ProductsPage({
@@ -127,14 +158,14 @@ export default async function ProductsPage({
         </div>
 
         {/* Content Layout: Sidebar + Grid */}
-        <div style={{
+        <div className="products-layout" style={{
           display: 'grid',
           gridTemplateColumns: '260px 1fr',
           gap: '32px',
           alignItems: 'start',
         }}>
           {/* Sidebar Filters */}
-          <aside style={{
+          <aside className="product-filters" style={{
             background: '#FFF',
             padding: '24px',
             borderRadius: 'var(--radius-md)',
@@ -232,7 +263,7 @@ export default async function ProductsPage({
                 </Link>
               </div>
             ) : (
-              <div style={{
+              <div className="product-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
                 gap: '24px',

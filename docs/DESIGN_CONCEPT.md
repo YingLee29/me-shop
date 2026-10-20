@@ -675,6 +675,7 @@ GET    /api/v1/cart
 POST   /api/v1/cart/add
 PUT    /api/v1/cart/{id}
 DELETE /api/v1/cart/{id}
+POST   /api/v1/cart/sync                   # Gộp giỏ guest sau khi đăng nhập
 
 # ─── ORDERS (Auth) ───────────────────────────
 GET    /api/v1/orders
@@ -689,30 +690,48 @@ POST   /api/v1/products/{id}/reviews
 # ─── COUPONS ─────────────────────────────────
 POST   /api/v1/coupons/validate
 
+# ─── WISHLIST (Auth) ─────────────────────────
+GET    /api/v1/wishlists
+GET    /api/v1/wishlists/ids
+POST   /api/v1/wishlists
+DELETE /api/v1/wishlists/{product}
+
+# ─── LOYALTY (Auth) ──────────────────────────
+GET    /api/v1/loyalty                     # Số điểm + lịch sử giao dịch
+
 # ─── BLOGS (Public) ──────────────────────────
 GET    /api/v1/blogs
 GET    /api/v1/blogs/{slug}
 
-# ─── ADMIN (Role: admin/super-admin) ─────────
-GET    /api/v1/admin/dashboard/stats
-GET    /api/v1/admin/dashboard/revenue-chart
-
+# ─── ADMIN (role + permission) ───────────────
+# products.view / products.create / products.update / products.delete
 GET    /api/v1/admin/products
 POST   /api/v1/admin/products
-PUT    /api/v1/admin/products/{id}
+POST   /api/v1/admin/products/{id}
 DELETE /api/v1/admin/products/{id}
-POST   /api/v1/admin/products/bulk-action
+DELETE /api/v1/admin/products/bulk-delete
 
+# orders.view / orders.update-status
 GET    /api/v1/admin/orders
 GET    /api/v1/admin/orders/{id}
-PUT    /api/v1/admin/orders/{id}/status
+PATCH  /api/v1/admin/orders/{id}/status
 
-GET    /api/v1/admin/customers
-GET    /api/v1/admin/customers/{id}
+# flash-sales.view / flash-sales.manage
+GET    /api/v1/admin/flash-sales
+POST   /api/v1/admin/flash-sales
+PUT    /api/v1/admin/flash-sales/{id}
+DELETE /api/v1/admin/flash-sales/{id}
 
-GET    /api/v1/admin/reports/revenue
-GET    /api/v1/admin/reports/products
-GET    /api/v1/admin/reports/inventory
+# coupons.view / coupons.manage
+GET    /api/v1/admin/coupons
+POST   /api/v1/admin/coupons
+PUT    /api/v1/admin/coupons/{id}
+DELETE /api/v1/admin/coupons/{id}
+
+# roles.manage (chỉ super-admin)
+GET    /api/v1/admin/roles
+GET    /api/v1/admin/roles/permissions
+PUT    /api/v1/admin/roles/{role}
 ```
 
 ---
@@ -779,6 +798,25 @@ reviews: id, product_id, user_id, order_item_id,
 
 -- WISHLISTS
 wishlists: id, user_id, product_id, created_at
+           UNIQUE(user_id, product_id)
+
+-- LOYALTY
+users.loyalty_points: unsigned int default 0
+loyalty_transactions: id, user_id, order_id (nullable),
+                      type (earn/redeem/refund/adjust),
+                      points (signed), description, created_at
+orders.points_used: unsigned int default 0
+orders.points_discount: decimal(12,0) default 0
+
+-- FLASH SALE
+flash_sales: id, name, slug, description, banner_image,
+             start_at, end_at, is_active
+flash_sale_products: id, flash_sale_id, product_id,
+                     sale_price, quantity_limit, sold_count, sort_order
+
+-- COUPON USAGE
+coupon_usages: id, coupon_id, user_id (nullable), order_id,
+               discount_amount, created_at
 
 -- BLOGS
 blogs: id, category_id, author_id, title, slug,
@@ -824,13 +862,13 @@ settings: id, key (unique), value (text), group, created_at
 
 ### Phase 3 – Enhancement (Tuần 9–12)
 
-- [ ] Wishlist sản phẩm yêu thích
-- [ ] Điểm thưởng khách hàng (loyalty points)
-- [ ] Email notifications (xác nhận đơn, giao hàng, hủy)
-- [ ] SEO nâng cao (sitemap.xml, robots.txt, JSON-LD schema)
-- [ ] Performance: Redis cache, image optimization, CDN
+- [x] Wishlist sản phẩm yêu thích
+- [x] Điểm thưởng khách hàng (loyalty points)
+- [x] Email notifications (xác nhận đơn, giao hàng, hủy, hoàn thành, welcome)
+- [x] SEO nâng cao (sitemap.xml, robots.txt, JSON-LD schema, Open Graph, canonical)
+- [x] Performance: Redis cache, `next/image`, ISR, bundle analyzer
 - [ ] PWA: Push notifications, offline support
-- [ ] Admin: Phân quyền nhân viên (RBAC)
+- [x] Admin: Phân quyền nhân viên (RBAC)
 
 ### Phase 4 – Advanced (Tùy chọn)
 
@@ -845,7 +883,13 @@ settings: id, key (unique), value (text), group, created_at
 
 ## 📌 GHI CHÚ KỸ THUẬT
 
-> **SEO**: Tất cả trang sản phẩm & danh mục dùng **Next.js SSR/SSG**. Sử dụng `generateMetadata()` cho dynamic og tags. Target LCP < 2.5s (Core Web Vitals).
+> **SEO**: Tất cả trang sản phẩm & danh mục dùng **Next.js SSR/ISR**. Sử dụng `generateMetadata()` cho dynamic og tags, JSON-LD (`Product`, `BreadcrumbList`, `Organization`), `sitemap.ts` + `robots.ts`. Target LCP < 2.5s (Core Web Vitals).
+>
+> **Performance**: Redis cache (categories 1h, featured 10m, flash sale 5m), composite DB indexes, eager loading; frontend dùng `next/image`, dynamic import và ISR. Cache production: `make optimize` / `make optimize-clear`.
+>
+> **RBAC**: Spatie Permission với roles `super-admin`, `admin`, `warehouse`, `support`, `staff`, `customer`; middleware `role` + `permission` đã đăng ký trong `bootstrap/app.php`. Admin UI `/roles` cho phép matrix checkbox theo quyền.
+>
+> **Loyalty**: 10.000đ = 1 điểm; 1 điểm = 100đ; tối thiểu 10 điểm/lần dùng; cộng khi đơn `completed`, hoàn khi hủy, thu hồi khi refund.
 
 > **Security**: API auth bằng Laravel Sanctum. Rate limiting login endpoint (5 lần/phút). Input validation cả frontend (Zod) và backend (FormRequest).
 

@@ -3,14 +3,16 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, Search, User, Phone, MapPin, Sparkles, Menu, X, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Search, User, Phone, MapPin, Sparkles, Menu, X, ShieldCheck, Heart, Gift } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
 
 export default function Header() {
   const router = useRouter();
   const { itemCount } = useCart();
   const { user, logout } = useAuth();
+  const { count: wishlistCount } = useWishlist();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -87,7 +89,7 @@ export default function Header() {
           </Link>
 
           {/* Search Box */}
-          <form onSubmit={handleSearch} style={{
+          <form onSubmit={handleSearch} className="header-search" style={{
             flex: 1,
             maxWidth: '560px',
             position: 'relative',
@@ -176,6 +178,20 @@ export default function Header() {
                       >
                         Đơn hàng của tôi
                       </Link>
+                      <Link
+                        href="/account/wishlist"
+                        onClick={() => setUserDropdownOpen(false)}
+                        style={{ display: 'block', padding: '9px 16px', fontSize: '0.85rem', color: 'var(--color-dark)' }}
+                      >
+                        Sản phẩm yêu thích
+                      </Link>
+                      <Link
+                        href="/account/points"
+                        onClick={() => setUserDropdownOpen(false)}
+                        style={{ display: 'block', padding: '9px 16px', fontSize: '0.85rem', color: 'var(--color-dark)' }}
+                      >
+                        Điểm thưởng ({user.loyalty_points ?? 0})
+                      </Link>
                       <button
                         onClick={() => {
                           logout();
@@ -217,6 +233,38 @@ export default function Header() {
                 </Link>
               )}
             </div>
+
+            {/* Wishlist Button */}
+            <Link
+              href="/account/wishlist"
+              title="Sản phẩm yêu thích"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                background: '#FFF',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-brown)',
+                position: 'relative',
+              }}
+            >
+              <Heart size={18} />
+              {wishlistCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: -5, right: -5,
+                  background: 'var(--color-red)', color: '#FFF',
+                  fontSize: '0.65rem', fontWeight: 800,
+                  minWidth: 17, height: 17, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 3px',
+                }}>
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
 
             {/* Cart Button */}
             <Link
@@ -265,12 +313,23 @@ export default function Header() {
       </div>
 
       {/* ── Navigation Menu ── */}
-      <nav style={{
+      <nav className="main-nav" style={{
         background: '#FFF',
         borderBottom: '1px solid var(--color-border)',
       }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '48px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '28px', height: '100%' }}>
+          <button
+            type="button"
+            className="mobile-menu-btn"
+            aria-label="Mở menu"
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            style={{ alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: 8, background: 'var(--color-cream)', color: 'var(--color-brown)' }}
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+
+          <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '28px', height: '100%' }}>
             <Link
               href="/products"
               style={{
@@ -303,7 +362,7 @@ export default function Header() {
             </Link>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="nav-promo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="badge badge-sale" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
               ⚡ Flash Sale
             </span>
@@ -312,6 +371,31 @@ export default function Header() {
             </span>
           </div>
         </div>
+
+        {mobileMenuOpen && (
+          <div className="mobile-drawer">
+            {[
+              { href: '/', label: 'Trang chủ' },
+              { href: '/products', label: 'Tất cả sản phẩm' },
+              { href: '/products?is_featured=1', label: 'Sản phẩm nổi bật' },
+              { href: '/products?category=rau-cu', label: 'Rau củ tươi' },
+              { href: '/products?category=trai-cay', label: 'Trái cây sạch' },
+              { href: '/products?category=gao-ngu-coc', label: 'Gạo & ngũ cốc' },
+              { href: '/account/wishlist', label: '♡ Sản phẩm yêu thích' },
+              { href: '/account/points', label: '🎁 Điểm thưởng' },
+              { href: '/orders', label: 'Đơn hàng của tôi' },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                style={{ display: 'block', padding: '12px 20px', fontSize: '0.92rem', fontWeight: 600, color: 'var(--color-brown-dark)', borderBottom: '1px solid var(--color-gray-light)' }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        )}
       </nav>
     </header>
   );

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ShoppingCart, Zap, Star, MapPin, Check, Plus, Minus, ShieldCheck } from 'lucide-react';
 import { formatPrice } from '../../../lib/api';
 import { useCart } from '../../../context/CartContext';
@@ -53,7 +54,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
   };
 
   return (
-    <div style={{
+    <div className="product-detail" style={{
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
       gap: '40px',
@@ -70,17 +71,13 @@ export default function ProductDetailClient({ product }: { product: any }) {
           border: '1px solid var(--color-border)',
           marginBottom: '16px',
         }}>
-          <img
+          <Image
             src={activeImage}
             alt={product.name}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 50vw"
+            style={{ objectFit: 'cover' }}
           />
         </div>
 
@@ -101,7 +98,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
                   flexShrink: 0,
                 }}
               >
-                <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <Image src={img.url} alt={product.name} width={74} height={74} style={{ objectFit: 'cover' }} />
               </button>
             ))}
           </div>
@@ -273,6 +270,17 @@ export default function ProductDetailClient({ product }: { product: any }) {
             <Zap size={20} /> Mua Ngay
           </button>
         </div>
+      </div>
+
+      {/* Mobile sticky buy bar */}
+      <div className="mobile-buy-bar">
+        <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--color-gray-mid)' }}>Giá hiện tại</span>
+          <strong style={{ fontSize: '1.05rem', color: 'var(--color-red)' }}>{formatPrice(currentPrice)}</strong>
+        </div>
+        <button type="button" onClick={handleBuyNow}>
+          <Zap size={18} /> Mua Ngay
+        </button>
       </div>
     </div>
   );

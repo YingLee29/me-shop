@@ -3,8 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Eye, CheckCircle, Clock, Truck, XCircle, AlertCircle } from 'lucide-react';
 import { fetchAdminApi, formatPrice } from '../../lib/api';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 
 export default function AdminOrdersPage() {
+  const { user } = useAdminAuth();
+  const canUpdateStatus = user?.permissions?.includes('orders.update-status') ?? false;
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeStatus, setActiveStatus] = useState<string>('');
@@ -312,7 +315,7 @@ export default function AdminOrdersPage() {
 
                 <button
                   onClick={handleUpdateStatus}
-                  disabled={statusUpdateLoading}
+                  disabled={statusUpdateLoading || !canUpdateStatus}
                   className="btn-primary"
                   style={{ padding: '10px 20px', whiteSpace: 'nowrap' }}
                 >

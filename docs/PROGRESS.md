@@ -13,7 +13,7 @@
 |-----------|----------|
 | **Cập nhật lúc** | 20/10/2026 |
 | **Người cập nhật** | AI Pair Programmer |
-| **Trạng thái chung** | 🟢 Phase 1 hoàn thành – Phase 2 đang triển khai (Tuần 5 xong) |
+| **Trạng thái chung** | 🟢 Phase 1 & Phase 2 (Tuần 5) hoàn thành – Phase 3 (Tuần 9–12) hoàn thành, còn Lighthouse/device test |
 
 ---
 
@@ -23,7 +23,7 @@
 |-------|-----------|-----------|---------|---------|
 | **Phase 1** – MVP (Tuần 1–4) | 56 | 56 | 0 | 100% |
 | **Phase 2** – Core Features (Tuần 5–8) | 28 | 10 | 0 | 36% |
-| **Phase 3** – Enhancement (Tuần 9–12) | 23 | 0 | 0 | 0% |
+| **Phase 3** – Enhancement (Tuần 9–12) | 50 | 45 | 0 | 90% |
 | **Phase 4** – Advanced (Tùy chọn) | 14 | 0 | 0 | 0% |
 
 ---
@@ -354,16 +354,21 @@
 
 ### 📦 Bước 9.1 – Wishlist
 
-- [ ] Migration `wishlists`
-- [ ] API: GET, POST, DELETE
-- [ ] Frontend: Nút ♡ trên ProductCard
-- [ ] Trang `/account/wishlist`
+- [x] Migration `wishlists` (unique user_id + product_id)
+- [x] Model `Wishlist` + quan hệ User/Product
+- [x] API: `GET /wishlists`, `GET /wishlists/ids`, `POST /wishlists`, `DELETE /wishlists/{product}`
+- [x] Frontend: Nút ♡ trên ProductCard (optimistic toggle, yêu cầu đăng nhập)
+- [x] `WishlistContext` + badge số lượng trên Header
+- [x] Trang `/account/wishlist`
 
 ### 📦 Bước 9.2 – Loyalty Points
 
-- [ ] Tự động cộng điểm khi đơn hàng `completed`
-- [ ] Cho phép dùng điểm để giảm giá khi checkout
-- [ ] Trang `/account/points`: lịch sử giao dịch điểm
+- [x] Migration `users.loyalty_points` + `loyalty_transactions`
+- [x] `LoyaltyService`: 10.000đ = 1 điểm, 1 điểm = 100đ, tối thiểu 10 điểm
+- [x] Tự động cộng điểm khi đơn hàng `completed` (idempotent)
+- [x] Hoàn điểm khi hủy đơn, thu hồi điểm khi refund
+- [x] Cho phép dùng điểm để giảm giá khi checkout (server kiểm tra số dư)
+- [x] API `GET /loyalty` + trang `/account/points`: lịch sử giao dịch điểm
 
 ---
 
@@ -371,19 +376,21 @@
 
 ### 📦 Bước 10.1 – Email System
 
-- [ ] Thiết kế email template HTML (branding vàng đất)
-- [ ] Queue emails với Laravel Queue
-- [ ] `OrderObserver`: lắng nghe event → dispatch mail job
-- [ ] Test email với Mailtrap
+- [x] Thiết kế email template HTML (branding vàng đất): layout dùng chung + 5 mẫu mail
+- [x] Queue emails với Laravel Queue (`ShouldQueue`, Redis queue)
+- [x] `OrderObserver`: nghe `created`/`updated` → dispatch mail sau khi transaction commit
+- [x] Mail: Welcome, Order Confirmation, Shipping, Cancelled, Completed
+- [x] Test email với Mailpit (xác nhận đủ 4 trigger + welcome)
 
 ### 📦 Bước 10.2 – SEO Optimization
 
-- [ ] `generateMetadata()` cho tất cả trang động
-- [ ] JSON-LD Schema: `Product`, `BreadcrumbList`, `Article`
-- [ ] `sitemap.xml` tự động sinh
-- [ ] `robots.txt` cấu hình đúng
-- [ ] Open Graph tags
-- [ ] Canonical URL
+- [x] `generateMetadata()` cho trang chủ, danh sách sản phẩm, chi tiết sản phẩm
+- [x] JSON-LD Schema: `Product`, `BreadcrumbList`, `Organization` + `WebSite`
+- [ ] JSON-LD `Article` – **N/A**: Phase 2 Tuần 7 (Blog/CMS) chưa triển khai
+- [x] `sitemap.xml` tự động sinh từ sản phẩm + danh mục
+- [x] `robots.txt` cấu hình đúng (chặn cart/checkout/account/orders)
+- [x] Open Graph tags (title, description, image 1200×630)
+- [x] Canonical URL cho trang chủ, danh sách và chi tiết sản phẩm
 
 ---
 
@@ -392,25 +399,26 @@
 ### 📦 Bước 11.1 – Performance Optimization
 
 **Backend:**
-- [ ] Cache API responses với Redis (TTL 1h)
-- [ ] Config/route/view cache cho production
-- [ ] Database indexes: slug, category_id, user_id
-- [ ] Eager loading tránh N+1 query
+- [x] Cache API responses với Redis (categories 1h; featured 10 phút; flash sale 5 phút; tự xóa cache khi SP/Flash Sale thay đổi)
+- [x] Config/route/view cache cho production (`make optimize` / `make optimize-clear`)
+- [x] Database indexes: slug/category_id/user_id (đã có) + `products(is_active, created_at)`, `products.sold_count`, `banners(is_active, sort_order)`
+- [x] Eager loading tránh N+1 (admin orders dùng `withCount('items')`)
 
 **Frontend:**
-- [ ] `next/image` với lazy loading + WebP
-- [ ] Code splitting: dynamic import
-- [ ] Static generation (SSG)
-- [ ] Bundle analyzer
+- [x] `next/image` với lazy loading + WebP (ProductCard, gallery, cart)
+- [x] Code splitting: dynamic import `FlashSaleSection`
+- [x] Static generation / ISR: trang chủ (300s), danh sách (60s), chi tiết SP (600s)
+- [x] `React.memo` cho `ProductCard` + `useMemo` cho WishlistContext
+- [x] Bundle analyzer: `npm run analyze` / `make analyze-fe`
 
 ### 📦 Bước 11.2 – Mobile Responsiveness
 
-- [ ] Kiểm tra trên 320px, 375px, 425px, 768px, 1024px, 1440px
-- [ ] Header mobile: hamburger menu + drawer navigation
-- [ ] ProductGrid responsive (2 → 3 → 5 cột)
-- [ ] Trang checkout: single column trên mobile
-- [ ] Nút "Mua Ngay" fixed bottom (mobile)
-- [ ] Touch-friendly: min tap target 44x44px
+- [ ] Kiểm tra trên 320px, 375px, 425px, 768px, 1024px, 1440px – **chưa test trên thiết bị thật/DevTools**
+- [x] Header mobile: hamburger menu + drawer navigation
+- [x] ProductGrid responsive (2 cột mobile → auto-fill tablet/desktop)
+- [x] Trang checkout: single column trên mobile
+- [x] Nút "Mua Ngay" fixed bottom trên trang chi tiết sản phẩm (mobile)
+- [x] Touch-friendly: CTA chính + nút mobile min 44px
 
 ---
 
@@ -418,20 +426,27 @@
 
 ### 📦 Bước 12.1 – Phân Quyền RBAC
 
-- [ ] Seeder tạo roles + permissions (Super Admin, Admin, Kho, CSKH)
-- [ ] Admin UI: trang quản lý role/permission
-- [ ] Middleware kiểm tra permission
-- [ ] Frontend admin: ẩn menu items không có quyền
+- [x] Seeder roles + permissions: Super Admin, Admin, Kho (warehouse), CSKH (support), Nhân viên, Khách hàng
+- [x] Admin UI `/roles`: matrix checkbox theo nhóm quyền, lưu từng vai trò
+- [x] Middleware `permission:*` cho toàn bộ Admin API + alias `role`/`permission` trong `bootstrap/app.php`
+- [x] Frontend admin: ẩn menu + nút thao tác không có quyền; chặn role ngoài danh sách khi đăng nhập
 
 ### 📦 Bước 12.2 – Phase 3 Acceptance Criteria
 
-- [ ] ✅ Wishlist hoạt động cho user đã đăng nhập
-- [ ] ✅ Điểm thưởng cộng/trừ chính xác
-- [ ] ✅ Email gửi đúng trigger, đúng template
-- [ ] ✅ LCP < 2.5s trên Lighthouse (mobile)
-- [ ] ✅ Responsive tốt trên iPhone SE (320px)
-- [ ] ✅ SEO score Lighthouse > 90
-- [ ] ✅ Phân quyền admin hoạt động đúng
+- [x] ✅ Wishlist hoạt động cho user đã đăng nhập (thêm/xóa/đồng bộ icon)
+- [x] ✅ Điểm thưởng cộng/trừ chính xác (13 điểm cho đơn 139.000đ; hoàn điểm khi hủy)
+- [x] ✅ Email gửi đúng trigger, đúng template (xác nhận qua Mailpit)
+- [ ] ✅ LCP < 2.5s trên Lighthouse (mobile) – **chưa chạy Lighthouse**
+- [ ] ✅ Responsive tốt trên iPhone SE (320px) – **đã có CSS breakpoint 320/640/768/900 nhưng chưa test thiết bị thật**
+- [ ] ✅ SEO score Lighthouse > 90 – **chưa chạy Lighthouse**
+- [x] ✅ Phân quyền admin hoạt động đúng (warehouse bị 403 khi tạo SP/quản lý role)
+
+> **Ghi chú Phase 3:**
+> - Wishlist: `wishlists` + `WishlistContext` (optimistic toggle), badge Header, trang `/account/wishlist`.
+> - Loyalty: 10.000đ = 1 điểm, 1 điểm = 100đ, tối thiểu 10 điểm; `loyalty_transactions` lưu earn/redeem/refund/adjust.
+> - Email queue qua Redis; Mailpit dùng để kiểm thử.
+> - SEO: metadata động, JSON-LD Product/Breadcrumb/Organization, sitemap + robots.
+> - RBAC: super-admin (17 quyền), admin (16), warehouse (6), support (4), staff (3), customer (0).
 
 ---
 
@@ -475,6 +490,10 @@
 | 20/10/2026 | AI | Hạ tầng: đổi host port Redis → 6380, Admin → 3002; container dùng UID/GID host; `make setup` chạy thành công, 8/8 container Up. |
 | 20/10/2026 | AI | Hoàn thành Tuần 5 Phase 2: Flash Sale (migrations, models, API, countdown, admin CRUD) + Coupon (migrations, service, validate, usage tracking, admin CRUD, UI Cart/Checkout). |
 | 20/10/2026 | AI | Verify: PHP lint OK, route list OK, `tsc --noEmit` sạch (frontend + admin), test API end-to-end (guest order, coupon limit, cart sync, admin CRUD). |
+| 20/10/2026 | AI | Phase 3 Tuần 9: Wishlist (API + context + trang account) và Loyalty Points (tích/hoàn/thu hồi điểm, dùng điểm khi checkout, trang lịch sử). |
+| 20/10/2026 | AI | Phase 3 Tuần 10: 5 email template + queue + OrderObserver; SEO metadata động, JSON-LD, sitemap, robots, OG, canonical. |
+| 20/10/2026 | AI | Phase 3 Tuần 11: Redis cache + indexes + eager loading; next/image, dynamic import, ISR, bundle analyzer, React.memo; mobile drawer, grid 2 cột, checkout 1 cột, sticky Mua Ngay. |
+| 20/10/2026 | AI | Phase 3 Tuần 12: RBAC đầy đủ (roles/permissions seeder, API quản lý quyền, middleware permission, trang `/roles`, ẩn menu/nút theo quyền). |
 
 ---
 

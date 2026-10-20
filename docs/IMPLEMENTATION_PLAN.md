@@ -804,10 +804,10 @@ php artisan make:controller Api/WishlistController
 ```
 
 **Tasks:**
-- [ ] Migration `wishlists` (user_id, product_id)
-- [ ] API: GET (danh sách), POST (thêm), DELETE (xóa)
-- [ ] Frontend: Nút ♡ trên ProductCard → toggle thêm/bỏ wishlist
-- [ ] Trang `/account/wishlist` hiển thị tất cả sản phẩm đã lưu
+- [x] Migration `wishlists` (user_id, product_id, unique)
+- [x] API: GET, GET /ids, POST, DELETE
+- [x] Frontend: Nút ♡ trên ProductCard → toggle thêm/bỏ wishlist
+- [x] Trang `/account/wishlist` hiển thị tất cả sản phẩm đã lưu
 
 ### 📦 Bước 9.2 – Loyalty Points (Điểm thưởng)
 
@@ -826,9 +826,9 @@ php artisan make:model LoyaltyTransaction
 ```
 
 **Tasks:**
-- [ ] Tự động cộng điểm khi đơn hàng chuyển sang `completed`
-- [ ] Cho phép dùng điểm để giảm giá khi checkout
-- [ ] Trang `/account/points`: lịch sử giao dịch điểm
+- [x] Tự động cộng điểm khi đơn hàng chuyển sang `completed` (idempotent)
+- [x] Cho phép dùng điểm để giảm giá khi checkout (server kiểm tra số dư)
+- [x] Trang `/account/points`: lịch sử giao dịch điểm
 
 ---
 
@@ -855,23 +855,23 @@ php artisan make:mail WelcomeMail
 | Đơn hoàn thành | Mời viết review |
 
 **Tasks:**
-- [ ] Thiết kế email template HTML (branding vàng đất)
-- [ ] Queue emails với Laravel Queue (không block request)
-- [ ] `OrderObserver`: lắng nghe event status change → dispatch mail job
-- [ ] Test email với Mailtrap (sandbox)
+- [x] Thiết kế email template HTML (branding vàng đất)
+- [x] Queue emails với Laravel Queue (không block request)
+- [x] `OrderObserver`: lắng nghe event status change → dispatch mail job
+- [x] Test email với Mailpit (SMTP sandbox)
 
 ---
 
 ### 📦 Bước 10.2 – SEO Optimization
 
 **Tasks:**
-- [ ] `generateMetadata()` cho tất cả trang động (product, category, blog)
-- [ ] JSON-LD Schema: `Product`, `BreadcrumbList`, `Article` cho blog
-- [ ] `sitemap.xml`: tự động sinh từ sản phẩm + danh mục + blog
-- [ ] `robots.txt`: cấu hình đúng
-- [ ] Open Graph tags: og:title, og:description, og:image
-- [ ] Canonical URL: tránh duplicate content
-- [ ] Breadcrumb structured data
+- [x] `generateMetadata()` cho trang động (product, products/category) – blog N/A
+- [x] JSON-LD Schema: `Product`, `BreadcrumbList`, `Organization` (Article N/A – chưa có blog)
+- [x] `sitemap.xml`: tự động sinh từ sản phẩm + danh mục
+- [x] `robots.txt`: cấu hình đúng
+- [x] Open Graph tags: og:title, og:description, og:image
+- [x] Canonical URL: tránh duplicate content
+- [x] Breadcrumb structured data
 
 ---
 
@@ -880,17 +880,17 @@ php artisan make:mail WelcomeMail
 ### 📦 Bước 11.1 – Performance Optimization
 
 **Backend (Laravel):**
-- [ ] Cache API responses với Redis (products, categories: TTL 1h)
-- [ ] `php artisan config:cache` + `route:cache` + `view:cache` cho production
-- [ ] Database indexes: `products.slug`, `products.category_id`, `orders.user_id`
-- [ ] Eager loading để tránh N+1 query
+- [x] Cache API responses với Redis (categories 1h, featured 10m, flash sale 5m)
+- [x] `php artisan config:cache` + `route:cache` + `view:cache` (`make optimize`)
+- [x] Database indexes: slug/category_id/user_id + composite performance indexes
+- [x] Eager loading để tránh N+1 query
 
 **Frontend (Next.js):**
-- [ ] `next/image` với `lazy` loading + WebP format + kích thước tối ưu
-- [ ] Code splitting: dynamic import cho các component nặng
-- [ ] Static generation (SSG) cho trang chủ, danh mục, sản phẩm
-- [ ] `React.memo` + `useMemo` tránh re-render không cần thiết
-- [ ] Bundle analyzer: `@next/bundle-analyzer`
+- [x] `next/image` với `lazy` loading + WebP format + kích thước tối ưu
+- [x] Code splitting: dynamic import cho `FlashSaleSection`
+- [x] Static generation/ISR cho trang chủ, danh sách, chi tiết sản phẩm
+- [x] `React.memo` + `useMemo` tránh re-render không cần thiết
+- [x] Bundle analyzer: `@next/bundle-analyzer`
 
 **Target metrics:**
 ```
@@ -904,12 +904,12 @@ CLS (Cumulative Layout Shift)  < 0.1
 ### 📦 Bước 11.2 – Mobile Responsiveness
 
 **Tasks:**
-- [ ] Kiểm tra toàn bộ trang trên: 320px, 375px, 425px, 768px, 1024px, 1440px
-- [ ] Header mobile: hamburger menu + drawer navigation
-- [ ] ProductGrid: 2 cột mobile, 3 cột tablet, 4-5 cột desktop
-- [ ] Trang checkout: single column trên mobile
-- [ ] Nút "Mua Ngay" fixed bottom trên trang chi tiết sản phẩm (mobile)
-- [ ] Touch-friendly: min tap target 44x44px
+- [ ] Kiểm tra toàn bộ trang trên: 320px, 375px, 425px, 768px, 1024px, 1440px – chưa test thiết bị thật
+- [x] Header mobile: hamburger menu + drawer navigation
+- [x] ProductGrid: 2 cột mobile, auto-fill tablet/desktop
+- [x] Trang checkout: single column trên mobile
+- [x] Nút "Mua Ngay" fixed bottom trên trang chi tiết sản phẩm (mobile)
+- [x] Touch-friendly: CTA chính + thanh mua mobile min 44px
 
 ---
 
@@ -931,23 +931,23 @@ CSKH         → xem/cập nhật trạng thái đơn hàng, chat support
 ```
 
 **Tasks:**
-- [ ] Seeder tạo roles + permissions
-- [ ] Admin UI: trang quản lý role/permission (matrix checkbox)
-- [ ] Middleware kiểm tra permission trước mỗi Admin API endpoint
-- [ ] Frontend admin: ẩn menu items không có quyền
+- [x] Seeder tạo roles + permissions (super-admin, admin, warehouse, support, staff, customer)
+- [x] Admin UI: trang quản lý role/permission (matrix checkbox)
+- [x] Middleware kiểm tra permission trước mỗi Admin API endpoint
+- [x] Frontend admin: ẩn menu items không có quyền
 
 ---
 
 ### 📦 Bước 12.2 – Phase 3 Testing & Checklist
 
 **Acceptance Criteria Phase 3:**
-- [ ] ✅ Wishlist hoạt động cho user đã đăng nhập
-- [ ] ✅ Điểm thưởng cộng/trừ chính xác
-- [ ] ✅ Email gửi đúng trigger, đúng template
-- [ ] ✅ LCP < 2.5s trên Lighthouse (mobile)
-- [ ] ✅ Responsive tốt trên iPhone SE (320px)
-- [ ] ✅ SEO score Lighthouse > 90
-- [ ] ✅ Phân quyền admin hoạt động đúng
+- [x] ✅ Wishlist hoạt động cho user đã đăng nhập
+- [x] ✅ Điểm thưởng cộng/trừ chính xác
+- [x] ✅ Email gửi đúng trigger, đúng template
+- [ ] ✅ LCP < 2.5s trên Lighthouse (mobile) – chưa chạy Lighthouse
+- [ ] ✅ Responsive tốt trên iPhone SE (320px) – chưa test thiết bị thật
+- [ ] ✅ SEO score Lighthouse > 90 – chưa chạy Lighthouse
+- [x] ✅ Phân quyền admin hoạt động đúng
 
 ---
 

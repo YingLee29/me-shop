@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeMail;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 
@@ -33,6 +35,8 @@ class AuthController extends Controller
         ]);
 
         $user->assignRole('customer');
+
+        Mail::to($user->email)->queue(new WelcomeMail($user));
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -103,8 +107,10 @@ class AuthController extends Controller
             'name'   => $user->name,
             'email'  => $user->email,
             'phone'  => $user->phone,
-            'avatar' => $user->avatar,
-            'roles'  => $user->getRoleNames(),
+            'avatar'         => $user->avatar,
+            'loyalty_points' => (int) $user->loyalty_points,
+            'roles'          => $user->getRoleNames(),
+            'permissions'    => $user->getAllPermissions()->pluck('name')->values(),
         ];
     }
 }

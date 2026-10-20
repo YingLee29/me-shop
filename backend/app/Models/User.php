@@ -20,6 +20,7 @@ class User extends Authenticatable
         'phone',
         'avatar',
         'address',
+        'loyalty_points',
     ];
 
     protected $hidden = [
@@ -32,6 +33,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
+            'loyalty_points'    => 'integer',
         ];
     }
 
@@ -45,5 +47,15 @@ class User extends Authenticatable
     public function carts(): HasMany
     {
         return $this->hasMany(Cart::class);
+    }
+
+    public function wishlists(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    public function loyaltyTransactions(): HasMany
+    {
+        return $this->hasMany(LoyaltyTransaction::class)->orderByDesc('created_at');
     }
 }
