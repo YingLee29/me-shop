@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Edit3, Zap, Power } from 'lucide-react';
 import { fetchAdminApi, formatPrice } from '../../lib/api';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 
 interface FlashSale {
   id: number;
@@ -48,6 +49,8 @@ const emptyForm = () => ({
 });
 
 export default function AdminFlashSalesPage() {
+  const { user } = useAdminAuth();
+  const canManage = user?.permissions?.includes('flash-sales.manage') ?? false;
   const [sales, setSales] = useState<FlashSale[]>([]);
   const [products, setProducts] = useState<ProductOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -219,9 +222,11 @@ export default function AdminFlashSalesPage() {
           </p>
         </div>
 
-        <button onClick={openCreate} className="btn-primary">
-          <Plus size={16} /> Tạo đợt Flash Sale
-        </button>
+        {canManage && (
+          <button onClick={openCreate} className="btn-primary">
+            <Plus size={16} /> Tạo đợt Flash Sale
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -260,6 +265,7 @@ export default function AdminFlashSalesPage() {
                       <span className="badge" style={{ color: meta.color, background: meta.bg }}>{meta.label}</span>
                     </td>
                     <td>
+                      {canManage && (
                       <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
                         <button onClick={() => handleToggle(sale)} title="Bật/tắt" style={{ padding: '7px', color: sale.is_active ? 'var(--color-green)' : 'var(--admin-text-muted)' }}>
                           <Power size={16} />
@@ -271,6 +277,7 @@ export default function AdminFlashSalesPage() {
                           <Trash2 size={16} />
                         </button>
                       </div>
+                      )}
                     </td>
                   </tr>
                 );

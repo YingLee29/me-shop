@@ -1,25 +1,61 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, Search, User, Phone, MapPin, Sparkles, Menu, X, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Search, User, Phone, MapPin, Sparkles, Menu, X, ShieldCheck, Heart, Gift } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useWishlist } from '../context/WishlistContext';
+import { fetchApi, formatPrice } from '../lib/api';
 
 export default function Header() {
   const router = useRouter();
   const { itemCount } = useCart();
   const { user, logout } = useAuth();
+  const { count: wishlistCount } = useWishlist();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+
+  useEffect(() => {
+    const term = searchQuery.trim();
+    if (term.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSuggesting(true);
+      try {
+        const res = await fetchApi(`/products/search?q=${encodeURIComponent(term)}&limit=6`);
+        setSuggestions(res?.data || []);
+        setShowSuggestions(true);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSuggesting(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setShowSuggestions(false);
       router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
     }
+  };
+
+  const goToProduct = (slug: string) => {
+    setShowSuggestions(false);
+    router.push(`/products/${slug}`);
   };
 
   return (
@@ -87,7 +123,7 @@ export default function Header() {
           </Link>
 
           {/* Search Box */}
-          <form onSubmit={handleSearch} style={{
+          <form onSubmit={handleSearch} className="header-search" style={{
             flex: 1,
             maxWidth: '560px',
             position: 'relative',
@@ -108,9 +144,58 @@ export default function Header() {
                 outline: 'none',
                 transition: 'border-color 0.2s, box-shadow 0.2s',
               }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
-              onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--color-primary)';
+                if (suggestions.length > 0) setShowSuggestions(true);
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--color-border)';
+                window.setTimeout(() => setShowSuggestions(false), 150);
+              }}
             />
+
+            {showSuggestions && searchQuery.trim().length >= 2 && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0,
+                background: '#FFF', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)',
+                boxShadow: '0 12px 32px rgba(60, 40, 20, 0.16)', zIndex: 200,
+                overflow: 'hidden', textAlign: 'left',
+              }}>
+                {suggesting && suggestions.length === 0 ? (
+                  <div style={{ padding: '14px 16px', fontSize: '0.84rem', color: 'var(--color-gray-mid)' }}>Đang tìm kiếm...</div>
+                ) : suggestions.length === 0 ? (
+                  <div style={{ padding: '14px 16px', fontSize: '0.84rem', color: 'var(--color-gray-mid)' }}>Không tìm thấy sản phẩm phù hợp.</div>
+                ) : (
+                  <>
+                    {suggestions.map((product) => (
+                      <button
+                        key={product.id}
+                        type="button"
+                        onMouseDown={(e) => { e.preventDefault(); goToProduct(product.slug); }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 13px', borderBottom: '1px solid var(--color-gray-light)', textAlign: 'left', background: '#FFF' }}
+                      >
+                        <img
+                          src={product.primary_image?.url || 'https://placehold.co/48x48/FAF7F0/6B4226?text=NS'}
+                          alt={product.name}
+                          style={{ width: 42, height: 42, objectFit: 'cover', borderRadius: 7, flexShrink: 0 }}
+                        />
+                        <span style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ display: 'block', fontSize: '0.84rem', fontWeight: 700, color: 'var(--color-brown-dark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</span>
+                          <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-red)', fontWeight: 700 }}>{formatPrice(product.current_price)}</span>
+                        </span>
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setShowSuggestions(false); router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`); }}
+                      style={{ width: '100%', padding: '11px 14px', fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-primary-dark)', background: 'var(--color-cream)', textAlign: 'center' }}
+                    >
+                      Xem tất cả kết quả cho “{searchQuery.trim()}”
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
             <button
               type="submit"
               className="btn-primary"
@@ -176,6 +261,20 @@ export default function Header() {
                       >
                         Đơn hàng của tôi
                       </Link>
+                      <Link
+                        href="/account/wishlist"
+                        onClick={() => setUserDropdownOpen(false)}
+                        style={{ display: 'block', padding: '9px 16px', fontSize: '0.85rem', color: 'var(--color-dark)' }}
+                      >
+                        Sản phẩm yêu thích
+                      </Link>
+                      <Link
+                        href="/account/points"
+                        onClick={() => setUserDropdownOpen(false)}
+                        style={{ display: 'block', padding: '9px 16px', fontSize: '0.85rem', color: 'var(--color-dark)' }}
+                      >
+                        Điểm thưởng ({user.loyalty_points ?? 0})
+                      </Link>
                       <button
                         onClick={() => {
                           logout();
@@ -217,6 +316,38 @@ export default function Header() {
                 </Link>
               )}
             </div>
+
+            {/* Wishlist Button */}
+            <Link
+              href="/account/wishlist"
+              title="Sản phẩm yêu thích"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                background: '#FFF',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-brown)',
+                position: 'relative',
+              }}
+            >
+              <Heart size={18} />
+              {wishlistCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: -5, right: -5,
+                  background: 'var(--color-red)', color: '#FFF',
+                  fontSize: '0.65rem', fontWeight: 800,
+                  minWidth: 17, height: 17, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  padding: '0 3px',
+                }}>
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
 
             {/* Cart Button */}
             <Link
@@ -265,12 +396,23 @@ export default function Header() {
       </div>
 
       {/* ── Navigation Menu ── */}
-      <nav style={{
+      <nav className="main-nav" style={{
         background: '#FFF',
         borderBottom: '1px solid var(--color-border)',
       }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '48px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '28px', height: '100%' }}>
+          <button
+            type="button"
+            className="mobile-menu-btn"
+            aria-label="Mở menu"
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            style={{ alignItems: 'center', justifyContent: 'center', width: 38, height: 38, borderRadius: 8, background: 'var(--color-cream)', color: 'var(--color-brown)' }}
+          >
+            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+
+          <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '28px', height: '100%' }}>
             <Link
               href="/products"
               style={{
@@ -301,9 +443,12 @@ export default function Header() {
             <Link href="/products?category=gao-ngu-coc" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
               Gạo & Ngũ Cốc
             </Link>
+            <Link href="/blog" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
+              Tin Tức
+            </Link>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="nav-promo" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span className="badge badge-sale" style={{ fontSize: '0.7rem', padding: '3px 8px' }}>
               ⚡ Flash Sale
             </span>
@@ -312,6 +457,31 @@ export default function Header() {
             </span>
           </div>
         </div>
+
+        {mobileMenuOpen && (
+          <div className="mobile-drawer">
+            {[
+              { href: '/', label: 'Trang chủ' },
+              { href: '/products', label: 'Tất cả sản phẩm' },
+              { href: '/products?is_featured=1', label: 'Sản phẩm nổi bật' },
+              { href: '/products?category=rau-cu', label: 'Rau củ tươi' },
+              { href: '/products?category=trai-cay', label: 'Trái cây sạch' },
+              { href: '/products?category=gao-ngu-coc', label: 'Gạo & ngũ cốc' },
+              { href: '/account/wishlist', label: '♡ Sản phẩm yêu thích' },
+              { href: '/account/points', label: '🎁 Điểm thưởng' },
+              { href: '/orders', label: 'Đơn hàng của tôi' },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                style={{ display: 'block', padding: '12px 20px', fontSize: '0.92rem', fontWeight: 600, color: 'var(--color-brown-dark)', borderBottom: '1px solid var(--color-gray-light)' }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        )}
       </nav>
     </header>
   );

@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { shouldUnoptimizeImage } from '../../lib/image';
 import { Trash2, Plus, Minus, ArrowRight, ArrowLeft, ShoppingBag, Tag, X, Check } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { formatPrice } from '../../lib/api';
@@ -96,7 +98,7 @@ export default function CartPage() {
           </div>
         </div>
 
-        <div style={{
+        <div className="cart-layout" style={{
           display: 'grid',
           gridTemplateColumns: '1fr 360px',
           gap: '32px',
@@ -111,7 +113,7 @@ export default function CartPage() {
             overflow: 'hidden',
           }}>
             {/* Header table */}
-            <div style={{
+            <div className="cart-header" style={{
               display: 'grid',
               gridTemplateColumns: '2.5fr 1fr 1.2fr 1.2fr 40px',
               padding: '16px 24px',
@@ -133,6 +135,7 @@ export default function CartPage() {
               {items.map((item) => (
                 <div
                   key={`${item.product_id}-${item.variant_id || 'base'}`}
+                  className="cart-row"
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '2.5fr 1fr 1.2fr 1.2fr 40px',
@@ -144,10 +147,13 @@ export default function CartPage() {
                 >
                   {/* Product Info */}
                   <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <img
+                    <Image
                       src={item.image || 'https://placehold.co/100x100/FAF7F0/6B4226?text=NongSan'}
                       alt={item.name}
-                      style={{ width: 68, height: 68, borderRadius: 'var(--radius-sm)', objectFit: 'cover' }}
+                      width={68}
+                      height={68}
+                      unoptimized={shouldUnoptimizeImage(item.image)}
+                      style={{ borderRadius: 'var(--radius-sm)', objectFit: 'cover', flexShrink: 0 }}
                     />
                     <div>
                       <Link href={`/products/${item.slug}`} style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-brown-dark)' }}>

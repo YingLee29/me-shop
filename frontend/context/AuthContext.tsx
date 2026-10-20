@@ -9,7 +9,9 @@ export interface User {
   email: string;
   phone?: string;
   address?: string;
+  loyalty_points?: number;
   roles?: string[];
+  permissions?: string[];
 }
 
 interface AuthContextType {

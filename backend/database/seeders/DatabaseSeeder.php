@@ -10,13 +10,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call([
-            RoleSeeder::class,
-            CategorySeeder::class,
-            ProductSeeder::class,
-            FlashSaleSeeder::class,
-            CouponSeeder::class,
-        ]);
+        // Roles trước để có thể gán quyền cho tài khoản mẫu
+        $this->call(RoleSeeder::class);
 
         // Tạo tài khoản Admin
         $admin = User::firstOrCreate(
@@ -41,6 +36,16 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $customer->assignRole('customer');
+
+        // Dữ liệu mẫu phụ thuộc vào tài khoản ở trên
+        $this->call([
+            CategorySeeder::class,
+            ProductSeeder::class,
+            FlashSaleSeeder::class,
+            CouponSeeder::class,
+            BlogSeeder::class,
+            ReviewSeeder::class,
+        ]);
 
         $this->command->info('');
         $this->command->info('🌾 ====== SEED HOÀN TẤT ======');

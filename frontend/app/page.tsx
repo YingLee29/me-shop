@@ -2,15 +2,22 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Leaf } from 'lucide-react';
 import ProductCard, { Product } from '../components/ProductCard';
-import FlashSaleSection from '../components/FlashSaleSection';
+import dynamic from 'next/dynamic';
+
+const FlashSaleSection = dynamic(() => import('../components/FlashSaleSection'), {
+  loading: () => <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--color-gray-mid)' }}>Đang tải ưu đãi...</div>,
+});
 import { fetchApi } from '../lib/api';
+
+export const revalidate = 300;
 
 async function getHomePageData() {
   try {
+    const cacheOptions = { next: { revalidate: 300 } };
     const [categoriesRes, featuredRes, flashSaleRes] = await Promise.all([
-      fetchApi('/categories'),
-      fetchApi('/products/featured'),
-      fetchApi('/products/flash-sale'),
+      fetchApi('/categories', cacheOptions),
+      fetchApi('/products/featured', cacheOptions),
+      fetchApi('/products/flash-sale', cacheOptions),
     ]);
 
     return {
@@ -246,7 +253,7 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div style={{
+          <div className="product-grid" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
             gap: '24px',

@@ -3,12 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Eye, CheckCircle, Clock, Truck, XCircle, AlertCircle } from 'lucide-react';
 import { fetchAdminApi, formatPrice } from '../../lib/api';
+import { useAdminAuth } from '../../context/AdminAuthContext';
 
 export default function AdminOrdersPage() {
+  const { user } = useAdminAuth();
+  const canUpdateStatus = user?.permissions?.includes('orders.update-status') ?? false;
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeStatus, setActiveStatus] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
   const [newStatus, setNewStatus] = useState('');
@@ -20,6 +25,8 @@ export default function AdminOrdersPage() {
       const params = new URLSearchParams();
       if (activeStatus) params.append('status', activeStatus);
       if (searchTerm) params.append('search', searchTerm);
+      if (dateFrom) params.append('date_from', dateFrom);
+      if (dateTo) params.append('date_to', dateTo);
 
       const res = await fetchAdminApi(`/admin/orders?${params.toString()}`);
       if (res?.data) {
@@ -82,8 +89,10 @@ export default function AdminOrdersPage() {
     { value: 'confirmed', label: 'Đã xác nhận' },
     { value: 'preparing', label: 'Đang chuẩn bị hàng' },
     { value: 'shipping', label: 'Đang giao hàng' },
+    { value: 'delivered', label: 'Đã giao hàng' },
     { value: 'completed', label: 'Đã hoàn thành' },
     { value: 'cancelled', label: 'Đã hủy' },
+    { value: 'refunded', label: 'Đã hoàn tiền' },
   ];
 
   const statusColors: Record<string, { label: string; color: string; bg: string }> = {
@@ -91,8 +100,10 @@ export default function AdminOrdersPage() {
     confirmed: { label: 'Đã xác nhận', color: '#0288D1', bg: '#E1F5FE' },
     preparing: { label: 'Đang chuẩn bị', color: '#7B1FA2', bg: '#F3E5F5' },
     shipping: { label: 'Đang giao', color: '#1976D2', bg: '#E3F2FD' },
+    delivered: { label: 'Đã giao', color: '#00897B', bg: '#E0F2F1' },
     completed: { label: 'Hoàn thành', color: '#2E7D32', bg: '#E8F5E9' },
     cancelled: { label: 'Đã hủy', color: '#D32F2F', bg: '#FFEBEE' },
+    refunded: { label: 'Đã hoàn tiền', color: '#6B4226', bg: '#FAF7F0' },
   };
 
   return (
@@ -129,8 +140,9 @@ export default function AdminOrdersPage() {
         </form>
       </div>
 
-      {/* Filter status tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
+      {/* Filter status tabs + date range */}
+      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', flex: 1 }}>
         {statusOptions.map((opt) => (
           <button
             key={opt.value}
@@ -149,6 +161,17 @@ export default function AdminOrdersPage() {
             {opt.label}
           </button>
         ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '0.8rem' }}>
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ padding: '7px 9px', border: '1px solid var(--admin-border)', borderRadius: 6 }} />
+          <span>–</span>
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ padding: '7px 9px', border: '1px solid var(--admin-border)', borderRadius: 6 }} />
+          <button onClick={() => loadOrders()} className="btn-primary" style={{ padding: '7px 12px' }}>Lọc</button>
+          {(dateFrom || dateTo) && (
+            <button onClick={() => { setDateFrom(''); setDateTo(''); setTimeout(loadOrders, 0); }} style={{ color: 'var(--admin-text-muted)', fontSize: '0.78rem' }}>Xóa</button>
+          )}
+        </div>
       </div>
 
       {/* Orders Table */}
@@ -185,9 +208,12 @@ export default function AdminOrdersPage() {
                     <td>{o.customer_phone}</td>
                     <td><strong style={{ color: 'var(--color-red)' }}>{formatPrice(o.total)}</strong></td>
                     <td>
-                      <span style={{ textTransform: 'uppercase', fontSize: '0.78rem', fontWeight: 600 }}>
-                        {o.payment_method}
-                      </span>
+                      <div style={{ textTransform: 'uppercase', fontSize: '0.76rem', fontWeight: 700 }}>
+                        {({ cod: 'COD', bank_transfer: 'Chuyển khoản', momo: 'MoMo', vnpay: 'VNPAY' } as Record<string, string>)[o.payment_method] || o.payment_method}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: o.payment_status === 'paid' ? 'var(--color-green)' : '#999' }}>
+                        {o.payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                      </div>
                     </td>
                     <td>
                       <span className="badge" style={{ color: st.color, background: st.bg }}>
@@ -312,7 +338,7 @@ export default function AdminOrdersPage() {
 
                 <button
                   onClick={handleUpdateStatus}
-                  disabled={statusUpdateLoading}
+                  disabled={statusUpdateLoading || !canUpdateStatus}
                   className="btn-primary"
                   style={{ padding: '10px 20px', whiteSpace: 'nowrap' }}
                 >

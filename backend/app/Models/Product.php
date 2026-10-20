@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 
 class Product extends Model
 {
@@ -21,6 +22,18 @@ class Product extends Model
         'sold_count', 'view_count', 'avg_rating', 'review_count',
         'meta_title', 'meta_description',
     ];
+
+    protected static function booted(): void
+    {
+        $flush = function () {
+            Cache::forget('products.featured');
+            Cache::forget('products.flash_sale');
+        };
+
+        static::saved($flush);
+        static::deleted($flush);
+        static::restored($flush);
+    }
 
     protected $casts = [
         'price'            => 'decimal:0',
@@ -41,7 +54,10 @@ class Product extends Model
 
     public function images(): HasMany
     {
-        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+        return $this->hasMany(ProductImage::class)
+            ->orderByDesc('is_primary')
+            ->orderBy('sort_order')
+            ->orderBy('id');
     }
 
     public function primaryImage()
@@ -57,6 +73,16 @@ class Product extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function approvedReviews(): HasMany
+    {
+        return $this->hasMany(Review::class)->where('is_approved', true);
     }
 
     public function flashSaleItems(): HasMany

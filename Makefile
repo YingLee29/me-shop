@@ -3,7 +3,7 @@
 # Dùng: make <command>
 # ─────────────────────────────────────────────────────
 
-.PHONY: help up down build restart logs shell artisan composer npm-fe npm-admin
+.PHONY: help up down build restart logs shell artisan composer npm-fe npm-admin optimize optimize-clear analyze-fe
 
 # Màu sắc terminal
 GREEN  := \033[0;32m
@@ -96,6 +96,12 @@ cache-clear: ## Xóa toàn bộ cache Laravel
 	docker compose exec php php artisan route:clear
 	docker compose exec php php artisan view:clear
 
+optimize: ## Cache config/route/view cho production
+	docker compose exec php php artisan optimize
+
+optimize-clear: ## Xóa cache production (config/route/view)
+	docker compose exec php php artisan optimize:clear
+
 # ── Composer ─────────────────────────────────────────
 composer: ## Chạy composer command: make composer CMD="require package/name"
 	docker compose exec php composer $(CMD)
@@ -110,6 +116,9 @@ npm-fe: ## Chạy npm trong frontend: make npm-fe CMD="install"
 npm-admin: ## Chạy npm trong admin: make npm-admin CMD="install"
 	docker compose exec admin npm $(CMD)
 
+analyze-fe: ## Phân tích bundle frontend (@next/bundle-analyzer)
+	docker compose exec frontend npm run analyze
+
 # ── Setup (chạy lần đầu) ─────────────────────────────
 setup: ## Setup toàn bộ dự án lần đầu
 	@echo "$(GREEN)🚀 Setting up NôngSản project...$(RESET)"
@@ -121,7 +130,7 @@ setup: ## Setup toàn bộ dự án lần đầu
 	docker compose up -d
 	@echo "$(YELLOW)▶ Waiting for MySQL to be ready...$(RESET)"
 	@sleep 15
-	@# Nginx resolve tên container lúc khởi động → restart để nhận IP mới sau khi recreate
+	@# Khởi động lại nginx sau khi frontend/admin đã sẵn sàng
 	docker compose restart nginx
 	@echo "$(YELLOW)▶ Installing Laravel dependencies...$(RESET)"
 	docker compose exec php composer install
@@ -131,8 +140,8 @@ setup: ## Setup toàn bộ dự án lần đầu
 	docker compose exec php php artisan migrate --seed
 	@echo "$(GREEN)✅ Setup complete!$(RESET)"
 	@echo ""
-	@echo "  Frontend : http://localhost:3000"
-	@echo "  Admin    : http://localhost:3002"
+	@echo "  Frontend : http://localhost:5000"
+	@echo "  Admin    : http://localhost:5002"
 	@echo "  API      : http://localhost/api/v1"
 	@echo "  Mailpit  : http://localhost:8025"
 	@echo "  MySQL    : localhost:3306"

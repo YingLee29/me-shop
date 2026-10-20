@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 
 class FlashSale extends Model
 {
@@ -13,6 +14,16 @@ class FlashSale extends Model
         'name', 'slug', 'description', 'banner_image',
         'start_at', 'end_at', 'is_active',
     ];
+
+    protected static function booted(): void
+    {
+        $flush = function () {
+            Cache::forget('products.flash_sale');
+        };
+
+        static::saved($flush);
+        static::deleted($flush);
+    }
 
     protected $casts = [
         'start_at'  => 'datetime',

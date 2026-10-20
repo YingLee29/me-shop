@@ -10,6 +10,7 @@ use App\Models\OrderStatusLog;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CouponService;
+use App\Services\LoyaltyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -71,6 +72,7 @@ class OrderController extends Controller
             'payment_method'     => ['required', 'in:cod,bank_transfer,momo,vnpay'],
             'note'               => ['nullable', 'string', 'max:1000'],
             'coupon_code'        => ['nullable', 'string'],
+            'points_used'        => ['nullable', 'integer', 'min:0'],
             'items'              => ['nullable', 'array'],
             'items.*.product_id' => ['required_with:items', 'integer', 'exists:products,id'],
             'items.*.variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
@@ -151,6 +153,16 @@ class OrderController extends Controller
             $coupon          = $pricing['coupon'];
             $shippingFee     = $pricing['shipping_fee'] - $pricing['shipping_discount'];
 
+            // Điểm thưởng: server kiểm tra số dư, giới hạn theo giá trị đơn
+            $loyaltyService = app(LoyaltyService::class);
+            $pointsUsed     = $loyaltyService->validateRedeem($user, (int) ($data['points_used'] ?? 0));
+            $pointsUsed     = min(
+                $pointsUsed,
+                (int) floor($pricing['total'] / LoyaltyService::POINT_VALUE)
+            );
+            $pointsDiscount = $loyaltyService->pointsDiscount($pointsUsed);
+            $total          = max(0, $pricing['total'] - $pointsDiscount);
+
             $order = Order::create([
                 'user_id'          => $userId,
                 'order_code'       => $this->generateOrderCode(),
@@ -159,14 +171,21 @@ class OrderController extends Controller
                 'payment_status'   => 'unpaid',
                 'subtotal'         => $subtotal,
                 'discount_amount'  => $pricing['discount_amount'],
+                'points_used'      => $pointsUsed,
+                'points_discount'  => $pointsDiscount,
                 'shipping_fee'     => $shippingFee,
-                'total'            => $pricing['total'],
+                'total'            => $total,
                 'coupon_code'      => $coupon?->code,
                 'shipping_name'    => $data['shipping_name'],
                 'shipping_phone'   => $data['shipping_phone'],
                 'shipping_address' => $data['shipping_address'],
                 'note'             => $data['note'] ?? null,
             ]);
+
+            // Trừ điểm thưởng
+            if ($user && $pointsUsed > 0) {
+                $loyaltyService->redeem($user, $pointsUsed, $order->id, $pointsDiscount);
+            }
 
             // Ghi nhận lượt dùng coupon
             if ($coupon) {
@@ -266,6 +285,9 @@ class OrderController extends Controller
                 'note'       => $data['reason'] ?? 'Khách hàng hủy đơn.',
                 'created_by' => $request->user()->id,
             ]);
+
+            // Hoàn điểm đã dùng cho đơn hàng
+            app(LoyaltyService::class)->refundRedeemed($order);
         });
 
         return response()->json(['message' => 'Đã hủy đơn hàng.']);
@@ -288,6 +310,8 @@ class OrderController extends Controller
             'payment_status'   => $order->payment_status,
             'subtotal'         => (float) $order->subtotal,
             'discount_amount'  => (float) $order->discount_amount,
+            'points_used'      => (int) $order->points_used,
+            'points_discount'  => (float) $order->points_discount,
             'shipping_fee'     => (float) $order->shipping_fee,
             'total'            => (float) $order->total,
             'coupon_code'      => $order->coupon_code,

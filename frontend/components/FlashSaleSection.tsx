@@ -103,7 +103,7 @@ export default function FlashSaleSection({ products, endsAt, saleName }: FlashSa
           )}
         </div>
 
-        <div style={{
+        <div className="product-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
           gap: '24px',

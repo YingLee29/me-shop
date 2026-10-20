@@ -9,6 +9,7 @@ export interface AdminUser {
   name: string;
   email: string;
   roles?: string[];
+  permissions?: string[];
 }
 
 interface AdminAuthContextType {
@@ -36,8 +37,9 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         headers: { Authorization: `Bearer ${savedToken}` },
       })
         .then((res) => {
-          if (res?.user) {
-            setUser(res.user);
+          const currentUser = res?.user || res;
+          if (currentUser?.id) {
+            setUser(currentUser);
           }
         })
         .catch(() => {
@@ -64,7 +66,8 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     if (res.access_token) {
       // Check if user has admin role
       const roles = res.user?.roles || [];
-      if (!roles.includes('admin') && !roles.includes('super-admin')) {
+      const allowedRoles = ['super-admin', 'admin', 'warehouse', 'support', 'staff'];
+      if (!roles.some((role: string) => allowedRoles.includes(role))) {
         throw new Error('Tài khoản này không có quyền truy cập trang Quản Trị.');
       }
 

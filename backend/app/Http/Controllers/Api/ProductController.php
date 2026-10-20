@@ -9,6 +9,7 @@ use App\Models\FlashSale;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
@@ -27,6 +28,25 @@ class ProductController extends Controller
                 $categoryIds = $this->getCategoryIds($category);
                 $query->whereIn('category_id', $categoryIds);
             }
+        }
+
+        // Tìm kiếm theo từ khóa
+        if ($request->filled('search')) {
+            $this->applySearch($query, $request->search);
+        }
+
+        // Lọc nhanh
+        if ($request->boolean('is_featured')) {
+            $query->where('is_featured', true);
+        }
+
+        if ($request->boolean('is_flash_sale')) {
+            $query->where(function ($q) {
+                $q->where(fn($legacy) => $legacy
+                    ->where('is_flash_sale', true)
+                    ->where('flash_sale_end_at', '>', now()))
+                  ->orWhereHas('activeFlashSaleItem');
+            });
         }
 
         // Filter giá
@@ -68,7 +88,7 @@ class ProductController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $product = Product::with(['images', 'variants', 'category', 'activeFlashSaleItem'])
+        $product = Product::with(['images', 'primaryImage', 'variants', 'category', 'activeFlashSaleItem'])
             ->where('slug', $slug)
             ->active()
             ->firstOrFail();
@@ -85,10 +105,12 @@ class ProductController extends Controller
      */
     public function featured(): JsonResponse
     {
-        $products = Product::with(['primaryImage', 'category', 'activeFlashSaleItem'])
-            ->featured()
-            ->take(12)
-            ->get();
+        $products = Cache::remember('products.featured', 600, function () {
+            return Product::with(['primaryImage', 'category', 'activeFlashSaleItem'])
+                ->featured()
+                ->take(12)
+                ->get();
+        });
 
         return response()->json(['data' => ProductResource::collection($products)]);
     }
@@ -99,50 +121,54 @@ class ProductController extends Controller
      */
     public function flashSale(): JsonResponse
     {
-        $sale = FlashSale::running()
-            ->orderByDesc('start_at')
-            ->first();
+        $payload = Cache::remember('products.flash_sale', 300, function () {
+            $sale = FlashSale::running()
+                ->orderByDesc('start_at')
+                ->first();
 
-        if ($sale) {
-            $products = $sale->products()
-                ->with('primaryImage')
-                ->where('products.is_active', true)
-                ->orderBy('flash_sale_products.sort_order')
+            if ($sale) {
+                $products = $sale->products()
+                    ->with('primaryImage')
+                    ->where('products.is_active', true)
+                    ->orderBy('flash_sale_products.sort_order')
+                    ->take(10)
+                    ->get();
+
+                // Gắn giá flash sale vào từng sản phẩm để ProductResource trả về đúng
+                $products->each(function (Product $product) use ($sale) {
+                    $product->is_flash_sale      = true;
+                    $product->flash_sale_price   = $product->pivot->sale_price;
+                    $product->flash_sale_end_at  = $sale->end_at;
+                });
+
+                return ['sale' => $sale, 'products' => $products];
+            }
+
+            // Fallback: cờ flash sale cũ trên bảng products
+            $products = Product::with(['primaryImage', 'activeFlashSaleItem'])
+                ->flashSale()
+                ->orderByDesc('sold_count')
                 ->take(10)
                 ->get();
 
-            // Gắn giá flash sale vào từng sản phẩm để ProductResource trả về đúng
-            $products->each(function (Product $product) use ($sale) {
-                $product->is_flash_sale      = true;
-                $product->flash_sale_price   = $product->pivot->sale_price;
-                $product->flash_sale_end_at  = $sale->end_at;
-            });
+            return ['sale' => null, 'products' => $products];
+        });
 
-            return response()->json([
-                'data' => ProductResource::collection($products),
-                'meta' => [
-                    'flash_sale' => [
-                        'id'          => $sale->id,
-                        'name'        => $sale->name,
-                        'slug'        => $sale->slug,
-                        'description' => $sale->description,
-                        'start_at'    => $sale->start_at?->toISOString(),
-                        'end_at'      => $sale->end_at?->toISOString(),
-                    ],
-                ],
-            ]);
-        }
-
-        // Fallback: cờ flash sale cũ trên bảng products
-        $products = Product::with(['primaryImage', 'activeFlashSaleItem'])
-            ->flashSale()
-            ->orderByDesc('sold_count')
-            ->take(10)
-            ->get();
+        $sale = $payload['sale'];
+        $products = $payload['products'];
 
         return response()->json([
             'data' => ProductResource::collection($products),
-            'meta' => ['flash_sale' => null],
+            'meta' => [
+                'flash_sale' => $sale ? [
+                    'id'          => $sale->id,
+                    'name'        => $sale->name,
+                    'slug'        => $sale->slug,
+                    'description' => $sale->description,
+                    'start_at'    => $sale->start_at?->toISOString(),
+                    'end_at'      => $sale->end_at?->toISOString(),
+                ] : null,
+            ],
         ]);
     }
 
@@ -152,26 +178,45 @@ class ProductController extends Controller
      */
     public function search(Request $request): JsonResponse
     {
-        $q = $request->get('q', '');
+        $q = trim((string) $request->get('q', ''));
 
-        if (strlen($q) < 2) {
+        if (mb_strlen($q) < 2) {
             return response()->json(['data' => []]);
         }
 
-        $products = Product::with(['primaryImage', 'activeFlashSaleItem'])
-            ->active()
-            ->where(function ($query) use ($q) {
-                $query->where('name', 'LIKE', "%{$q}%")
-                    ->orWhere('sku', 'LIKE', "%{$q}%")
-                    ->orWhere('short_description', 'LIKE', "%{$q}%");
-            })
-            ->take(10)
-            ->get();
+        $query = Product::with(['primaryImage', 'category', 'activeFlashSaleItem'])->active();
+        $this->applySearch($query, $q);
 
-        return response()->json(['data' => ProductResource::collection($products)]);
+        if ($request->filled('category')) {
+            $category = Category::where('slug', $request->category)->first();
+            if ($category) {
+                $query->whereIn('category_id', $this->getCategoryIds($category));
+            }
+        }
+
+        $products = $query->take(min((int) $request->input('limit', 8), 20))->get();
+
+        return response()->json([
+            'data' => ProductResource::collection($products),
+            'query' => $q,
+        ]);
     }
 
     // ── Helpers ───────────────────────────────────────────
+
+    /** Áp dụng tìm kiếm FULLTEXT + fallback LIKE cho từ khóa ngắn/không dấu. */
+    private function applySearch($query, string $search): void
+    {
+        $term = trim($search);
+        $like = "%{$term}%";
+
+        $query->where(function ($q) use ($term, $like) {
+            $q->whereFullText(['name', 'short_description', 'description'], $term)
+              ->orWhere('name', 'LIKE', $like)
+              ->orWhere('sku', 'LIKE', $like)
+              ->orWhere('short_description', 'LIKE', $like);
+        });
+    }
 
     /** Lấy tất cả ID của danh mục và các danh mục con */
     private function getCategoryIds(Category $category): array

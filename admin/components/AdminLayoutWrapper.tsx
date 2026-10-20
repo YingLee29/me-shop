@@ -3,12 +3,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Package, LogOut, User, Store, Layers, Zap, Ticket } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, LogOut, User, Store, Zap, Ticket, ShieldCheck, FolderTree, Star, Newspaper, BarChart3, Warehouse } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function AdminLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, logout, isLoading } = useAdminAuth();
+  const can = (permission: string) => user?.permissions?.includes(permission) ?? false;
 
   if (pathname === '/login') {
     return <>{children}</>;
@@ -26,12 +27,18 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
   }
 
   const navItems = [
-    { label: 'Tổng Quan (Dashboard)', href: '/', icon: LayoutDashboard },
-    { label: 'Quản Lý Đơn Hàng', href: '/orders', icon: ShoppingBag },
-    { label: 'Quản Lý Sản Phẩm', href: '/products', icon: Package },
-    { label: 'Flash Sale', href: '/flash-sales', icon: Zap },
-    { label: 'Mã Giảm Giá', href: '/coupons', icon: Ticket },
-  ];
+    { label: 'Tổng Quan (Dashboard)', href: '/', icon: LayoutDashboard, permission: null },
+    { label: 'Quản Lý Đơn Hàng', href: '/orders', icon: ShoppingBag, permission: 'orders.view' },
+    { label: 'Quản Lý Sản Phẩm', href: '/products', icon: Package, permission: 'products.view' },
+    { label: 'Quản Lý Danh Mục', href: '/categories', icon: FolderTree, permission: 'categories.view' },
+    { label: 'Flash Sale', href: '/flash-sales', icon: Zap, permission: 'flash-sales.view' },
+    { label: 'Mã Giảm Giá', href: '/coupons', icon: Ticket, permission: 'coupons.view' },
+    { label: 'Quản Lý Đánh Giá', href: '/reviews', icon: Star, permission: 'reviews.view' },
+    { label: 'Quản Lý Bài Viết', href: '/blogs', icon: Newspaper, permission: 'blogs.view' },
+    { label: 'Quản Lý Tồn Kho', href: '/inventory', icon: Warehouse, permission: 'inventory.view' },
+    { label: 'Báo Cáo Doanh Thu', href: '/reports', icon: BarChart3, permission: 'reports.view' },
+    { label: 'Phân Quyền', href: '/roles', icon: ShieldCheck, permission: 'roles.manage' },
+  ].filter((item) => !item.permission || can(item.permission));
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -97,7 +104,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
         {/* View store link */}
         <div style={{ padding: '12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <a
-            href="http://localhost:3000"
+            href={process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5000'}
             target="_blank"
             rel="noreferrer"
             style={{
@@ -129,7 +136,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
             </div>
             <div>
               <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#FFF' }}>{user?.name || 'Admin'}</div>
-              <div style={{ fontSize: '0.72rem', color: '#9A8878' }}>Super Admin</div>
+              <div style={{ fontSize: '0.72rem', color: '#9A8878' }}>{user?.roles?.[0] || 'Nhân viên'}</div>
             </div>
           </div>
 
@@ -160,7 +167,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ fontSize: '0.82rem', color: 'var(--admin-text-muted)' }}>
-              Phiên bản <strong>Phase 2 – Flash Sale &amp; Coupon</strong>
+              Phiên bản <strong>Phase 3 – Wishlist, Loyalty &amp; RBAC</strong>
             </span>
           </div>
         </header>
