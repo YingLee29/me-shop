@@ -184,6 +184,42 @@ export default function AdminProductsPage() {
     }
   };
 
+  const applyUpdatedProduct = (detail: any) => {
+    setEditing(detail);
+    setProducts((current) =>
+      current.map((item) =>
+        item.id === detail.id
+          ? { ...item, primary_image: detail.primary_image, images: detail.images }
+          : item,
+      ),
+    );
+  };
+
+  const handleSetPrimaryImage = async (imageId: number) => {
+    if (!editing) return;
+    try {
+      const res = await fetchAdminApi(`/admin/products/${editing.id}/images/${imageId}/primary`, {
+        method: 'POST',
+      });
+      if (res?.data) applyUpdatedProduct(res.data);
+    } catch (err: any) {
+      alert(err.message || 'Không thể đặt ảnh chính');
+    }
+  };
+
+  const handleDeleteImage = async (imageId: number) => {
+    if (!editing) return;
+    if (!confirm('Xóa ảnh này khỏi sản phẩm?')) return;
+    try {
+      const res = await fetchAdminApi(`/admin/products/${editing.id}/images/${imageId}`, {
+        method: 'DELETE',
+      });
+      if (res?.data) applyUpdatedProduct(res.data);
+    } catch (err: any) {
+      alert(err.message || 'Không thể xóa ảnh');
+    }
+  };
+
   const toggleSelected = (id: number) => {
     setSelected((current) =>
       current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
@@ -419,14 +455,80 @@ export default function AdminProductsPage() {
                   style={{ fontSize: '0.85rem' }}
                 />
                 <p style={{ fontSize: '0.75rem', color: '#777', marginTop: '6px' }}>
-                  JPG/PNG/WebP, tối đa 5MB/ảnh. Ảnh đầu tiên của sản phẩm mới sẽ làm ảnh chính.
+                  JPG/PNG/WebP, tối đa 5MB/ảnh. Mỗi sản phẩm tối đa 6 ảnh: 1 ảnh chính + 5 ảnh phụ.
+                  Ảnh đầu tiên của sản phẩm mới sẽ làm ảnh chính.
                 </p>
                 {editing?.images?.length > 0 && (
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}>
-                    {editing.images.map((img: any) => (
-                      <img key={img.id} src={img.url} alt="" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6, border: img.is_primary ? '2px solid var(--color-green)' : '1px solid #ddd' }} />
-                    ))}
-                  </div>
+                  <>
+                    <p style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--admin-brown-dark)', marginTop: '14px' }}>
+                      Ảnh hiện tại ({editing.images.length}/6)
+                    </p>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px' }}>
+                      {editing.images.map((img: any) => (
+                        <div
+                          key={img.id}
+                          style={{
+                            width: '92px',
+                            padding: '5px',
+                            borderRadius: '8px',
+                            border: img.is_primary ? '2px solid var(--color-green)' : '1px solid var(--admin-border)',
+                            background: '#FFF',
+                          }}
+                        >
+                          <div style={{ position: 'relative' }}>
+                            <img
+                              src={img.url}
+                              alt=""
+                              style={{ width: '100%', height: '72px', objectFit: 'cover', borderRadius: '5px', display: 'block' }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteImage(img.id)}
+                              title="Xóa ảnh"
+                              style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                right: '-6px',
+                                width: '20px',
+                                height: '20px',
+                                borderRadius: '50%',
+                                background: '#D32F2F',
+                                color: '#FFF',
+                                fontSize: '12px',
+                                lineHeight: '20px',
+                                textAlign: 'center',
+                                boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                          {img.is_primary ? (
+                            <div style={{ marginTop: '5px', fontSize: '0.68rem', fontWeight: 800, color: 'var(--color-green)', textAlign: 'center' }}>
+                              ★ Ảnh chính
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetPrimaryImage(img.id)}
+                              style={{
+                                width: '100%',
+                                marginTop: '5px',
+                                padding: '4px 3px',
+                                borderRadius: '4px',
+                                background: 'var(--admin-bg)',
+                                color: 'var(--admin-brown-dark)',
+                                fontSize: '0.68rem',
+                                fontWeight: 700,
+                              }}
+                            >
+                              Đặt làm ảnh chính
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
 

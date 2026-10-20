@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { shouldUnoptimizeImage } from '../../../lib/image';
-import { ShoppingCart, Zap, Star, MapPin, Check, Plus, Minus, ShieldCheck } from 'lucide-react';
+import { ShoppingCart, Zap, Star, MapPin, Check, Plus, Minus, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatPrice } from '../../../lib/api';
 import { useCart } from '../../../context/CartContext';
 
@@ -17,12 +17,24 @@ export default function ProductDetailClient({ product }: { product: any }) {
   );
   const [added, setAdded] = useState(false);
 
-  // Gallery
-  const images = product.images && product.images.length > 0
+  // Gallery: ảnh chính đứng trước, ảnh phụ theo sort_order
+  const rawImages = product.images && product.images.length > 0
     ? product.images
     : [{ id: 0, url: product.primary_image?.url || 'https://placehold.co/600x600/FAF7F0/6B4226?text=NongSan' }];
 
-  const [activeImage, setActiveImage] = useState(images[0]?.url || product.primary_image?.url);
+  const images = [...rawImages].sort((a: any, b: any) => {
+    if (!!a.is_primary !== !!b.is_primary) return a.is_primary ? -1 : 1;
+    return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+  });
+
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [imageHovered, setImageHovered] = useState(false);
+  const activeImage = images[activeIndex]?.url || product.primary_image?.url;
+
+  const showImage = (index: number) => {
+    if (images.length === 0) return;
+    setActiveIndex((index + images.length) % images.length);
+  };
 
   // Calculate adjusted price based on variant
   const currentPrice = selectedVariant
@@ -71,16 +83,88 @@ export default function ProductDetailClient({ product }: { product: any }) {
           background: 'var(--color-cream)',
           border: '1px solid var(--color-border)',
           marginBottom: '16px',
+          cursor: 'zoom-in',
         }}>
           <Image
             src={activeImage}
-            alt={product.name}
+            alt={images[activeIndex]?.alt || product.name}
             fill
             priority
             unoptimized={shouldUnoptimizeImage(activeImage)}
             sizes="(max-width: 768px) 100vw, 50vw"
-            style={{ objectFit: 'cover' }}
+            style={{
+              objectFit: 'cover',
+              transform: imageHovered ? 'scale(1.08)' : 'scale(1)',
+              transition: 'transform 0.35s ease',
+            }}
+            onMouseEnter={() => setImageHovered(true)}
+            onMouseLeave={() => setImageHovered(false)}
           />
+
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                aria-label="Ảnh trước"
+                onClick={() => showImage(activeIndex - 1)}
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '12px',
+                  transform: 'translateY(-50%)',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.92)',
+                  color: 'var(--color-brown-dark)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                  zIndex: 2,
+                }}
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <button
+                type="button"
+                aria-label="Ảnh tiếp theo"
+                onClick={() => showImage(activeIndex + 1)}
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: '12px',
+                  transform: 'translateY(-50%)',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.92)',
+                  color: 'var(--color-brown-dark)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                  zIndex: 2,
+                }}
+              >
+                <ChevronRight size={22} />
+              </button>
+              <div style={{
+                position: 'absolute',
+                right: '14px',
+                bottom: '12px',
+                padding: '3px 9px',
+                borderRadius: '20px',
+                background: 'rgba(0,0,0,0.55)',
+                color: '#FFF',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                zIndex: 2,
+              }}>
+                {activeIndex + 1} / {images.length}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Thumbnail list */}
@@ -89,18 +173,21 @@ export default function ProductDetailClient({ product }: { product: any }) {
             {images.map((img: any, idx: number) => (
               <button
                 key={img.id || idx}
-                onClick={() => setActiveImage(img.url)}
+                type="button"
+                onClick={() => setActiveIndex(idx)}
+                aria-label={`Xem ảnh ${idx + 1}`}
                 style={{
                   width: '74px',
                   height: '74px',
                   borderRadius: 'var(--radius-sm)',
                   overflow: 'hidden',
-                  border: activeImage === img.url ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                  border: activeIndex === idx ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
                   padding: 0,
                   flexShrink: 0,
+                  opacity: activeIndex === idx ? 1 : 0.72,
                 }}
               >
-                <Image src={img.url} alt={product.name} width={74} height={74} unoptimized={shouldUnoptimizeImage(img.url)} style={{ objectFit: 'cover' }} />
+                <Image src={img.url} alt={img.alt || product.name} width={74} height={74} unoptimized={shouldUnoptimizeImage(img.url)} style={{ objectFit: 'cover' }} />
               </button>
             ))}
           </div>

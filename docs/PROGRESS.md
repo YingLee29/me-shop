@@ -54,6 +54,7 @@
 | 9 | Container PHP (UID 1000) không ghi được file mount | Truyền `PHP_UID/PHP_GID` của host qua compose (Makefile tự export) | ✅ |
 | 10 | `localhost:5000/5002` trả 502 sau khi recreate frontend/admin | Nginx cache IP cũ của container → dùng Docker DNS resolver `127.0.0.11` + biến upstream để tự phân giải lại | ✅ |
 | 11 | Ảnh sản phẩm upload hiển thị ở admin nhưng lỗi trên frontend | Next Image optimizer trong container gọi `localhost` (không phải nginx) → bỏ optimize với ảnh local, cho trình duyệt tải trực tiếp | ✅ |
+| 12 | Bổ sung quản lý nhiều ảnh sản phẩm | 1 ảnh chính + tối đa 5 ảnh phụ; admin đặt ảnh chính/xóa ảnh; chi tiết có next/prev và hover zoom | ✅ |
 
 ---
 
@@ -143,7 +144,7 @@
 
 - [x] CRUD đầy đủ cho sản phẩm (kèm upload ảnh)
 - [x] `StoreProductRequest`: validate tên, giá, danh mục, ảnh
-- [x] Xử lý upload ảnh: lưu vào `storage/app/public/products/`
+- [x] Xử lý upload ảnh: lưu vào `storage/app/public/products/`, tối đa 6 ảnh/sản phẩm (1 chính + 5 phụ), có đặt ảnh chính và xóa ảnh
 - [x] Tạo slug tự động từ tên (unique)
 - [x] Middleware `admin` bảo vệ route admin
 - [x] Bulk delete nhiều sản phẩm
@@ -208,7 +209,7 @@
 ### 📦 Bước 4.4 – Trang Danh Sách & Chi Tiết Sản Phẩm
 
 - [x] `app/products/page.tsx`: Sidebar lọc theo danh mục, lọc flash sale, khoảng giá, tìm kiếm, sắp xếp mới nhất / giá tăng / giảm, phân trang
-- [x] `app/products/[slug]/page.tsx`: Gallery ảnh chính + thumbnails, chọn quy cách/biến thể tính giá realtime, bộ đếm số lượng, cam kết chuẩn VietGAP
+- [x] `app/products/[slug]/page.tsx`: Gallery ảnh chính + thumbnails, nút chuyển ảnh trước/sau, hover zoom ảnh chính, chọn quy cách/biến thể tính giá realtime, bộ đếm số lượng, cam kết chuẩn VietGAP
 - [x] Mua ngay chuyển thẳng đến Checkout
 
 ### 📦 Bước 4.5 – Giỏ Hàng & Đặt Hàng COD
@@ -225,7 +226,7 @@
 - [x] `admin/app/login/page.tsx`: Trang đăng nhập admin riêng biệt (mặc định admin@nongsan.vn)
 - [x] `admin/app/page.tsx`: Bảng điều khiển KPI (Tổng doanh thu, Đơn chờ xử lý, Tổng sản phẩm) + Bảng 10 đơn hàng gần nhất
 - [x] `admin/app/orders/page.tsx`: Bộ lọc trạng thái đơn, tìm kiếm mã đơn/SĐT, modal xem chi tiết và cập nhật trạng thái đơn (Pending -> Confirmed -> Preparing -> Shipping -> Completed / Cancelled) kèm ghi chú
-- [x] `admin/app/products/page.tsx`: Danh sách nông sản, modal thêm/sửa sản phẩm đầy đủ thông tin, upload nhiều ảnh, xóa từng sản phẩm và xóa hàng loạt
+- [x] `admin/app/products/page.tsx`: Danh sách nông sản, modal thêm/sửa sản phẩm đầy đủ thông tin, upload nhiều ảnh, đặt ảnh chính/xóa từng ảnh, xóa từng sản phẩm và xóa hàng loạt
 - [x] `admin/app/categories/page.tsx`: CRUD danh mục nhiều cấp, icon, thứ tự, trạng thái hiển thị
 
 ### 📦 Bước 4.7 – Phase 1 Acceptance Criteria
@@ -509,6 +510,7 @@
 | 20/10/2026 | AI | Chuẩn hoá URL truy cập: Frontend `http://localhost:5000`, Admin `http://localhost:5002`; cập nhật Docker port mapping, CORS, Sanctum, SEO và tài liệu. |
 | 20/10/2026 | AI | Fix 502 Bad Gateway sau khi recreate container: nginx dùng Docker DNS resolver thay vì cache IP upstream lúc khởi động. |
 | 20/10/2026 | AI | Fix ảnh upload không hiển thị trên frontend: bỏ Next Image optimizer cho URL `localhost`, giữ optimize cho ảnh remote. |
+| 20/10/2026 | AI | Bổ sung gallery nhiều ảnh: ảnh chính + tối đa 5 ảnh phụ, đặt/xóa ảnh trong admin, next/prev và hover zoom ở trang chi tiết. |
 
 ---
 

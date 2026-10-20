@@ -124,6 +124,10 @@ Route::prefix('v1')->group(function () {
             Route::post('/',             [AdminProductController::class, 'store'])->middleware('permission:products.create');
             // Route tĩnh phải đứng TRƯỚC route có tham số {id}
             Route::delete('bulk-delete', [AdminProductController::class, 'bulkDelete'])->middleware('permission:products.delete');
+            Route::post('{id}/images/{image}/primary', [AdminProductController::class, 'setPrimaryImage'])
+                ->whereNumber('id')->whereNumber('image')->middleware('permission:products.update');
+            Route::delete('{id}/images/{image}', [AdminProductController::class, 'destroyImage'])
+                ->whereNumber('id')->whereNumber('image')->middleware('permission:products.update');
             Route::get('{id}',           [AdminProductController::class, 'show'])->whereNumber('id')->middleware('permission:products.view');
             Route::post('{id}',          [AdminProductController::class, 'update'])->whereNumber('id')->middleware('permission:products.update'); // POST for multipart
             Route::delete('{id}',        [AdminProductController::class, 'destroy'])->whereNumber('id')->middleware('permission:products.delete');

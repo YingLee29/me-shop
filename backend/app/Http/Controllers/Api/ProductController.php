@@ -88,7 +88,7 @@ class ProductController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $product = Product::with(['images', 'variants', 'category', 'activeFlashSaleItem'])
+        $product = Product::with(['images', 'primaryImage', 'variants', 'category', 'activeFlashSaleItem'])
             ->where('slug', $slug)
             ->active()
             ->firstOrFail();

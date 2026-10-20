@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
@@ -65,7 +66,7 @@ class ProductController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $product = Product::with(['category', 'images', 'variants'])->findOrFail($id);
+        $product = Product::with(['category', 'images', 'variants', 'primaryImage'])->findOrFail($id);
         return response()->json(['data' => new ProductResource($product)]);
     }
 
@@ -87,7 +88,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Sản phẩm đã được tạo.',
-            'data'    => new ProductResource($product->load(['category', 'images'])),
+            'data'    => new ProductResource($product->load(['category', 'images', 'primaryImage'])),
         ], 201);
     }
 
@@ -111,7 +112,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Sản phẩm đã được cập nhật.',
-            'data'    => new ProductResource($product->fresh(['category', 'images'])),
+            'data'    => new ProductResource($product->fresh(['category', 'images', 'primaryImage'])),
         ]);
     }
 
@@ -141,6 +142,53 @@ class ProductController extends Controller
         return response()->json(['message' => "Đã xóa {$count} sản phẩm."]);
     }
 
+    /**
+     * Đặt một ảnh làm ảnh chính
+     * POST /api/v1/admin/products/{id}/images/{image}/primary
+     */
+    public function setPrimaryImage(int $id, int $imageId): JsonResponse
+    {
+        $product = Product::findOrFail($id);
+        $image = ProductImage::where('product_id', $product->id)->findOrFail($imageId);
+
+        DB::transaction(function () use ($product, $image) {
+            $product->images()->get()->each(function (ProductImage $item) use ($image) {
+                $item->update(['is_primary' => $item->id === $image->id]);
+            });
+        });
+
+        return response()->json([
+            'message' => 'Đã đặt ảnh chính.',
+            'data'    => new ProductResource($product->fresh(['category', 'images', 'primaryImage'])),
+        ]);
+    }
+
+    /**
+     * Xóa một ảnh của sản phẩm
+     * DELETE /api/v1/admin/products/{id}/images/{image}
+     */
+    public function destroyImage(int $id, int $imageId): JsonResponse
+    {
+        $product = Product::findOrFail($id);
+        $image = ProductImage::where('product_id', $product->id)->findOrFail($imageId);
+        $wasPrimary = $image->is_primary;
+
+        DB::transaction(function () use ($product, $image, $wasPrimary) {
+            $this->deleteImageFile($image);
+            $image->delete();
+
+            if ($wasPrimary) {
+                $next = $product->images()->first();
+                $next?->update(['is_primary' => true]);
+            }
+        });
+
+        return response()->json([
+            'message' => 'Đã xóa ảnh sản phẩm.',
+            'data'    => new ProductResource($product->fresh(['category', 'images', 'primaryImage'])),
+        ]);
+    }
+
     // ── Helpers ───────────────────────────────────────────
 
     private function validateProduct(Request $request, ?int $ignoreId = null): array
@@ -165,7 +213,7 @@ class ProductController extends Controller
             'meta_title'        => ['nullable', 'string', 'max:255'],
             'meta_description'  => ['nullable', 'string', 'max:500'],
             // Images
-            'images'            => ['nullable', 'array'],
+            'images'            => ['nullable', 'array', 'max:6'],
             'images.*'          => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
     }
@@ -190,14 +238,25 @@ class ProductController extends Controller
 
     private function handleImages(Request $request, Product $product): void
     {
-        if (!$request->hasFile('images')) {
+        $files = $request->file('images');
+
+        if (!$files) {
             return;
+        }
+
+        $files = is_array($files) ? $files : [$files];
+        $total = $product->images()->count() + count($files);
+
+        if ($total > 6) {
+            throw ValidationException::withMessages([
+                'images' => 'Mỗi sản phẩm tối đa 6 ảnh: 1 ảnh chính và 5 ảnh phụ.',
+            ]);
         }
 
         $hasPrimary = $product->images()->where('is_primary', true)->exists();
         $order      = $product->images()->max('sort_order') ?? -1;
 
-        foreach ($request->file('images') as $file) {
+        foreach ($files as $file) {
             $order++;
             $path = $file->store("products/{$product->id}", 'public');
 
@@ -210,6 +269,15 @@ class ProductController extends Controller
             ]);
 
             $hasPrimary = true;
+        }
+    }
+
+    private function deleteImageFile(ProductImage $image): void
+    {
+        $path = parse_url($image->url, PHP_URL_PATH);
+
+        if (is_string($path) && str_starts_with($path, '/storage/')) {
+            Storage::disk('public')->delete(Str::after($path, '/storage/'));
         }
     }
 }
