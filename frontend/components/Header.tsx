@@ -38,7 +38,7 @@ export default function Header() {
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={14} /> <strong>Ưu đãi tháng 9:</strong> Freeship cho đơn hàng từ 300.000đ!
             </span>
-            <span style={{ display: 'none', md: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.9 }}>
+            <span className="topbar-secondary" style={{ alignItems: 'center', gap: '4px', opacity: 0.9 }}>
               <ShieldCheck size={14} /> 100% Hữu cơ & VietGAP
             </span>
           </div>

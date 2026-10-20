@@ -169,3 +169,14 @@ input, textarea, select {
   box-shadow: var(--shadow-hover);
   transform: translateY(-4px);
 }
+
+/* ── Topbar: ẩn bớt thông tin phụ trên mobile ── */
+.topbar-secondary {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .topbar-secondary {
+    display: inline-flex;
+  }
+}

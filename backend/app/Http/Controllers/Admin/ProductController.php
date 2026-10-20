@@ -21,7 +21,7 @@ class ProductController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Product::with(['category', 'primaryImage']);
+        $query = Product::with(['category', 'primaryImage', 'activeFlashSaleItem']);
 
         if ($search = $request->search) {
             $query->where(function ($q) use ($search) {

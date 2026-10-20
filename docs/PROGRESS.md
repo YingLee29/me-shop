@@ -11,9 +11,9 @@
 
 | Thông tin | Nội dung |
 |-----------|----------|
-| **Cập nhật lúc** | 16/09/2026 |
-| **Người cập nhật** | Antigravity AI Pair Programmer |
-| **Trạng thái chung** | 🟢 Hoàn thành Phase 1 MVP (100%) |
+| **Cập nhật lúc** | 20/10/2026 |
+| **Người cập nhật** | AI Pair Programmer |
+| **Trạng thái chung** | 🟢 Phase 1 hoàn thành – Phase 2 đang triển khai (Tuần 5 xong) |
 
 ---
 
@@ -22,7 +22,7 @@
 | Phase | Tổng tasks | Hoàn thành | Đang làm | Tiến độ |
 |-------|-----------|-----------|---------|---------|
 | **Phase 1** – MVP (Tuần 1–4) | 56 | 56 | 0 | 100% |
-| **Phase 2** – Core Features (Tuần 5–8) | 28 | 0 | 0 | 0% |
+| **Phase 2** – Core Features (Tuần 5–8) | 28 | 10 | 0 | 36% |
 | **Phase 3** – Enhancement (Tuần 9–12) | 23 | 0 | 0 | 0% |
 | **Phase 4** – Advanced (Tùy chọn) | 14 | 0 | 0 | 0% |
 
@@ -36,6 +36,21 @@
 [x] Hoàn thành
 [!] Cần chú ý / Review
 ```
+
+---
+
+## 🔧 HOTFIX & HẠ TẦNG (20/10/2026)
+
+| # | Vấn đề | Cách xử lý | Trạng thái |
+|---|--------|-----------|-----------|
+| 1 | `DELETE /admin/products/bulk-delete` bị route `{id}` che mất | Đưa route `bulk-delete` lên trước `{id}` + thêm `whereNumber` | ✅ |
+| 2 | Giỏ hàng guest bị mất khi đăng nhập | Thêm `POST /cart/sync` + merge localStorage trong `CartContext` | ✅ |
+| 3 | File `.env` (chứa credential) bị track trong git | `git rm --cached .env`, cập nhật `.gitignore` | ✅ |
+| 4 | Toàn bộ API admin trả 500 `Target class [role] does not exist` | Spatie v8 không tự đăng ký alias → khai báo middleware alias trong `bootstrap/app.php` | ✅ |
+| 5 | Giá flash sale chỉ đúng ở endpoint flash-sale, đặt hàng dùng giá cũ | Thêm quan hệ `activeFlashSaleItem` + áp dụng trong `Product::current_price` cho mọi API | ✅ |
+| 6 | Guest checkout không gửi `items` nên không đặt được đơn | Checkout gửi kèm `items[]`; server kiểm tra lại variant/giá/tồn kho | ✅ |
+| 7 | `make setup` fail do port 6379/3001 bị project khác chiếm | Đổi host port: Redis `6380`, Admin `3002` (container giữ nguyên) | ✅ |
+| 8 | Container PHP (UID 1000) không ghi được file mount | Truyền `PHP_UID/PHP_GID` của host qua compose (Makefile tự export) | ✅ |
 
 ---
 
@@ -64,7 +79,7 @@
 
 ### 📦 Bước 1.1 – Khởi tạo dự án
 
-- [x] Tạo project Laravel 11 trong thư mục `backend/`
+- [x] Tạo project Laravel 12 trong thư mục `backend/`
 - [x] Cài đặt Laravel Sanctum
 - [x] Cài đặt Spatie Permission
 - [x] Cấu hình `.env`: DB, Redis, Mail
@@ -230,18 +245,27 @@
 
 ### 📦 Bước 5.1 – Flash Sale
 
-- [ ] Migration `flash_sales` + `flash_sale_products`
-- [ ] API `GET /api/v1/products/flash-sale`
-- [ ] Frontend: `FlashSaleSection` với countdown timer
-- [ ] Admin: CRUD Flash Sale + thêm/bớt sản phẩm
+- [x] Migration `flash_sales` + `flash_sale_products`
+- [x] Model `FlashSale` / `FlashSaleProduct` + scope `running()`
+- [x] API `GET /api/v1/products/flash-sale` (kèm `meta.flash_sale` + thời gian kết thúc)
+- [x] Giá flash sale áp dụng thống nhất ở mọi API qua `Product::current_price`
+- [x] Frontend: `FlashSaleSection` với countdown timer (ngày/giờ/phút/giây)
+- [x] Admin: CRUD Flash Sale + thêm/bớt sản phẩm, bật/tắt đợt sale
+- [x] Admin API: `GET/POST/PUT/DELETE /api/v1/admin/flash-sales`
+- [x] Seeder `FlashSaleSeeder`
 
 ### 📦 Bước 5.2 – Coupon System
 
-- [ ] Migration `coupons`
-- [ ] API `POST /api/v1/coupons/validate`
-- [ ] Logic: kiểm tra expired_at, usage_limit, min_order_amount
-- [ ] Admin: CRUD coupon
-- [ ] Frontend: Input mã giảm giá trong trang Cart
+- [x] Migration `coupons` + `coupon_usages`
+- [x] `CouponService` dùng chung cho validate và đặt hàng
+- [x] API `POST /api/v1/coupons/validate` (rate limit 30/phút)
+- [x] Logic: kiểm tra starts_at, expired_at, usage_limit, user_limit, min_order_amount
+- [x] Đặt hàng: server tự tính lại, ghi `coupon_usages`, tăng `used_count`
+- [x] Admin: CRUD coupon + thống kê lượt dùng
+- [x] Admin API: `GET/POST/PUT/DELETE /api/v1/admin/coupons`
+- [x] Frontend: nhập mã trong Cart, hiển thị giảm giá ở Cart + Checkout
+- [x] Quy tắc ship tập trung: freeship từ 300.000đ, ngược lại 25.000đ
+- [x] Seeder `CouponSeeder` (SALE10, FREESHIP, GIAM20K)
 
 ---
 
@@ -299,7 +323,7 @@
 
 - [ ] API `GET /api/v1/admin/reports/revenue`
 - [ ] API `GET /api/v1/admin/reports/top-products`
-- [ ] Admin frontend: Ant Design Charts (Line + Bar)
+- [ ] Admin frontend: biểu đồ doanh thu (SVG/plain CSS – không dùng Ant Design Charts)
 - [ ] Filter theo khoảng ngày (DatePicker range)
 
 ### 📦 Bước 8.3 – Admin: Quản Lý Kho
@@ -311,8 +335,8 @@
 
 ### 📦 Bước 8.4 – Phase 2 Acceptance Criteria
 
-- [ ] ✅ Flash sale hoạt động với countdown timer
-- [ ] ✅ Mã giảm giá được validate và áp dụng đúng
+- [x] ✅ Flash sale hoạt động với countdown timer
+- [x] ✅ Mã giảm giá được validate và áp dụng đúng
 - [ ] ✅ Thanh toán MoMo / VNPAY thành công (sandbox)
 - [ ] ✅ Người dùng có thể viết review sau khi mua hàng
 - [ ] ✅ Blog hiển thị và SEO tốt
@@ -447,8 +471,12 @@
 | Ngày | Người làm | Nội dung cập nhật |
 |------|-----------|-------------------|
 | 14/09/2026 | _(team)_ | Tạo file PROGRESS.md. Docker infrastructure đã sẵn sàng (9 files). |
+| 20/10/2026 | AI | Fix 4 bug Phase 1 (bulk-delete, guest cart, `.env` tracked, middleware `role`) + 2 bug giá/checkout. |
+| 20/10/2026 | AI | Hạ tầng: đổi host port Redis → 6380, Admin → 3002; container dùng UID/GID host; `make setup` chạy thành công, 8/8 container Up. |
+| 20/10/2026 | AI | Hoàn thành Tuần 5 Phase 2: Flash Sale (migrations, models, API, countdown, admin CRUD) + Coupon (migrations, service, validate, usage tracking, admin CRUD, UI Cart/Checkout). |
+| 20/10/2026 | AI | Verify: PHP lint OK, route list OK, `tsc --noEmit` sạch (frontend + admin), test API end-to-end (guest order, coupon limit, cart sync, admin CRUD). |
 
 ---
 
-*📅 Tạo: 14/09/2026 | Cập nhật: 14/09/2026*
+*📅 Tạo: 14/09/2026 | Cập nhật: 20/10/2026*
 *🌾 Dự án: Website bán Nông Sản Sạch*

@@ -1,5 +1,5 @@
 # 🌾 KẾ HOẠCH TRIỂN KHAI – WEBSITE BÁN NÔNG SẢN SẠCH
-> **Step-by-step Implementation Plan** | Laravel 11 + Next.js 14 + Bootstrap + Ant Design
+> **Step-by-step Implementation Plan** | Laravel 12 + Next.js 14 + Plain CSS + React Context
 
 ---
 
@@ -8,7 +8,7 @@
 | Mục | Nội dung |
 |-----|----------|
 | **Tên dự án** | Website Bán Nông Sản Sạch |
-| **Tech Stack** | PHP Laravel 11 + Next.js 14 (React) + Bootstrap 5 + Ant Design 5 |
+| **Tech Stack** | PHP Laravel 12 + Next.js 14 (React 18) + TypeScript + Plain CSS + React Context |
 | **Database** | MySQL 8 + Redis |
 | **Auth** | Laravel Sanctum (SPA Token) |
 | **Tổng thời gian** | ~12 tuần (3 tháng) |
@@ -20,9 +20,9 @@
 
 ```
 my-shop/
-├── backend/          Laravel 11 – REST API
+├── backend/          Laravel 12 – REST API
 ├── frontend/         Next.js 14 – Website bán hàng (Port 3000)
-├── admin/            Next.js 14 – Admin Dashboard (Port 3001)
+├── admin/            Next.js 14 – Admin Dashboard (Port 3002 → container 3001)
 ├── docs/             Tài liệu dự án
 │   ├── DESIGN_CONCEPT.md
 │   └── IMPLEMENTATION_PLAN.md   (file này)
@@ -63,7 +63,7 @@ my-shop/
 ├── Makefile                    Lệnh tiện dụng
 └── docker/
     ├── php/
-    │   ├── Dockerfile          PHP 8.2-FPM + extensions
+    │   ├── Dockerfile          PHP 8.4-FPM + extensions
     │   └── php.ini             Cấu hình PHP (memory, upload, opcache)
     ├── nginx/
     │   └── conf.d/
@@ -80,13 +80,13 @@ my-shop/
 | Container | Image | Port | Mô tả |
 |-----------|-------|------|-------|
 | `nongsan_nginx` | nginx:1.25-alpine | 80 | Reverse proxy → Laravel |
-| `nongsan_php` | php:8.2-fpm (custom) | 9000 | Laravel API |
+| `nongsan_php` | php:8.4-fpm-alpine (custom) | 9000 | Laravel API |
 | `nongsan_mysql` | mysql:8.0 | 3306 | Database |
-| `nongsan_redis` | redis:7-alpine | 6379 | Cache & Queue |
+| `nongsan_redis` | redis:7-alpine | 6380 → 6379 | Cache & Queue |
 | `nongsan_frontend` | node:20-alpine | 3000 | Next.js Frontend |
-| `nongsan_admin` | node:20-alpine | 3001 | Next.js Admin |
+| `nongsan_admin` | node:20-alpine | 3002 → 3001 | Next.js Admin |
 | `nongsan_mailpit` | mailpit:latest | 8025 | Email testing UI |
-| `nongsan_queue` | php:8.2-fpm (custom) | — | Laravel Queue Worker |
+| `nongsan_queue` | php:8.4-fpm-alpine (custom) | — | Laravel Queue Worker |
 
 **Setup lần đầu (chạy 1 lần duy nhất):**
 ```bash
@@ -116,11 +116,11 @@ make cache-clear                     # Xóa cache Laravel
 **Truy cập sau khi chạy:**
 ```
 http://localhost:3000   → Website bán hàng (Frontend)
-http://localhost:3001   → Admin Dashboard
+http://localhost:3002   → Admin Dashboard
 http://localhost/api/v1 → Laravel API
 http://localhost:8025   → Mailpit (xem email test)
 localhost:3306          → MySQL (dùng TablePlus)
-localhost:6379          → Redis (dùng RedisInsight)
+localhost:6380          → Redis (dùng RedisInsight)
 ```
 
 **Tasks Docker:**
@@ -162,7 +162,7 @@ php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvid
 ```
 
 **Tasks:**
-- [ ] Tạo project Laravel 11 trong thư mục `backend/`
+- [x] Tạo project Laravel 12 trong thư mục `backend/`
 - [ ] Cài đặt Laravel Sanctum
 - [ ] Cài đặt Spatie Permission
 - [ ] Cấu hình `.env`: DB, Redis, Mail
@@ -446,22 +446,17 @@ cd my-shop
 npx create-next-app@latest frontend --typescript --tailwind=false --eslint --app --src-dir=false
 
 cd frontend
-npm install axios @tanstack/react-query zustand
-npm install bootstrap react-bootstrap
-npm install antd @ant-design/icons
-npm install swiper framer-motion
-npm install react-hook-form zod @hookform/resolvers
+npm install lucide-react
 ```
 
-**Cấu hình:**
-- [ ] Xóa Tailwind (không dùng), cài Bootstrap 5
-- [ ] Cấu hình `next.config.js`: `images.domains` thêm domain API
-- [ ] Tạo `styles/variables.css` với CSS variables màu vàng đất
-- [ ] Tạo `styles/globals.css` import Bootstrap + custom styles
-- [ ] Tạo `lib/axios.ts`: axios instance với baseURL từ env
-- [ ] Tạo `lib/queryClient.ts`: React Query client config
-- [ ] Tạo `store/cartStore.ts`: Zustand store cho giỏ hàng
-- [ ] Tạo `store/authStore.ts`: Zustand store cho auth
+**Cấu hình (thực tế đã triển khai):**
+- [x] Không dùng Tailwind/Bootstrap – viết **plain CSS** + inline styles
+- [x] Cấu hình `next.config.js`: `images.remotePatterns` cho domain API
+- [x] Tạo `app/globals.css` với CSS variables (design tokens) màu vàng đất
+- [x] Tạo `lib/api.ts`: `fetchApi` + `fetchAdminApi` (SSR qua nginx nội bộ)
+- [x] Tạo `context/CartContext.tsx`: React Context cho giỏ hàng
+- [x] Tạo `context/AuthContext.tsx`: React Context cho auth
+- [x] Không dùng React Query / Zustand / Ant Design
 
 ---
 
@@ -484,7 +479,7 @@ components/layout/
 - [ ] `Topbar`: text vàng trên nền `#C8A45A`, responsive ẩn trên mobile
 - [ ] `Header`: Logo (trái), Search input (giữa, rounded-full, border vàng đất), Cart + User (phải)
 - [ ] `Navbar`: bg gradient nâu vàng, dropdown mega menu "Chuyên Mục"
-- [ ] Cart icon hiển thị badge số lượng realtime từ Zustand store
+- [x] Cart icon hiển thị badge số lượng realtime từ CartContext
 - [ ] `Footer`: 4 cột thông tin, social icons, copyright
 
 ---
@@ -570,7 +565,7 @@ admin/app/
 ```
 
 **Tasks:**
-- [ ] `AdminLayout`: Ant Design `Layout` với `Sider` + `Header` + `Content`
+- [x] `AdminLayout`: sidebar + header + content viết bằng plain CSS (`AdminLayoutWrapper.tsx`)
 - [ ] Sidebar màu `#2C1A0E`, menu items với icons
 - [ ] Trang login admin riêng biệt
 - [ ] Dashboard page: 4 stat cards + placeholder charts
@@ -609,11 +604,15 @@ php artisan make:migration create_flash_sales_table  # Bảng riêng nếu cần
 ```
 
 **Tasks:**
-- [ ] Migration: `flash_sales` (id, name, start_at, end_at, is_active)
-- [ ] Migration: `flash_sale_products` (flash_sale_id, product_id, sale_price, limit_quantity)
-- [ ] API: `GET /api/v1/products/flash-sale` → trả về sản phẩm + thời gian còn lại
-- [ ] Frontend: Component `FlashSaleSection` với countdown timer (cập nhật mỗi giây)
-- [ ] Admin: CRUD Flash Sale + thêm/bớt sản phẩm vào đợt sale
+- [x] Migration: `flash_sales` (id, name, slug, start_at, end_at, is_active)
+- [x] Migration: `flash_sale_products` (flash_sale_id, product_id, sale_price, quantity_limit, sold_count)
+- [x] Model `FlashSale` + `FlashSaleProduct`, scope `running()`, quan hệ `products()`
+- [x] API: `GET /api/v1/products/flash-sale` → trả về sản phẩm + `meta.flash_sale` (tên, start_at, end_at)
+- [x] Giá flash sale được áp dụng thống nhất ở mọi API (list, detail, cart, order) qua `Product::current_price`
+- [x] Frontend: Component `FlashSaleSection` với countdown timer (cập nhật mỗi giây)
+- [x] Admin: CRUD Flash Sale + thêm/bớt sản phẩm vào đợt sale
+- [x] Admin API: `GET/POST/PUT/DELETE /api/v1/admin/flash-sales`
+- [x] Seeder: `FlashSaleSeeder` (đợt "Giờ Vàng Nông Sản", 6 sản phẩm)
 
 ---
 
@@ -626,11 +625,23 @@ php artisan make:model Coupon
 ```
 
 **Tasks:**
-- [ ] Migration `coupons` (code, type: percent/fixed/freeship, value, min_order, max_discount, usage_limit, expired_at)
-- [ ] API `POST /api/v1/coupons/validate`: kiểm tra hợp lệ + trả về discount amount
-- [ ] Logic: kiểm tra expired_at, usage_limit, min_order_amount
-- [ ] Admin: CRUD coupon (tạo mã, set điều kiện, thống kê sử dụng)
-- [ ] Frontend: Input mã giảm giá trong trang Cart → hiển thị giảm bao nhiêu
+- [x] Migration `coupons` (code, type: percent/fixed/freeship, value, min_order_amount, max_discount, usage_limit, used_count, user_limit, starts_at, expired_at)
+- [x] Migration `coupon_usages` (coupon_id, user_id, order_id, discount_amount)
+- [x] `CouponService`: validate + tính giảm giá, dùng chung cho preview và đặt hàng
+- [x] API `POST /api/v1/coupons/validate`: kiểm tra hợp lệ + trả về discount amount
+- [x] Logic: kiểm tra expired_at, usage_limit, min_order_amount, user_limit, starts_at
+- [x] Đặt hàng: server tự tính lại coupon, ghi `coupon_usages` + tăng `used_count`
+- [x] Admin: CRUD coupon (tạo mã, set điều kiện, thống kê sử dụng)
+- [x] Admin API: `GET/POST/PUT/DELETE /api/v1/admin/coupons`
+- [x] Frontend: Input mã giảm giá trong trang Cart + hiển thị giảm giá ở Checkout
+- [x] Quy tắc ship tập trung: miễn phí từ 300.000đ, ngược lại 25.000đ
+- [x] Seeder: `CouponSeeder` (SALE10, FREESHIP, GIAM20K)
+
+**Ghi chú triển khai thực tế:**
+- Giá trị đơn hàng luôn được tính lại ở server; client chỉ gửi `code` + `subtotal` để preview.
+- Khách vãng lai chỉ giới hạn bởi `usage_limit` toàn cục; user đăng nhập còn bị giới hạn `user_limit`.
+- Bổ sung `POST /api/v1/cart/sync` để gộp giỏ guest vào giỏ DB khi đăng nhập.
+- Bổ sung `items[]` trong payload đặt hàng để guest checkout hoạt động và server kiểm tra lại giá/tồn kho.
 
 ---
 
@@ -748,7 +759,7 @@ php artisan make:controller Admin/ReportController
 - [ ] `GET /api/v1/admin/reports/revenue?period=monthly&year=2026`
 - [ ] Trả về: tổng doanh thu, số đơn, đơn trung bình theo từng ngày/tuần/tháng
 - [ ] `GET /api/v1/admin/reports/top-products?period=this_month&limit=10`
-- [ ] Admin frontend: Ant Design Charts (Line + Bar) render báo cáo
+- [ ] Admin frontend: biểu đồ doanh thu (SVG/plain CSS – không dùng Ant Design Charts)
 - [ ] Filter theo khoảng ngày tùy chỉnh (DatePicker range)
 
 ---

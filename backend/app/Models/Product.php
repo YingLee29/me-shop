@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
@@ -57,6 +59,19 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function flashSaleItems(): HasMany
+    {
+        return $this->hasMany(FlashSaleProduct::class);
+    }
+
+    /** Sản phẩm trong đợt flash sale đang diễn ra (nếu có) */
+    public function activeFlashSaleItem(): HasOne
+    {
+        return $this->hasOne(FlashSaleProduct::class)
+            ->whereHas('flashSale', fn (Builder $query) => $query->running())
+            ->latestOfMany();
+    }
+
     // ── Scopes ────────────────────────────────────────────
 
     public function scopeActive($query)
@@ -80,14 +95,31 @@ class Product extends Model
 
     public function getCurrentPriceAttribute(): float
     {
-        return $this->sale_price ?? $this->price;
+        // Giá flash sale (từ bảng flash_sale_products) được ưu tiên nếu còn hiệu lực
+        if ($this->is_flash_sale
+            && $this->flash_sale_price
+            && $this->flash_sale_end_at
+            && $this->flash_sale_end_at->isFuture()
+        ) {
+            return (float) $this->flash_sale_price;
+        }
+
+        $flashSaleItem = $this->activeFlashSaleItem;
+        if ($flashSaleItem && (float) $flashSaleItem->sale_price > 0) {
+            return (float) $flashSaleItem->sale_price;
+        }
+
+        return (float) ($this->sale_price ?? $this->price);
     }
 
     public function getDiscountPercentageAttribute(): int
     {
-        if (!$this->sale_price || $this->sale_price >= $this->price) {
+        $current = $this->current_price;
+
+        if ($current >= (float) $this->price || (float) $this->price <= 0) {
             return 0;
         }
-        return (int) round((($this->price - $this->sale_price) / $this->price) * 100);
+
+        return (int) round((((float) $this->price - $current) / (float) $this->price) * 100);
     }
 }

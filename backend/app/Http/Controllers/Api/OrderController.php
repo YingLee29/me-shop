@@ -9,9 +9,11 @@ use App\Models\OrderItem;
 use App\Models\OrderStatusLog;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\CouponService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
@@ -81,9 +83,20 @@ class OrderController extends Controller
         $orderItemsData = collect();
 
         if (!empty($data['items'])) {
-            foreach ($data['items'] as $it) {
-                $product = Product::active()->findOrFail($it['product_id']);
-                $variant = !empty($it['variant_id']) ? ProductVariant::find($it['variant_id']) : null;
+            foreach ($data['items'] as $index => $it) {
+                $product = Product::active()->with('activeFlashSaleItem')->findOrFail($it['product_id']);
+
+                // Biến thể phải thuộc đúng sản phẩm
+                $variant = !empty($it['variant_id'])
+                    ? ProductVariant::where('product_id', $product->id)->find($it['variant_id'])
+                    : null;
+
+                if (!empty($it['variant_id']) && !$variant) {
+                    throw ValidationException::withMessages([
+                        "items.{$index}.variant_id" => 'Biến thể không thuộc sản phẩm đã chọn.',
+                    ]);
+                }
+
                 $price = $product->current_price + ($variant?->price_adjust ?? 0);
 
                 $orderItemsData->push((object)[
@@ -96,10 +109,18 @@ class OrderController extends Controller
                 ]);
             }
         } elseif ($userId) {
-            $cartItems = Cart::with(['product', 'variant'])
+            $cartItems = Cart::with(['product.activeFlashSaleItem', 'variant'])
                 ->where('user_id', $userId)
                 ->get();
-            $orderItemsData = $cartItems;
+
+            $orderItemsData = $cartItems->map(fn($item) => (object)[
+                'product_id' => $item->product_id,
+                'variant_id' => $item->variant_id,
+                'product'    => $item->product,
+                'variant'    => $item->variant,
+                'price'      => (float) $item->price,
+                'quantity'   => (int) $item->quantity,
+            ]);
         }
 
         if ($orderItemsData->isEmpty()) {
@@ -116,11 +137,19 @@ class OrderController extends Controller
             }
         }
 
-        $order = DB::transaction(function () use ($data, $orderItemsData, $userId) {
-            $subtotal  = $orderItemsData->sum(fn($i) => $i->price * $i->quantity);
-            $discount  = 0;
-            $shipping  = $subtotal >= 300000 ? 0 : 25000;
-            $total     = $subtotal - $discount + $shipping;
+        $order = DB::transaction(function () use ($data, $orderItemsData, $userId, $user) {
+            $subtotal = (float) $orderItemsData->sum(fn($i) => $i->price * $i->quantity);
+
+            // Tính phí ship + mã giảm giá (server là nguồn tính tiền duy nhất)
+            $pricing = app(CouponService::class)->resolve(
+                $data['coupon_code'] ?? null,
+                $subtotal,
+                $user,
+                true
+            );
+
+            $coupon          = $pricing['coupon'];
+            $shippingFee     = $pricing['shipping_fee'] - $pricing['shipping_discount'];
 
             $order = Order::create([
                 'user_id'          => $userId,
@@ -129,14 +158,25 @@ class OrderController extends Controller
                 'payment_method'   => $data['payment_method'],
                 'payment_status'   => 'unpaid',
                 'subtotal'         => $subtotal,
-                'discount_amount'  => $discount,
-                'shipping_fee'     => $shipping,
-                'total'            => $total,
+                'discount_amount'  => $pricing['discount_amount'],
+                'shipping_fee'     => $shippingFee,
+                'total'            => $pricing['total'],
+                'coupon_code'      => $coupon?->code,
                 'shipping_name'    => $data['shipping_name'],
                 'shipping_phone'   => $data['shipping_phone'],
                 'shipping_address' => $data['shipping_address'],
                 'note'             => $data['note'] ?? null,
             ]);
+
+            // Ghi nhận lượt dùng coupon
+            if ($coupon) {
+                app(CouponService::class)->recordUsage(
+                    $coupon,
+                    $userId,
+                    $order->id,
+                    $pricing['discount_amount'] + $pricing['shipping_discount']
+                );
+            }
 
             // Tạo order items + trừ tồn kho
             foreach ($orderItemsData as $item) {
@@ -250,6 +290,7 @@ class OrderController extends Controller
             'discount_amount'  => (float) $order->discount_amount,
             'shipping_fee'     => (float) $order->shipping_fee,
             'total'            => (float) $order->total,
+            'coupon_code'      => $order->coupon_code,
             'shipping_name'    => $order->shipping_name,
             'shipping_phone'   => $order->shipping_phone,
             'shipping_address' => $order->shipping_address,

@@ -10,6 +10,10 @@ GREEN  := \033[0;32m
 YELLOW := \033[0;33m
 RESET  := \033[0m
 
+# Dùng UID/GID của user host để container ghi được file trong thư mục mount
+export PHP_UID := $(shell id -u)
+export PHP_GID := $(shell id -g)
+
 help: ## Hiển thị danh sách lệnh
 	@echo ""
 	@echo "$(GREEN)🌾 NôngSản – Available Commands$(RESET)"
@@ -110,12 +114,15 @@ npm-admin: ## Chạy npm trong admin: make npm-admin CMD="install"
 setup: ## Setup toàn bộ dự án lần đầu
 	@echo "$(GREEN)🚀 Setting up NôngSản project...$(RESET)"
 	@cp -n .env.example .env 2>/dev/null || true
+	@test -f backend/.env || cp backend/.env.example backend/.env
 	@echo "$(YELLOW)▶ Building Docker images...$(RESET)"
 	docker compose build
 	@echo "$(YELLOW)▶ Starting services...$(RESET)"
 	docker compose up -d
 	@echo "$(YELLOW)▶ Waiting for MySQL to be ready...$(RESET)"
 	@sleep 15
+	@# Nginx resolve tên container lúc khởi động → restart để nhận IP mới sau khi recreate
+	docker compose restart nginx
 	@echo "$(YELLOW)▶ Installing Laravel dependencies...$(RESET)"
 	docker compose exec php composer install
 	@echo "$(YELLOW)▶ Setting up Laravel...$(RESET)"
@@ -125,8 +132,8 @@ setup: ## Setup toàn bộ dự án lần đầu
 	@echo "$(GREEN)✅ Setup complete!$(RESET)"
 	@echo ""
 	@echo "  Frontend : http://localhost:3000"
-	@echo "  Admin    : http://localhost:3001"
+	@echo "  Admin    : http://localhost:3002"
 	@echo "  API      : http://localhost/api/v1"
 	@echo "  Mailpit  : http://localhost:8025"
 	@echo "  MySQL    : localhost:3306"
-	@echo "  Redis    : localhost:6379"
+	@echo "  Redis    : localhost:6380"

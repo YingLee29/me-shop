@@ -10,7 +10,7 @@ import { fetchApi, formatPrice } from '../../lib/api';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, totalAmount, clearCart } = useCart();
+  const { items, totalAmount, clearCart, coupon, refreshCoupon } = useCart();
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -36,6 +36,12 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
+  // Giỏ thay đổi → kiểm tra lại mã giảm giá
+  useEffect(() => {
+    if (coupon) refreshCoupon();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalAmount]);
+
   if (items.length === 0) {
     return (
       <div style={{ padding: '80px 0', textAlign: 'center' }}>
@@ -52,8 +58,11 @@ export default function CheckoutPage() {
     );
   }
 
-  const shippingFee = totalAmount >= 300000 ? 0 : 25000;
-  const finalTotal = totalAmount + shippingFee;
+  const shippingFee = coupon ? coupon.shipping_fee : (totalAmount >= 300000 ? 0 : 25000);
+  const shippingDiscount = coupon?.shipping_discount || 0;
+  const payableShipping = Math.max(0, shippingFee - shippingDiscount);
+  const discountAmount = coupon?.discount_amount || 0;
+  const finalTotal = coupon ? coupon.total : totalAmount + shippingFee;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +73,16 @@ export default function CheckoutPage() {
       // Create order via backend API
       const res = await fetchApi('/orders', {
         method: 'POST',
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          coupon_code: coupon?.code || null,
+          // Gửi kèm items để guest cũng đặt được đơn và server kiểm tra lại giá/tồn kho
+          items: items.map((i) => ({
+            product_id: i.product_id,
+            variant_id: i.variant_id || null,
+            quantity: i.quantity,
+          })),
+        }),
       });
 
       if (res?.data?.order_code) {
@@ -322,8 +340,22 @@ export default function CheckoutPage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-gray-dark)' }}>
                 <span>Phí vận chuyển:</span>
-                <span>{shippingFee === 0 ? <strong style={{ color: 'var(--color-green)' }}>Miễn phí</strong> : formatPrice(shippingFee)}</span>
+                <span>{payableShipping === 0 ? <strong style={{ color: 'var(--color-green)' }}>Miễn phí</strong> : formatPrice(payableShipping)}</span>
               </div>
+
+              {coupon && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-green)', fontWeight: 600 }}>
+                  <span>Mã giảm giá ({coupon.code}):</span>
+                  <span>-{formatPrice(discountAmount + shippingDiscount)}</span>
+                </div>
+              )}
+
+              {coupon && (
+                <Link href="/cart" style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
+                  Thay đổi mã giảm giá
+                </Link>
+              )}
+
               <div style={{
                 borderTop: '2px dashed var(--color-border)',
                 paddingTop: '16px',
@@ -351,7 +383,7 @@ export default function CheckoutPage() {
                 opacity: loading ? 0.7 : 1,
               }}
             >
-              {loading ? 'Đang Xử Lý Đơn Hàng...' : 'Xác Nhận Đặt Hàng COD'}
+              {loading ? 'Đang Xử Lý Đơn Hàng...' : 'Xác Nhận Đặt Hàng'}
             </button>
           </div>
         </form>

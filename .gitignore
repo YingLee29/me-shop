@@ -3,13 +3,23 @@
 **/.next/
 **/vendor/
 
+# Environment (root – docker compose)
+/.env
+/.env.*
+!/.env.example
+
 # Laravel
 backend/.env
-backend/storage/logs/
-backend/storage/framework/cache/
-backend/storage/framework/sessions/
-backend/storage/framework/views/
-backend/bootstrap/cache/
+backend/storage/logs/*
+!backend/storage/logs/.gitignore
+backend/storage/framework/cache/*
+!backend/storage/framework/cache/.gitignore
+backend/storage/framework/sessions/*
+!backend/storage/framework/sessions/.gitignore
+backend/storage/framework/views/*
+!backend/storage/framework/views/.gitignore
+backend/bootstrap/cache/*
+!backend/bootstrap/cache/.gitignore
 
 # Next.js
 frontend/.env.local
@@ -26,3 +36,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# TypeScript incremental build info
+**/tsconfig.tsbuildinfo

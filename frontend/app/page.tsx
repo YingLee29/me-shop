@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, ShieldCheck, Truck, Clock, Leaf } from 'lucide-react';
+import { ArrowRight, Leaf } from 'lucide-react';
 import ProductCard, { Product } from '../components/ProductCard';
+import FlashSaleSection from '../components/FlashSaleSection';
 import { fetchApi } from '../lib/api';
 
 async function getHomePageData() {
@@ -16,6 +17,7 @@ async function getHomePageData() {
       categories: categoriesRes?.data || [],
       featuredProducts: featuredRes?.data || [],
       flashSaleProducts: flashSaleRes?.data || [],
+      flashSale: flashSaleRes?.meta?.flash_sale || null,
     };
   } catch (err) {
     console.error('Error fetching homepage data:', err);
@@ -23,12 +25,13 @@ async function getHomePageData() {
       categories: [],
       featuredProducts: [],
       flashSaleProducts: [],
+      flashSale: null,
     };
   }
 }
 
 export default async function HomePage() {
-  const { categories, featuredProducts, flashSaleProducts } = await getHomePageData();
+  const { categories, featuredProducts, flashSaleProducts, flashSale } = await getHomePageData();
 
   return (
     <div>
@@ -220,52 +223,11 @@ export default async function HomePage() {
       </section>
 
       {/* ── Flash Sale Section ── */}
-      {flashSaleProducts.length > 0 && (
-        <section style={{ padding: '60px 0', background: 'linear-gradient(180deg, #FAF7F0 0%, #F5EDD6 100%)' }}>
-          <div className="container">
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '32px',
-              flexWrap: 'wrap',
-              gap: '16px',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <span style={{
-                  background: 'linear-gradient(135deg, #FF4D4D 0%, #D32F2F 100%)',
-                  color: '#FFF',
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-full)',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}>
-                  ⚡ GIỜ VÀNG GIÁ SỐC
-                </span>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-brown-dark)', margin: 0 }}>
-                  Flash Sale Hôm Nay
-                </h2>
-              </div>
-              <div style={{ fontSize: '0.9rem', color: 'var(--color-brown)', fontWeight: 600 }}>
-                Số lượng có hạn trong ngày!
-              </div>
-            </div>
-
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-              gap: '24px',
-            }}>
-              {flashSaleProducts.slice(0, 4).map((p: Product) => (
-                <ProductCard key={p.id} product={p} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      <FlashSaleSection
+        products={flashSaleProducts}
+        endsAt={flashSale?.end_at}
+        saleName={flashSale?.name}
+      />
 
       {/* ── Featured Products Section ── */}
       <section style={{ padding: '60px 0', background: '#FFF' }}>

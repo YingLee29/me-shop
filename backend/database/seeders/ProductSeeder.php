@@ -301,16 +301,20 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $productData) {
-            $product = Product::create(array_merge($productData, ['is_active' => true]));
+            $product = Product::updateOrCreate(
+                ['sku' => $productData['sku']],
+                array_merge($productData, ['is_active' => true])
+            );
 
             // Tạo ảnh đại diện placeholder
-            ProductImage::create([
-                'product_id' => $product->id,
-                'url'  => "https://placehold.co/600x600/4a7c4e/white?text=" . urlencode($product->name),
-                'alt_text'   => $product->name,
-                'is_primary' => true,
-                'sort_order' => 0,
-            ]);
+            ProductImage::updateOrCreate(
+                ['product_id' => $product->id, 'is_primary' => true],
+                [
+                    'url'        => "https://placehold.co/600x600/4a7c4e/white?text=" . urlencode($product->name),
+                    'alt_text'   => $product->name,
+                    'sort_order' => 0,
+                ]
+            );
         }
 
         $this->command->info('✅ Đã tạo ' . Product::count() . ' sản phẩm mẫu.');

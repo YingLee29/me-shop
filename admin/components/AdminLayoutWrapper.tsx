@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Package, LogOut, User, Store, Layers } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, LogOut, User, Store, Layers, Zap, Ticket } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function AdminLayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -29,6 +29,8 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
     { label: 'Tổng Quan (Dashboard)', href: '/', icon: LayoutDashboard },
     { label: 'Quản Lý Đơn Hàng', href: '/orders', icon: ShoppingBag },
     { label: 'Quản Lý Sản Phẩm', href: '/products', icon: Package },
+    { label: 'Flash Sale', href: '/flash-sales', icon: Zap },
+    { label: 'Mã Giảm Giá', href: '/coupons', icon: Ticket },
   ];
 
   return (
@@ -158,7 +160,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ fontSize: '0.82rem', color: 'var(--admin-text-muted)' }}>
-              Phiên bản <strong>Phase 1 MVP</strong>
+              Phiên bản <strong>Phase 2 – Flash Sale &amp; Coupon</strong>
             </span>
           </div>
         </header>

@@ -46,12 +46,12 @@ Xây dựng hệ thống thương mại điện tử bán **nông sản sạch**
 ```
 FRONTEND
   Next.js 14 (App Router) + React 18 + TypeScript
-  Ant Design 5.x | Bootstrap 5 | SCSS
-  Axios | React Query | Zustand (state management)
-  Framer Motion (animation) | Swiper.js (slider)
+  Plain CSS (design tokens) + inline styles
+  React Context (Cart + Auth) | lucide-react (icons)
+  Fetch API (không dùng Axios / React Query / Zustand)
 
 BACKEND
-  PHP Laravel 11 (API Server)
+  PHP Laravel 12 (API Server)
   Laravel Sanctum (Authentication / JWT)
   Spatie Permissions (Phân quyền role/permission)
   Laravel Scout + Meilisearch (Tìm kiếm full-text)
@@ -68,9 +68,9 @@ DATABASE & STORAGE
 | Công nghệ | Lý do |
 |-----------|-------|
 | **Next.js 14** | SSR/SSG tối ưu SEO trang sản phẩm, tốc độ tải nhanh |
-| **Laravel 11** | Framework PHP mạnh mẽ, hệ sinh thái phong phú, dễ mở rộng |
-| **Ant Design** | Bộ UI component phong phú, phù hợp cho Admin Dashboard |
-| **Bootstrap 5** | Grid system linh hoạt, responsive tốt cho frontend |
+| **Laravel 12** | Framework PHP mạnh mẽ, hệ sinh thái phong phú, dễ mở rộng |
+| **Plain CSS** | Nhẹ, không phụ thuộc UI framework, kiểm soát design system chặt chẽ |
+| **React Context** | Quản lý state giỏ hàng / auth đơn giản, phù hợp quy mô hiện tại |
 | **Laravel Sanctum** | Xác thực API đơn giản, bảo mật cho SPA |
 | **Redis** | Cache sản phẩm, session, hàng đợi xử lý đơn hàng |
 
@@ -161,7 +161,7 @@ DATABASE & STORAGE
             ▼                          ▼
 ┌───────────────────┐      ┌───────────────────────┐
 │  Next.js Frontend │      │  Next.js Admin Panel  │
-│  (Port 3000)      │      │  (Port 3001)           │
+│  (Port 3000)      │      │  (Port 3002)           │
 │  /app/shop/*      │      │  /app/admin/*          │
 └─────────┬─────────┘      └──────────┬────────────┘
           │                           │
@@ -547,7 +547,7 @@ Grid 3 cột với:
 └─────────────────┴──────────────────────────────────────┘
 ```
 
-**Theme Admin**: Background tổng thể `#FAF6EC`, sidebar `#2C1A0E`, accent `#C8A45A`. Sử dụng Ant Design components (Table, Form, Modal, Charts).
+**Theme Admin**: Background tổng thể `#FAF6EC`, sidebar `#2C1A0E`, accent `#C8A45A`. Dùng plain CSS + component tự viết (Table, Form, Modal).
 
 ---
 
@@ -575,7 +575,7 @@ Grid 3 cột với:
 
 ### 7.3 📦 Quản Lý Sản Phẩm
 
-**Danh sách sản phẩm** (Ant Design Table):
+**Danh sách sản phẩm** (bảng HTML + CSS tự viết):
 
 | Cột | Nội dung |
 |-----|----------|
@@ -799,23 +799,23 @@ settings: id, key (unique), value (text), group, created_at
 
 ### Phase 1 – MVP (Tuần 1–4)
 
-- [ ] Setup môi trường: Laravel 11 + Next.js 14 + MySQL + Redis
-- [ ] Cấu hình CORS, Sanctum authentication
-- [ ] CRUD Danh mục sản phẩm (admin)
-- [ ] CRUD Sản phẩm cơ bản (không biến thể)
-- [ ] Frontend: Header, Footer, Navbar (responsive)
-- [ ] Frontend: Hero Banner slider, danh mục nổi bật
-- [ ] Trang danh sách sản phẩm (grid + sidebar filter)
-- [ ] Trang chi tiết sản phẩm
-- [ ] Giỏ hàng (state Zustand + đồng bộ API)
-- [ ] Quy trình Checkout + Đặt hàng COD
-- [ ] Admin: Dashboard cơ bản + Quản lý đơn hàng
+- [x] Setup môi trường: Laravel 12 + Next.js 14 + MySQL + Redis
+- [x] Cấu hình CORS, Sanctum authentication
+- [x] CRUD Danh mục sản phẩm (admin)
+- [x] CRUD Sản phẩm cơ bản (không biến thể)
+- [x] Frontend: Header, Footer, Navbar (responsive)
+- [x] Frontend: Hero Banner slider, danh mục nổi bật
+- [x] Trang danh sách sản phẩm (grid + sidebar filter)
+- [x] Trang chi tiết sản phẩm
+- [x] Giỏ hàng (React Context + đồng bộ API, gộp giỏ guest khi đăng nhập)
+- [x] Quy trình Checkout + Đặt hàng COD
+- [x] Admin: Dashboard cơ bản + Quản lý đơn hàng
 
 ### Phase 2 – Core Features (Tuần 5–8)
 
-- [ ] Biến thể sản phẩm (trọng lượng, đơn vị)
-- [ ] Flash sale với countdown timer real-time
-- [ ] Hệ thống Coupon & Mã giảm giá
+- [x] Biến thể sản phẩm (trọng lượng, đơn vị)
+- [x] Flash sale với countdown timer real-time
+- [x] Hệ thống Coupon & Mã giảm giá
 - [ ] Thanh toán online: MoMo, VNPAY QR
 - [ ] Hệ thống đánh giá sản phẩm (review + rating)
 - [ ] Blog / Kiến thức nông sản (CMS)
@@ -851,11 +851,11 @@ settings: id, key (unique), value (text), group, created_at
 
 > **Images**: Dùng `next/image` lazy loading + WebP format. Upload ảnh qua Laravel → lưu Cloudinary/MinIO → trả URL CDN.
 
-> **Mobile First**: Thiết kế ưu tiên mobile (320px+). Breakpoints Bootstrap: sm(576) / md(768) / lg(992) / xl(1200) / xxl(1400).
+> **Mobile First**: Thiết kế ưu tiên mobile (320px+). Breakpoints dùng CSS media queries: 576 / 768 / 992 / 1200 / 1400px.
 
-> **State Management**: Zustand cho cart + auth state. React Query cho server state (caching API responses).
+> **State Management**: React Context cho cart + auth state. Gọi API trực tiếp bằng `fetch` (không cache phía client).
 
 ---
 
-*📅 Tài liệu tạo ngày: 14/09/2026 | Version: 1.0.0*
+*📅 Tài liệu tạo ngày: 14/09/2026 | Cập nhật: 20/10/2026 | Version: 1.1.0*
 *🌾 Dự án: Website bán Nông Sản Sạch – Laravel + Next.js*

@@ -1,13 +1,33 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Trash2, Plus, Minus, ArrowRight, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, ArrowLeft, ShoppingBag, Tag, X, Check } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { formatPrice } from '../../lib/api';
 
 export default function CartPage() {
-  const { items, totalAmount, updateQuantity, removeFromCart, clearCart } = useCart();
+  const {
+    items,
+    totalAmount,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    coupon,
+    applyCoupon,
+    removeCoupon,
+    refreshCoupon,
+  } = useCart();
+
+  const [couponInput, setCouponInput] = useState('');
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [applying, setApplying] = useState(false);
+
+  // Giỏ thay đổi → kiểm tra lại mã giảm giá đang áp dụng
+  useEffect(() => {
+    if (coupon) refreshCoupon();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalAmount]);
 
   if (items.length === 0) {
     return (
@@ -40,8 +60,28 @@ export default function CartPage() {
     );
   }
 
-  const shippingFee = totalAmount >= 300000 ? 0 : 25000;
-  const finalTotal = totalAmount + shippingFee;
+  const shippingFee = coupon ? coupon.shipping_fee : (totalAmount >= 300000 ? 0 : 25000);
+  const shippingDiscount = coupon?.shipping_discount || 0;
+  const payableShipping = Math.max(0, shippingFee - shippingDiscount);
+  const discountAmount = coupon?.discount_amount || 0;
+  const finalTotal = coupon ? coupon.total : totalAmount + shippingFee;
+
+  const handleApplyCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponInput.trim()) return;
+
+    setApplying(true);
+    setCouponError(null);
+
+    try {
+      await applyCoupon(couponInput.trim());
+      setCouponInput('');
+    } catch (err: any) {
+      setCouponError(err?.message || 'Mã giảm giá không hợp lệ.');
+    } finally {
+      setApplying(false);
+    }
+  };
 
   return (
     <div style={{ padding: '40px 0 80px 0' }}>
@@ -205,6 +245,74 @@ export default function CartPage() {
               Tóm Tắt Đơn Hàng
             </h3>
 
+            {/* Mã giảm giá */}
+            <div style={{ marginBottom: '18px' }}>
+              {coupon ? (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '10px',
+                  background: 'var(--color-cream)',
+                  border: '1.5px dashed var(--color-primary)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '10px 12px',
+                }}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--color-brown-dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Tag size={14} /> {coupon.code}
+                      <Check size={14} color="var(--color-green)" />
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-green)', marginTop: '2px' }}>
+                      {coupon.message || 'Đã áp dụng mã giảm giá'}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeCoupon}
+                    title="Bỏ mã giảm giá"
+                    style={{ color: 'var(--color-gray-mid)', padding: '4px' }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleApplyCoupon}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      placeholder="Nhập mã giảm giá"
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1.5px solid var(--color-border)',
+                        outline: 'none',
+                        fontSize: '0.85rem',
+                        textTransform: 'uppercase',
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={applying || !couponInput.trim()}
+                      className="btn-primary"
+                      style={{ padding: '10px 14px', fontSize: '0.82rem', opacity: applying ? 0.7 : 1 }}
+                    >
+                      {applying ? '...' : 'Áp dụng'}
+                    </button>
+                  </div>
+                  {couponError && (
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-red)', marginTop: '6px' }}>
+                      {couponError}
+                    </div>
+                  )}
+                </form>
+              )}
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px', fontSize: '0.92rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-gray-dark)' }}>
                 <span>Tạm tính ({items.length} món):</span>
@@ -213,10 +321,17 @@ export default function CartPage() {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-gray-dark)' }}>
                 <span>Phí vận chuyển:</span>
-                <span>{shippingFee === 0 ? <strong style={{ color: 'var(--color-green)' }}>Miễn phí</strong> : formatPrice(shippingFee)}</span>
+                <span>{payableShipping === 0 ? <strong style={{ color: 'var(--color-green)' }}>Miễn phí</strong> : formatPrice(payableShipping)}</span>
               </div>
 
-              {shippingFee > 0 && (
+              {discountAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-green)', fontWeight: 600 }}>
+                  <span>Giảm giá ({coupon?.code}):</span>
+                  <span>-{formatPrice(discountAmount)}</span>
+                </div>
+              )}
+
+              {payableShipping > 0 && (
                 <div style={{ fontSize: '0.78rem', color: 'var(--color-primary-dark)', background: 'var(--color-cream)', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
                   💡 Mua thêm {formatPrice(300000 - totalAmount)} để được <strong>FREESHIP</strong>!
                 </div>

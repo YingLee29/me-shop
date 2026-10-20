@@ -75,12 +75,15 @@ class CategorySeeder extends Seeder
 
             $catData['is_active'] = true;
 
-            $parent = Category::create($catData);
+            $parent = Category::updateOrCreate(
+                ['slug' => $catData['slug']],
+                $catData
+            );
 
             foreach ($children as $childData) {
                 $childData['parent_id'] = $parent->id;
                 $childData['is_active'] = true;
-                Category::create($childData);
+                Category::updateOrCreate(['slug' => $childData['slug']], $childData);
             }
         }
 

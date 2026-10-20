@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { fetchApi } from '../lib/api';
 import { useAuth } from './AuthContext';
 
@@ -17,11 +17,25 @@ export interface CartItem {
   variant?: string | null;
 }
 
+export interface AppliedCoupon {
+  code: string;
+  name?: string | null;
+  type: 'percent' | 'fixed' | 'freeship';
+  value: number;
+  subtotal: number;
+  discount_amount: number;
+  shipping_fee: number;
+  shipping_discount: number;
+  total: number;
+  message?: string;
+}
+
 interface CartContextType {
   items: CartItem[];
   itemCount: number;
   totalAmount: number;
   isLoading: boolean;
+  coupon: AppliedCoupon | null;
   addToCart: (item: {
     product_id: number;
     name: string;
@@ -36,36 +50,58 @@ interface CartContextType {
   removeFromCart: (productId: number, variantId?: number | null) => Promise<void>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
+  applyCoupon: (code: string) => Promise<AppliedCoupon>;
+  removeCoupon: () => void;
+  refreshCoupon: () => Promise<void>;
 }
+
+const CART_KEY = 'nongsan_cart';
+const COUPON_KEY = 'nongsan_coupon';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { user, token } = useAuth();
+  const { token } = useAuth();
 
-  // Load cart from local storage on mount
+  // Token đã đồng bộ xong (tránh gọi API lặp lại)
+  const syncedTokenRef = useRef<string | null>(null);
+
+  // Load giỏ + coupon từ localStorage khi mount
   useEffect(() => {
-    const saved = localStorage.getItem('nongsan_cart');
-    if (saved) {
-      try {
-        setItems(JSON.parse(saved));
-      } catch (e) {
-        // ignore
-      }
+    try {
+      const savedCart = localStorage.getItem(CART_KEY);
+      if (savedCart) setItems(JSON.parse(savedCart));
+
+      const savedCoupon = localStorage.getItem(COUPON_KEY);
+      if (savedCoupon) setCoupon(JSON.parse(savedCoupon));
+    } catch {
+      // ignore JSON lỗi
     }
   }, []);
 
-  // Sync with backend if user is logged in
+  const persist = (nextItems: CartItem[], nextCoupon: AppliedCoupon | null = coupon) => {
+    setItems(nextItems);
+    localStorage.setItem(CART_KEY, JSON.stringify(nextItems));
+
+    if (nextCoupon) {
+      localStorage.setItem(COUPON_KEY, JSON.stringify(nextCoupon));
+    } else {
+      localStorage.removeItem(COUPON_KEY);
+    }
+  };
+
   const refreshCart = async () => {
     if (!token) return;
     try {
       setIsLoading(true);
       const res = await fetchApi('/cart');
       if (res?.data) {
-        setItems(res.data);
-        localStorage.setItem('nongsan_cart', JSON.stringify(res.data));
+        persist(res.data);
+        // Coupon cũ có thể không còn hợp lệ với giỏ mới
+        if (coupon) await refreshCouponWith(res.data);
       }
     } catch (e) {
       console.error('Failed to sync backend cart:', e);
@@ -74,17 +110,62 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Đồng bộ giỏ guest (localStorage) lên server khi đăng nhập / đổi tài khoản
   useEffect(() => {
-    if (token) {
-      refreshCart();
+    if (!token) {
+      // Đăng xuất → không giữ dữ liệu giỏ của user trước
+      if (syncedTokenRef.current) {
+        setItems([]);
+        setCoupon(null);
+        localStorage.removeItem(CART_KEY);
+        localStorage.removeItem(COUPON_KEY);
+      }
+      syncedTokenRef.current = null;
+      return;
     }
-  }, [token]);
 
-  // Save to local storage whenever items change
-  const saveLocalCart = (newItems: CartItem[]) => {
-    setItems(newItems);
-    localStorage.setItem('nongsan_cart', JSON.stringify(newItems));
-  };
+    if (syncedTokenRef.current === token) return;
+    syncedTokenRef.current = token;
+
+    (async () => {
+      let guestItems: CartItem[] = [];
+      try {
+        const raw = localStorage.getItem(CART_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(parsed)) guestItems = parsed.filter((i: CartItem) => !i.id);
+      } catch {
+        guestItems = [];
+      }
+
+      if (guestItems.length > 0) {
+        try {
+          setIsLoading(true);
+          const res = await fetchApi('/cart/sync', {
+            method: 'POST',
+            body: JSON.stringify({
+              items: guestItems.map((i) => ({
+                product_id: i.product_id,
+                variant_id: i.variant_id || null,
+                quantity: i.quantity,
+              })),
+            }),
+          });
+          if (res?.data) {
+            persist(res.data);
+            if (coupon) await refreshCouponWith(res.data);
+            return;
+          }
+        } catch (e) {
+          console.warn('Cart sync failed, fallback to server cart', e);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      await refreshCart();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const addToCart = async (newItem: {
     product_id: number;
@@ -111,7 +192,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         });
         await refreshCart();
         return;
-      } catch (err: any) {
+      } catch (err) {
         console.warn('Backend cart add failed, falling back to local', err);
       }
     }
@@ -130,7 +211,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         quantity: newQty,
         subtotal: current.price * newQty,
       };
-      saveLocalCart(updated);
+      persist(updated);
     } else {
       const itemToAdd: CartItem = {
         product_id: newItem.product_id,
@@ -143,7 +224,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         variant_id: newItem.variant_id || null,
         variant: newItem.variant || null,
       };
-      saveLocalCart([...items, itemToAdd]);
+      persist([...items, itemToAdd]);
     }
   };
 
@@ -179,7 +260,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return i;
     });
-    saveLocalCart(updated);
+    persist(updated);
   };
 
   const removeFromCart = async (productId: number, variantId?: number | null) => {
@@ -199,7 +280,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const filtered = items.filter(
       (i) => !(i.product_id === productId && (i.variant_id || null) === (variantId || null))
     );
-    saveLocalCart(filtered);
+    persist(filtered);
   };
 
   const clearCart = async () => {
@@ -210,8 +291,54 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         console.warn('Backend cart clear failed', e);
       }
     }
-    saveLocalCart([]);
+    persist([], null);
   };
+
+  // ── Coupon ────────────────────────────────────────────
+
+  const requestCoupon = async (code: string, subtotal: number): Promise<AppliedCoupon> => {
+    const res = await fetchApi('/coupons/validate', {
+      method: 'POST',
+      body: JSON.stringify({ code, subtotal }),
+    });
+
+    if (!res?.data) {
+      throw new Error(res?.message || 'Mã giảm giá không hợp lệ.');
+    }
+
+    const applied: AppliedCoupon = res.data;
+    setCoupon(applied);
+    localStorage.setItem(COUPON_KEY, JSON.stringify(applied));
+    return applied;
+  };
+
+  const applyCoupon = (code: string) => requestCoupon(code, totalAmount);
+
+  const removeCoupon = () => {
+    setCoupon(null);
+    localStorage.removeItem(COUPON_KEY);
+  };
+
+  /** Revalidate coupon theo giỏ hiện tại; tự bỏ nếu không còn hợp lệ */
+  const refreshCouponWith = async (cartItems: CartItem[]) => {
+    if (!coupon?.code) return;
+    const subtotal = cartItems.reduce((acc, i) => acc + i.price * i.quantity, 0);
+
+    if (subtotal <= 0) {
+      setCoupon(null);
+      localStorage.removeItem(COUPON_KEY);
+      return;
+    }
+
+    try {
+      await requestCoupon(coupon.code, subtotal);
+    } catch {
+      setCoupon(null);
+      localStorage.removeItem(COUPON_KEY);
+    }
+  };
+
+  const refreshCoupon = () => refreshCouponWith(items);
 
   const itemCount = items.reduce((acc, i) => acc + i.quantity, 0);
   const totalAmount = items.reduce((acc, i) => acc + (i.price * i.quantity), 0);
@@ -223,11 +350,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         itemCount,
         totalAmount,
         isLoading,
+        coupon,
         addToCart,
         updateQuantity,
         removeFromCart,
         clearCart,
         refreshCart,
+        applyCoupon,
+        removeCoupon,
+        refreshCoupon,
       }}
     >
       {children}

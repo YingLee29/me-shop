@@ -14,6 +14,8 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
+            FlashSaleSeeder::class,
+            CouponSeeder::class,
         ]);
 
         // Tạo tài khoản Admin
