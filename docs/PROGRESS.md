@@ -52,6 +52,7 @@
 | 7 | `make setup` fail do port 6379/3001 bị project khác chiếm | Đổi host port: Redis `6380`, Admin `5002` (container giữ nguyên) | ✅ |
 | 8 | Chuẩn hoá URL truy cập frontend/admin | Frontend `5000 → 3000`, Admin `5002 → 3001`; cập nhật CORS, Sanctum, SEO URL, payment return URL và tài liệu | ✅ |
 | 9 | Container PHP (UID 1000) không ghi được file mount | Truyền `PHP_UID/PHP_GID` của host qua compose (Makefile tự export) | ✅ |
+| 10 | `localhost:5000/5002` trả 502 sau khi recreate frontend/admin | Nginx cache IP cũ của container → dùng Docker DNS resolver `127.0.0.11` + biến upstream để tự phân giải lại | ✅ |
 
 ---
 
@@ -505,6 +506,7 @@
 | 20/10/2026 | AI | Verify: PHP lint, route cache, `tsc --noEmit`, `next build` (frontend + admin), smoke test API/CRUD/trang mới; thêm seeder review mẫu. |
 | 20/10/2026 | AI | Chốt thanh toán online ở mức tượng trưng/minh hoạ, không yêu cầu credentials sandbox; cập nhật UI và tài liệu. |
 | 20/10/2026 | AI | Chuẩn hoá URL truy cập: Frontend `http://localhost:5000`, Admin `http://localhost:5002`; cập nhật Docker port mapping, CORS, Sanctum, SEO và tài liệu. |
+| 20/10/2026 | AI | Fix 502 Bad Gateway sau khi recreate container: nginx dùng Docker DNS resolver thay vì cache IP upstream lúc khởi động. |
 
 ---
 

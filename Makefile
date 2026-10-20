@@ -130,7 +130,7 @@ setup: ## Setup toàn bộ dự án lần đầu
 	docker compose up -d
 	@echo "$(YELLOW)▶ Waiting for MySQL to be ready...$(RESET)"
 	@sleep 15
-	@# Nginx resolve tên container lúc khởi động → restart để nhận IP mới sau khi recreate
+	@# Khởi động lại nginx sau khi frontend/admin đã sẵn sàng
 	docker compose restart nginx
 	@echo "$(YELLOW)▶ Installing Laravel dependencies...$(RESET)"
 	docker compose exec php composer install
