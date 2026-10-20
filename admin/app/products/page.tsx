@@ -1,9 +1,13 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Search, Trash2, Edit3, CheckSquare, Square } from 'lucide-react';
 import { fetchAdminApi, formatPrice } from '../../lib/api';
 import { useAdminAuth } from '../../context/AdminAuthContext';
+
+const MAX_PRODUCT_IMAGES = 6;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 const EMPTY_FORM = {
   name: '',
@@ -22,6 +26,93 @@ const EMPTY_FORM = {
 
 type ProductForm = typeof EMPTY_FORM;
 
+function PendingImageTile({
+  file,
+  isPrimary,
+  onRemove,
+}: {
+  file: File;
+  isPrimary: boolean;
+  onRemove: () => void;
+}) {
+  const [preview, setPreview] = useState('');
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  return (
+    <div
+      style={{
+        width: '92px',
+        padding: '5px',
+        borderRadius: '8px',
+        border: isPrimary ? '2px solid var(--color-green)' : '1px solid var(--admin-border)',
+        background: '#FFF',
+      }}
+    >
+      <div style={{ position: 'relative' }}>
+        {preview ? (
+          <img
+            src={preview}
+            alt={file.name}
+            style={{ width: '100%', height: '72px', objectFit: 'cover', borderRadius: '5px', display: 'block' }}
+          />
+        ) : (
+          <div style={{ width: '100%', height: '72px', borderRadius: '5px', background: 'var(--admin-bg)' }} />
+        )}
+        <button
+          type="button"
+          onClick={onRemove}
+          title="Bỏ ảnh này"
+          style={{
+            position: 'absolute',
+            top: '-6px',
+            right: '-6px',
+            width: '20px',
+            height: '20px',
+            borderRadius: '50%',
+            background: '#D32F2F',
+            color: '#FFF',
+            fontSize: '12px',
+            lineHeight: '20px',
+            textAlign: 'center',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+          }}
+        >
+          ×
+        </button>
+      </div>
+      <div
+        title={file.name}
+        style={{
+          marginTop: '5px',
+          fontSize: '0.62rem',
+          color: '#666',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {file.name}
+      </div>
+      <div
+        style={{
+          marginTop: '3px',
+          fontSize: '0.68rem',
+          fontWeight: 800,
+          color: isPrimary ? 'var(--color-green)' : '#777',
+          textAlign: 'center',
+        }}
+      >
+        {isPrimary ? '★ Ảnh chính' : 'Ảnh phụ'}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminProductsPage() {
   const { user } = useAdminAuth();
   const can = (permission: string) => user?.permissions?.includes(permission) ?? false;
@@ -35,6 +126,8 @@ export default function AdminProductsPage() {
   const [saving, setSaving] = useState(false);
   const [selected, setSelected] = useState<number[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageLoading, setImageLoading] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<ProductForm>({ ...EMPTY_FORM });
 
   const flatCategories = useMemo(() => {
@@ -75,12 +168,14 @@ export default function AdminProductsPage() {
     setEditing(null);
     setFormData({ ...EMPTY_FORM });
     setImageFiles([]);
+    setImageLoading(false);
     setShowModal(true);
   };
 
   const openEdit = async (product: any) => {
     setEditing(product);
     setImageFiles([]);
+    setImageLoading(true);
     setFormData({
       name: product.name || '',
       category_id: String(product.category?.id || product.category_id || ''),
@@ -119,6 +214,43 @@ export default function AdminProductsPage() {
       }
     } catch {
       // Dùng dữ liệu từ danh sách nếu không tải được chi tiết
+    } finally {
+      setImageLoading(false);
+    }
+  };
+
+  const handleAddImages = (files: FileList | null) => {
+    const selectedFiles = Array.from(files || []);
+    if (selectedFiles.length === 0) return;
+
+    const existingCount = (editing?.images?.length || 0) + imageFiles.length;
+    const remaining = MAX_PRODUCT_IMAGES - existingCount;
+
+    if (remaining <= 0) {
+      alert(`Mỗi sản phẩm chỉ được tối đa ${MAX_PRODUCT_IMAGES} ảnh.`);
+      return;
+    }
+
+    const validFiles = selectedFiles.filter((file) => {
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+        alert(`Ảnh "${file.name}" không đúng định dạng JPG/PNG/WebP.`);
+        return false;
+      }
+      if (file.size > MAX_IMAGE_SIZE) {
+        alert(`Ảnh "${file.name}" vượt quá 5MB.`);
+        return false;
+      }
+      return true;
+    });
+
+    const acceptedFiles = validFiles.slice(0, remaining);
+
+    if (acceptedFiles.length < selectedFiles.length) {
+      alert(`Chỉ thêm được ${acceptedFiles.length}/${selectedFiles.length} ảnh đã chọn (tối đa ${MAX_PRODUCT_IMAGES} ảnh/sản phẩm).`);
+    }
+
+    if (acceptedFiles.length > 0) {
+      setImageFiles((current) => [...current, ...acceptedFiles]);
     }
   };
 
@@ -243,6 +375,11 @@ export default function AdminProductsPage() {
     fontWeight: 700,
     marginBottom: '6px',
   };
+
+  const existingImages = editing?.images || [];
+  const hasExistingPrimary = existingImages.some((img: any) => img.is_primary);
+  const totalSelectedImages = existingImages.length + imageFiles.length;
+  const remainingImageSlots = Math.max(0, MAX_PRODUCT_IMAGES - totalSelectedImages);
 
   return (
     <div>
@@ -446,89 +583,140 @@ export default function AdminProductsPage() {
               </div>
 
               <div>
-                <label style={labelStyle}>Hình ảnh sản phẩm</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <label style={{ ...labelStyle, marginBottom: 0 }}>Hình ảnh sản phẩm</label>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: totalSelectedImages >= MAX_PRODUCT_IMAGES ? '#D32F2F' : '#777' }}>
+                    {totalSelectedImages}/{MAX_PRODUCT_IMAGES} ảnh
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.75rem', color: '#777', marginTop: '6px' }}>
+                  JPG/PNG/WebP, tối đa 5MB/ảnh. Mỗi sản phẩm tối đa 6 ảnh: 1 ảnh chính + 5 ảnh phụ.
+                  Ảnh đầu tiên của sản phẩm mới sẽ làm ảnh chính; có thể đổi ảnh chính sau khi lưu.
+                </p>
+
                 <input
+                  ref={imageInputRef}
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   multiple
-                  onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
-                  style={{ fontSize: '0.85rem' }}
+                  onChange={(e) => {
+                    handleAddImages(e.target.files);
+                    e.target.value = '';
+                  }}
+                  style={{ display: 'none' }}
                 />
-                <p style={{ fontSize: '0.75rem', color: '#777', marginTop: '6px' }}>
-                  JPG/PNG/WebP, tối đa 5MB/ảnh. Mỗi sản phẩm tối đa 6 ảnh: 1 ảnh chính + 5 ảnh phụ.
-                  Ảnh đầu tiên của sản phẩm mới sẽ làm ảnh chính.
-                </p>
-                {editing?.images?.length > 0 && (
-                  <>
-                    <p style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--admin-brown-dark)', marginTop: '14px' }}>
-                      Ảnh hiện tại ({editing.images.length}/6)
-                    </p>
-                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px' }}>
-                      {editing.images.map((img: any) => (
-                        <div
-                          key={img.id}
-                          style={{
-                            width: '92px',
-                            padding: '5px',
-                            borderRadius: '8px',
-                            border: img.is_primary ? '2px solid var(--color-green)' : '1px solid var(--admin-border)',
-                            background: '#FFF',
-                          }}
-                        >
-                          <div style={{ position: 'relative' }}>
-                            <img
-                              src={img.url}
-                              alt=""
-                              style={{ width: '100%', height: '72px', objectFit: 'cover', borderRadius: '5px', display: 'block' }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteImage(img.id)}
-                              title="Xóa ảnh"
-                              style={{
-                                position: 'absolute',
-                                top: '-6px',
-                                right: '-6px',
-                                width: '20px',
-                                height: '20px',
-                                borderRadius: '50%',
-                                background: '#D32F2F',
-                                color: '#FFF',
-                                fontSize: '12px',
-                                lineHeight: '20px',
-                                textAlign: 'center',
-                                boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
-                              }}
-                            >
-                              ×
-                            </button>
-                          </div>
-                          {img.is_primary ? (
-                            <div style={{ marginTop: '5px', fontSize: '0.68rem', fontWeight: 800, color: 'var(--color-green)', textAlign: 'center' }}>
-                              ★ Ảnh chính
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleSetPrimaryImage(img.id)}
-                              style={{
-                                width: '100%',
-                                marginTop: '5px',
-                                padding: '4px 3px',
-                                borderRadius: '4px',
-                                background: 'var(--admin-bg)',
-                                color: 'var(--admin-brown-dark)',
-                                fontSize: '0.68rem',
-                                fontWeight: 700,
-                              }}
-                            >
-                              Đặt làm ảnh chính
-                            </button>
-                          )}
+
+                {imageLoading ? (
+                  <p style={{ fontSize: '0.78rem', color: '#777', marginTop: '12px' }}>Đang tải ảnh hiện tại...</p>
+                ) : (
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '12px', alignItems: 'flex-start' }}>
+                    {existingImages.map((img: any) => (
+                      <div
+                        key={img.id}
+                        style={{
+                          width: '92px',
+                          padding: '5px',
+                          borderRadius: '8px',
+                          border: img.is_primary ? '2px solid var(--color-green)' : '1px solid var(--admin-border)',
+                          background: '#FFF',
+                        }}
+                      >
+                        <div style={{ position: 'relative' }}>
+                          <img
+                            src={img.url}
+                            alt=""
+                            style={{ width: '100%', height: '72px', objectFit: 'cover', borderRadius: '5px', display: 'block' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteImage(img.id)}
+                            title="Xóa ảnh"
+                            style={{
+                              position: 'absolute',
+                              top: '-6px',
+                              right: '-6px',
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '50%',
+                              background: '#D32F2F',
+                              color: '#FFF',
+                              fontSize: '12px',
+                              lineHeight: '20px',
+                              textAlign: 'center',
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                            }}
+                          >
+                            ×
+                          </button>
                         </div>
-                      ))}
-                    </div>
-                  </>
+                        {img.is_primary ? (
+                          <div style={{ marginTop: '5px', fontSize: '0.68rem', fontWeight: 800, color: 'var(--color-green)', textAlign: 'center' }}>
+                            ★ Ảnh chính
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSetPrimaryImage(img.id)}
+                            style={{
+                              width: '100%',
+                              marginTop: '5px',
+                              padding: '4px 3px',
+                              borderRadius: '4px',
+                              background: 'var(--admin-bg)',
+                              color: 'var(--admin-brown-dark)',
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                            }}
+                          >
+                            Đặt làm ảnh chính
+                          </button>
+                        )}
+                      </div>
+                    ))}
+
+                    {imageFiles.map((file, index) => (
+                      <PendingImageTile
+                        key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
+                        file={file}
+                        isPrimary={!hasExistingPrimary && index === 0}
+                        onRemove={() => setImageFiles((current) => current.filter((_, i) => i !== index))}
+                      />
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={remainingImageSlots <= 0}
+                      title={remainingImageSlots > 0 ? 'Thêm ảnh cho sản phẩm' : 'Đã đủ 6 ảnh'}
+                      style={{
+                        width: '92px',
+                        minHeight: '112px',
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: remainingImageSlots > 0 ? '2px dashed var(--color-green)' : '2px dashed #CCC',
+                        background: remainingImageSlots > 0 ? '#FAFBF7' : '#F5F5F5',
+                        color: remainingImageSlots > 0 ? 'var(--color-green)' : '#999',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px',
+                        cursor: remainingImageSlots > 0 ? 'pointer' : 'not-allowed',
+                      }}
+                    >
+                      <Plus size={22} />
+                      <span style={{ fontSize: '0.72rem', fontWeight: 800 }}>Thêm ảnh</span>
+                      <span style={{ fontSize: '0.62rem', color: '#777' }}>
+                        {remainingImageSlots > 0 ? `Còn ${remainingImageSlots} ô` : 'Đã đủ ảnh'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+
+                {imageFiles.length > 0 && (
+                  <p style={{ fontSize: '0.72rem', color: '#777', marginTop: '8px' }}>
+                    Ảnh mới sẽ được tải lên khi bấm Lưu. Bấm × trên ảnh để bỏ chọn.
+                  </p>
                 )}
               </div>
 

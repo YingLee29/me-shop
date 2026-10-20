@@ -37,8 +37,9 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         headers: { Authorization: `Bearer ${savedToken}` },
       })
         .then((res) => {
-          if (res?.user) {
-            setUser(res.user);
+          const currentUser = res?.user || res;
+          if (currentUser?.id) {
+            setUser(currentUser);
           }
         })
         .catch(() => {

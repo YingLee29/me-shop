@@ -511,6 +511,7 @@
 | 20/10/2026 | AI | Fix 502 Bad Gateway sau khi recreate container: nginx dùng Docker DNS resolver thay vì cache IP upstream lúc khởi động. |
 | 20/10/2026 | AI | Fix ảnh upload không hiển thị trên frontend: bỏ Next Image optimizer cho URL `localhost`, giữ optimize cho ảnh remote. |
 | 20/10/2026 | AI | Bổ sung gallery nhiều ảnh: ảnh chính + tối đa 5 ảnh phụ, đặt/xóa ảnh trong admin, next/prev và hover zoom ở trang chi tiết. |
+| 20/10/2026 | AI | Cải thiện upload ảnh admin: thêm nhiều ô ảnh, chọn nhiều lần để cộng dồn, xem trước và bỏ chọn trước khi lưu. |
 
 ---
 
