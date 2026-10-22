@@ -956,8 +956,10 @@ CSKH         → xem/cập nhật trạng thái đơn hàng, chat support
 
 ---
 
-# PHASE 4 – ADVANCED (Tùy chọn, Không có timeline cố định)
+# PHASE 4 – ADVANCED (Tùy chọn, Không có timeline cố định) ⏸️ ĐÃ ĐÓNG GÓI / TẠM DỪNG
 > **Mục tiêu**: Mở rộng tích hợp, nâng cao nghiệp vụ
+
+> **Chốt ngày 22/10/2026:** Module A (GHN) hoàn thành demo và đóng gói. Module B/C/D tạm dừng; chỉ mở lại khi có nhu cầu. Trọng tâm hiện tại là website trưng bày và phương án link Shopee.
 
 ---
 
@@ -977,7 +979,7 @@ CSKH         → xem/cập nhật trạng thái đơn hàng, chat support
 
 ---
 
-### 📦 Bước B – Chương Trình Đại Lý
+### 📦 Bước B – Chương Trình Đại Lý ⏸️ Tạm dừng
 
 - [ ] Bảng `affiliates` (user_id, code, commission_rate)
 - [ ] Tracking link giới thiệu: `?ref=ABC123`
@@ -986,7 +988,7 @@ CSKH         → xem/cập nhật trạng thái đơn hàng, chat support
 
 ---
 
-### 📦 Bước C – App Mobile (React Native)
+### 📦 Bước C – App Mobile (React Native) ⏸️ Tạm dừng
 
 - [ ] Init project Expo (React Native)
 - [ ] Tái sử dụng API layer từ Next.js (custom hooks)
@@ -995,7 +997,7 @@ CSKH         → xem/cập nhật trạng thái đơn hàng, chat support
 
 ---
 
-### 📦 Bước D – Multi-Warehouse
+### 📦 Bước D – Multi-Warehouse ⏸️ Tạm dừng
 
 - [ ] Bảng `warehouses` (id, name, province)
 - [ ] `product_warehouse_stock` (product_id, warehouse_id, quantity)

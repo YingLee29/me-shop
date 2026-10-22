@@ -13,7 +13,7 @@
 |-----------|----------|
 | **Cập nhật lúc** | 22/10/2026 |
 | **Người cập nhật** | AI Pair Programmer |
-| **Trạng thái chung** | 🟢 Phần trưng bày đã hoàn thành; thanh toán/đặt hàng nội bộ **tạm hoãn**; Phase 4 A mới ở mức demo |
+| **Trạng thái chung** | 🟢 Phần trưng bày hoàn thành; thanh toán/đặt hàng **tạm hoãn**; **Phase 4 đã đóng gói** ở mức demo (module A) |
 
 ---
 
@@ -66,7 +66,7 @@
 | **Phase 1** – MVP (Tuần 1–4) | 56 | 56 | 0 | 100% |
 | **Phase 2** – Core Features (Tuần 5–8) | 28 | 28 | 0 | 100% |
 | **Phase 3** – Enhancement (Tuần 9–12) | 50 | 50 | 0 | 100% |
-| **Phase 4** – Advanced (Tùy chọn) | 14 | 4 | 0 | 29% |
+| **Phase 4** – Advanced (Tùy chọn) | 14 | 4 | 0 | 29% (đóng gói demo) |
 
 > **Lưu ý:** Bảng trên phản ánh **mức độ code/demo**. Trạng thái go-live theo phạm vi trưng bày xem mục 🎯 phía trên.
 
@@ -543,7 +543,9 @@ npm run test:e2e
 
 ---
 
-# PHASE 4 – ADVANCED (Tùy chọn)
+# PHASE 4 – ADVANCED (Tùy chọn) ⏸️ ĐÃ ĐÓNG GÓI / TẠM DỪNG
+
+> **Chốt ngày 22/10/2026:** Module A (GHN) hoàn thành ở mức demo và được đóng gói. Module B/C/D **tạm dừng**, không triển khai trong giai đoạn trưng bày. Chỉ mở lại khi có nhu cầu mới.
 
 ### 📦 Bước A – Tích Hợp Vận Chuyển (GHN) ✅ Demo
 
@@ -563,19 +565,19 @@ npm run test:e2e
 > - Bảng `shipment_events` lưu timeline; UI đơn hàng và modal admin hiển thị mã vận đơn + hành trình.
 > - Mặc định `GHN_DEMO=true` để chạy không cần credential; cấu hình `GHN_TOKEN`, `GHN_SHOP_ID`, `GHN_WEBHOOK_SECRET` khi nối GHN thật.
 
-### 📦 Bước B – Chương Trình Đại Lý
+### 📦 Bước B – Chương Trình Đại Lý ⏸️ Tạm dừng
 
 - [ ] Bảng `affiliates`, tracking link `?ref=`
 - [ ] Tính hoa hồng khi đơn hàng hoàn thành
 - [ ] Admin: quản lý đại lý + thanh toán hoa hồng
 
-### 📦 Bước C – App Mobile (React Native / Expo)
+### 📦 Bước C – App Mobile (React Native / Expo) ⏸️ Tạm dừng
 
 - [ ] Init project Expo
 - [ ] Screens: Home, Categories, Product, Cart, Checkout, Account
 - [ ] Push notification
 
-### 📦 Bước D – Multi-Warehouse
+### 📦 Bước D – Multi-Warehouse ⏸️ Tạm dừng
 
 - [ ] Bảng `warehouses` + `product_warehouse_stock`
 - [ ] Hiển thị tồn kho theo khu vực
@@ -620,6 +622,7 @@ npm run test:e2e
 | 20/10/2026 | AI | Tối ưu LCP: URL ảnh upload tương đối + proxy `/storage` + Next Image WebP, hero WebP nội bộ; Lighthouse mobile production 98 điểm, LCP 2.2s, SEO 100. |
 | 22/10/2026 | AI | Phase 4 module A: báo phí GHN theo địa chỉ, tạo vận đơn tự động khi xác nhận, webhook tracking idempotent, timeline đơn hàng + admin; thêm 2 Playwright test shipping. |
 | 22/10/2026 | AI | Điều chỉnh phạm vi: ưu tiên website trưng bày; tạm hoãn go-live thanh toán/đặt hàng nội bộ; đánh dấu pending GHN thật và phương án chuyển CTA sang Shopee. |
+| 22/10/2026 | AI | **Đóng gói Phase 4:** giữ module A ở mức demo; dừng B (đại lý), C (Expo), D (multi-warehouse); chuyển trọng tâm sang hoàn thiện trưng bày và link Shopee. |
 
 ---
 
