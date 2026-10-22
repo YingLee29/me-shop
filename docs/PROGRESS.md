@@ -13,7 +13,49 @@
 |-----------|----------|
 | **Cập nhật lúc** | 22/10/2026 |
 | **Người cập nhật** | AI Pair Programmer |
-| **Trạng thái chung** | 🟢 Phase 1–3 hoàn thành 100%; Phase 4 module A (GHN demo) hoàn thành; thanh toán online ở mức minh hoạ |
+| **Trạng thái chung** | 🟢 Phần trưng bày đã hoàn thành; thanh toán/đặt hàng nội bộ **tạm hoãn**; Phase 4 A mới ở mức demo |
+
+---
+
+## 🎯 PHẠM VI TRIỂN KHAI HIỆN TẠI (22/10/2026)
+
+> **Điều chỉnh theo yêu cầu:** ưu tiên triển khai website **trưng bày sản phẩm** trước. Thanh toán và đặt hàng nội bộ tạm thời chưa triển khai; có thể chuyển hướng đặt hàng sang **Shopee Store** sau.
+
+| Hạng mục | Trạng thái | Ghi chú |
+|----------|------------|---------|
+| Trưng bày sản phẩm: trang chủ, danh mục, chi tiết, tìm kiếm, blog | ✅ Done | Phase 1–3, đã test responsive + Lighthouse |
+| Admin quản trị sản phẩm/danh mục/bài viết/review/đơn | ✅ Done | Có RBAC, upload nhiều ảnh |
+| SEO, sitemap, JSON-LD, OG, canonical | ✅ Done | Đã cấu hình theo domain hiện tại |
+| Responsive + tối ưu ảnh/performance | ✅ Done | Playwright 320–1440px; LCP 2.2s |
+| Tài khoản khách + wishlist | ✅ Done | Có thể giữ hoặc ẩn khi chỉ trưng bày |
+| Giỏ hàng → checkout → đơn hàng nội bộ | ⏸️ Tạm hoãn go-live | Code còn để tham khảo; có thể ẩn hoặc thay bằng Shopee |
+| COD / MoMo / VNPay | ⏸️ Tạm hoãn go-live | Mới là luồng minh hoạ, không dùng thật |
+| GHN shipping | ⏸️ Demo | Đã có quote/tracking demo, chưa nối GHN thật |
+| Loyalty + email theo đơn hàng | ⏸️ Phụ thuộc đơn hàng | Giữ code, chưa tính vào phạm vi go-live |
+| Link/nút “Mua trên Shopee” | [ ] Pending | Cần chốt phương án và bổ sung link |
+| Affiliate / App Expo / Multi-warehouse | [ ] Pending | Phase 4 B/C/D, chưa làm |
+
+### ✅ Việc cần làm trước khi go-live phần trưng bày
+
+- [ ] Chốt danh mục, sản phẩm, giá và nội dung thật
+- [ ] Chốt dùng Shopee hay giữ checkout nội bộ
+- [ ] Thêm `shopee_url` cho sản phẩm và nút “Mua trên Shopee” (nếu chốt)
+- [ ] Ẩn/chặn cart, checkout, orders, payment nếu không dùng
+- [ ] Rà soát SEO theo domain thật: canonical, sitemap, robots, OG image
+- [ ] Kiểm tra ảnh sản phẩm, ảnh fallback và thông tin tồn kho
+- [ ] Gắn analytics/Search Console (nếu cần)
+- [ ] Backup dữ liệu + quy trình deploy production
+
+### 📌 Báo cáo lần này
+
+| Việc đã làm | Kết quả | Commit |
+|-------------|---------|--------|
+| Hoàn tất Phase 3: Playwright E2E, responsive, tối ưu LCP/ảnh | ✅ Done – 21/21 test pass | `926c1a6` |
+| Phase 4 A: báo phí GHN, tạo vận đơn, webhook, tracking timeline | ✅ Done ở mức **demo** | `d3a867a` |
+| Thanh toán MoMo/VNPay/COD thật | ⏸️ Pending – chưa triển khai | — |
+| GHN production | ⏸️ Pending – chưa có credential/địa chỉ mã hóa | — |
+| Chuyển CTA đặt hàng sang Shopee | [ ] Pending – chưa triển khai | — |
+| Affiliate / Expo app / Multi-warehouse | [ ] Pending | — |
 
 ---
 
@@ -26,6 +68,8 @@
 | **Phase 3** – Enhancement (Tuần 9–12) | 50 | 50 | 0 | 100% |
 | **Phase 4** – Advanced (Tùy chọn) | 14 | 4 | 0 | 29% |
 
+> **Lưu ý:** Bảng trên phản ánh **mức độ code/demo**. Trạng thái go-live theo phạm vi trưng bày xem mục 🎯 phía trên.
+
 ---
 
 ## ✅ KÝ HIỆU
@@ -33,7 +77,8 @@
 ```
 [ ] Chưa làm
 [/] Đang làm
-[x] Hoàn thành
+[x] Hoàn thành (code/demo)
+[~] Tạm hoãn / chỉ demo, chưa triển khai thực tế
 [!] Cần chú ý / Review
 ```
 
@@ -188,12 +233,16 @@ npm run test:e2e
 
 ### 📦 Bước 3.2 – Order API
 
+> ⏸️ **Tạm hoãn go-live:** code đã có để tham khảo, hiện chưa triển khai đặt hàng nội bộ; có thể chuyển sang Shopee.
+
 - [x] `PlaceOrderRequest`: validate địa chỉ, SĐT, payment_method
 - [x] Transaction DB để đảm bảo toàn vẹn dữ liệu
 - [x] Sinh `order_code` tự động (format: `NS` + timestamp + random 4 số)
 - [x] `OrderController@cancel`: chỉ hủy được khi status = pending/confirmed
 
 ### 📦 Bước 3.3 – Admin Order API
+
+> ⏸️ **Tạm hoãn go-live:** chỉ dùng để quản lý đơn demo, không phải phạm vi trưng bày.
 
 - [x] Filter đơn theo: status, ngày tạo, tên khách, mã đơn
 - [x] Cập nhật status + ghi `OrderStatusLog` + ghi admin_note
@@ -241,6 +290,8 @@ npm run test:e2e
 
 ### 📦 Bước 4.5 – Giỏ Hàng & Đặt Hàng COD
 
+> ⏸️ **Tạm hoãn go-live:** giỏ hàng/checkout/đơn hàng nội bộ chưa triển khai thực tế. Khi chốt Shopee sẽ thay CTA mua hàng bằng link Shopee và ẩn các trang này.
+
 - [x] `app/cart/page.tsx`: Bảng mặt hàng, tăng/giảm số lượng, xóa sản phẩm, tính toán phí ship (miễn phí từ 300k)
 - [x] `app/checkout/page.tsx`: Form thông tin người nhận (tên, SĐT, địa chỉ, ghi chú), chọn phương thức thanh toán (COD / Chuyển khoản ngân hàng)
 - [x] `app/orders/[code]/page.tsx`: Trang xác nhận đơn hàng thành công, hiển thị timeline trạng thái đơn, chi tiết thanh toán và sản phẩm
@@ -257,6 +308,8 @@ npm run test:e2e
 - [x] `admin/app/categories/page.tsx`: CRUD danh mục nhiều cấp, icon, thứ tự, trạng thái hiển thị
 
 ### 📦 Bước 4.7 – Phase 1 Acceptance Criteria
+
+> ⏸️ Các tiêu chí đặt hàng/thanh toán bên dưới là **code demo**, không thuộc phạm vi go-live trưng bày hiện tại.
 
 - [x] ✅ Người dùng có thể đăng ký / đăng nhập
 - [x] ✅ Trang chủ hiển thị banner + danh mục + sản phẩm
@@ -302,9 +355,11 @@ npm run test:e2e
 
 ---
 
-## 📅 TUẦN 6 – Thanh Toán Online
+## 📅 TUẦN 6 – Thanh Toán Online ⏸️ TẠM HOÃN TRIỂN KHAI
 
-### 📦 Bước 6.1 – Tích hợp MoMo
+> ⏸️ **Chưa triển khai thực tế.** MoMo/VNPay/COD bên dưới chỉ là luồng minh hoạ kỹ thuật; không cấu hình credential và không tính vào phạm vi go-live trưng bày.
+
+### 📦 Bước 6.1 – Tích hợp MoMo (demo)
 
 - [x] Khung cấu hình MoMo trong `.env.example` – chế độ minh hoạ, không cần credentials thật
 - [x] `PaymentController@createMoMo` (HMAC SHA256, lưu `payment_transactions`)
@@ -312,7 +367,7 @@ npm run test:e2e
 - [x] Cập nhật `Order.payment_status` = `paid`, ghi log và `paid_at`
 - [x] Frontend: tạo URL thanh toán, redirect, nút thanh toán lại và trạng thái chờ xác nhận
 
-### 📦 Bước 6.2 – Tích hợp VNPAY
+### 📦 Bước 6.2 – Tích hợp VNPAY (demo)
 
 - [x] Khung cấu hình VNPAY trong `.env.example` – chế độ minh hoạ, không cần credentials thật
 - [x] Tạo URL thanh toán với checksum SHA512
@@ -490,12 +545,16 @@ npm run test:e2e
 
 # PHASE 4 – ADVANCED (Tùy chọn)
 
-### 📦 Bước A – Tích Hợp Vận Chuyển (GHN) ✅
+### 📦 Bước A – Tích Hợp Vận Chuyển (GHN) ✅ Demo
+
+> ✅ Đã chạy demo đầy đủ. ⏸️ Chưa nối GHN production và chưa áp dụng thực tế vì phương án đặt hàng có thể chuyển sang Shopee.
 
 - [x] Tính phí ship tự động theo địa chỉ
 - [x] Tạo đơn vận chuyển tự động khi admin xác nhận đơn
 - [x] Lấy tracking code + webhook cập nhật trạng thái
 - [x] Hiển thị tracking timeline ở trang đơn hàng và admin
+- [~] Kết nối GHN production (cần token/shop_id/địa chỉ mã hóa)
+- [~] Áp dụng thực tế (chờ chốt giữ checkout nội bộ hay chuyển Shopee)
 
 > **Ghi chú module A:**
 > - API `POST /api/v1/shipping/quote` báo phí theo tỉnh/thành, miễn phí từ 300.000đ; checkout debounce 350ms và hiển thị thời gian giao dự kiến.
@@ -521,6 +580,15 @@ npm run test:e2e
 - [ ] Bảng `warehouses` + `product_warehouse_stock`
 - [ ] Hiển thị tồn kho theo khu vực
 - [ ] Phân công đơn hàng về kho gần nhất
+
+### 📦 Bước E – Chuyển đặt hàng sang Shopee (định hướng, chưa làm)
+
+> [ ] Backlog mới theo yêu cầu: website chỉ trưng bày, đơn hàng có thể chuyển sang Shopee Store.
+
+- [ ] Thêm `shopee_url` cho sản phẩm hoặc cấu hình link store chung
+- [ ] Đổi CTA “Thêm vào giỏ” / “Mua ngay” thành “Mua trên Shopee”
+- [ ] Ẩn hoặc chặn cart, checkout, orders, payment khi chốt phương án
+- [ ] Gắn UTM/analytics để đo click-out sang Shopee
 
 ---
 
@@ -551,6 +619,7 @@ npm run test:e2e
 | 20/10/2026 | AI | Bổ sung Playwright E2E (19 test): responsive storefront/admin, đăng nhập, wishlist, giỏ hàng, blog/SEO, upload ảnh; sửa tràn ngang 320–425px và sidebar admin mobile. |
 | 20/10/2026 | AI | Tối ưu LCP: URL ảnh upload tương đối + proxy `/storage` + Next Image WebP, hero WebP nội bộ; Lighthouse mobile production 98 điểm, LCP 2.2s, SEO 100. |
 | 22/10/2026 | AI | Phase 4 module A: báo phí GHN theo địa chỉ, tạo vận đơn tự động khi xác nhận, webhook tracking idempotent, timeline đơn hàng + admin; thêm 2 Playwright test shipping. |
+| 22/10/2026 | AI | Điều chỉnh phạm vi: ưu tiên website trưng bày; tạm hoãn go-live thanh toán/đặt hàng nội bộ; đánh dấu pending GHN thật và phương án chuyển CTA sang Shopee. |
 
 ---
 
