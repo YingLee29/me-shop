@@ -47,6 +47,7 @@ export default async function OrderSuccessPage({
     vnpay: '💳 VNPAY – Thẻ ATM / QR Code',
   };
   const onlineUnpaid = order.payment_status !== 'paid' && ['momo', 'vnpay'].includes(order.payment_method);
+  const trackingEvents = [...(order.tracking_events || [])].reverse();
 
   return (
     <div style={{ padding: '50px 0 90px 0' }}>
@@ -222,6 +223,76 @@ export default async function OrderSuccessPage({
                 Đơn hàng chưa được thanh toán qua {order.payment_method === 'momo' ? 'MoMo' : 'VNPAY'}.
               </div>
               <PaymentButton orderCode={order.order_code} provider={order.payment_method} />
+            </div>
+          )}
+
+          {/* Shipment tracking */}
+          {order.tracking_code && (
+            <div style={{
+              background: '#F3F8FF',
+              border: '1px solid #BBDEFB',
+              borderRadius: 'var(--radius-md)',
+              padding: '20px',
+              marginBottom: '28px',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, color: '#0D47A1', marginBottom: '6px' }}>
+                    <Truck size={20} /> Theo Dõi Vận Chuyển GHN
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-gray-dark)' }}>
+                    Mã vận đơn: <strong style={{ color: 'var(--color-brown-dark)' }}>{order.tracking_code}</strong>
+                  </div>
+                  {order.shipping_estimated_at && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--color-gray-mid)', marginTop: '3px' }}>
+                      Dự kiến giao: {order.shipping_estimated_at}
+                    </div>
+                  )}
+                </div>
+                <span style={{
+                  padding: '5px 12px',
+                  borderRadius: '999px',
+                  background: '#E3F2FD',
+                  color: '#1565C0',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                }}>
+                  {order.shipping_status_label || order.shipping_status}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                {(trackingEvents || []).map((event: any, index: number) => (
+                  <div key={event.id || index} style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <span style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        background: index === 0 ? '#1976D2' : '#90CAF9',
+                        marginTop: '5px',
+                        flexShrink: 0,
+                      }} />
+                      {index < trackingEvents.length - 1 && (
+                        <span style={{ width: 2, flex: 1, minHeight: 18, background: '#BBDEFB' }} />
+                      )}
+                    </div>
+                    <div style={{ paddingBottom: '14px' }}>
+                      <div style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--color-dark)' }}>
+                        {event.description || event.status}
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--color-gray-mid)', marginTop: '2px' }}>
+                        {event.occurred_at ? new Date(event.occurred_at.replace(' ', 'T')).toLocaleString('vi-VN') : ''}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {trackingEvents.length === 0 && (
+                  <div style={{ fontSize: '0.86rem', color: 'var(--color-gray-mid)' }}>
+                    Chưa có cập nhật vận chuyển.
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

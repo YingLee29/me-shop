@@ -11,9 +11,9 @@
 
 | Thông tin | Nội dung |
 |-----------|----------|
-| **Cập nhật lúc** | 20/10/2026 |
+| **Cập nhật lúc** | 22/10/2026 |
 | **Người cập nhật** | AI Pair Programmer |
-| **Trạng thái chung** | 🟢 Phase 1–3 hoàn thành 100% (chức năng + responsive + Lighthouse); thanh toán online ở mức minh hoạ |
+| **Trạng thái chung** | 🟢 Phase 1–3 hoàn thành 100%; Phase 4 module A (GHN demo) hoàn thành; thanh toán online ở mức minh hoạ |
 
 ---
 
@@ -24,7 +24,7 @@
 | **Phase 1** – MVP (Tuần 1–4) | 56 | 56 | 0 | 100% |
 | **Phase 2** – Core Features (Tuần 5–8) | 28 | 28 | 0 | 100% |
 | **Phase 3** – Enhancement (Tuần 9–12) | 50 | 50 | 0 | 100% |
-| **Phase 4** – Advanced (Tùy chọn) | 14 | 0 | 0 | 0% |
+| **Phase 4** – Advanced (Tùy chọn) | 14 | 4 | 0 | 29% |
 
 ---
 
@@ -71,7 +71,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-- 19 test: responsive storefront 320/375/425/768/1024/1440px, mobile drawer, giỏ hàng, blog/SEO, đăng nhập khách/admin, wishlist đồng bộ API, upload nhiều ảnh admin, responsive admin 375/768/1440px.
+- 21 test: responsive storefront 320/375/425/768/1024/1440px, mobile drawer, giỏ hàng, blog/SEO, đăng nhập khách/admin, wishlist đồng bộ API, upload nhiều ảnh admin, responsive admin 375/768/1440px, báo phí GHN và lifecycle vận đơn/webhook/timeline.
 - Auth dùng API setup dùng chung, tránh đăng nhập lặp lại; state lưu tạm ở `e2e/.auth/` (đã gitignore).
 
 **Lighthouse 12.2.1 – mobile, production build:**
@@ -490,12 +490,19 @@ npm run test:e2e
 
 # PHASE 4 – ADVANCED (Tùy chọn)
 
-### 📦 Bước A – Tích Hợp Vận Chuyển (GHN)
+### 📦 Bước A – Tích Hợp Vận Chuyển (GHN) ✅
 
-- [ ] Tính phí ship tự động theo địa chỉ
-- [ ] Tạo đơn vận chuyển tự động
-- [ ] Lấy tracking code + webhook
-- [ ] Hiển thị tracking timeline
+- [x] Tính phí ship tự động theo địa chỉ
+- [x] Tạo đơn vận chuyển tự động khi admin xác nhận đơn
+- [x] Lấy tracking code + webhook cập nhật trạng thái
+- [x] Hiển thị tracking timeline ở trang đơn hàng và admin
+
+> **Ghi chú module A:**
+> - API `POST /api/v1/shipping/quote` báo phí theo tỉnh/thành, miễn phí từ 300.000đ; checkout debounce 350ms và hiển thị thời gian giao dự kiến.
+> - Admin xác nhận đơn → tự tạo vận đơn demo (`GHND...`); có nút tạo lại nếu lỗi.
+> - Webhook `POST /api/v1/webhooks/ghn` xác thực `X-GHN-Webhook-Secret`, idempotent theo `event_id`; map `picked/transporting/delivering` → `shipping`, `delivered` → `delivered`.
+> - Bảng `shipment_events` lưu timeline; UI đơn hàng và modal admin hiển thị mã vận đơn + hành trình.
+> - Mặc định `GHN_DEMO=true` để chạy không cần credential; cấu hình `GHN_TOKEN`, `GHN_SHOP_ID`, `GHN_WEBHOOK_SECRET` khi nối GHN thật.
 
 ### 📦 Bước B – Chương Trình Đại Lý
 
@@ -543,8 +550,9 @@ npm run test:e2e
 | 20/10/2026 | AI | Cải thiện upload ảnh admin: thêm nhiều ô ảnh, chọn nhiều lần để cộng dồn, xem trước và bỏ chọn trước khi lưu. |
 | 20/10/2026 | AI | Bổ sung Playwright E2E (19 test): responsive storefront/admin, đăng nhập, wishlist, giỏ hàng, blog/SEO, upload ảnh; sửa tràn ngang 320–425px và sidebar admin mobile. |
 | 20/10/2026 | AI | Tối ưu LCP: URL ảnh upload tương đối + proxy `/storage` + Next Image WebP, hero WebP nội bộ; Lighthouse mobile production 98 điểm, LCP 2.2s, SEO 100. |
+| 22/10/2026 | AI | Phase 4 module A: báo phí GHN theo địa chỉ, tạo vận đơn tự động khi xác nhận, webhook tracking idempotent, timeline đơn hàng + admin; thêm 2 Playwright test shipping. |
 
 ---
 
-*📅 Tạo: 14/09/2026 | Cập nhật: 20/10/2026*
+*📅 Tạo: 14/09/2026 | Cập nhật: 22/10/2026*
 *🌾 Dự án: Website bán Nông Sản Sạch*

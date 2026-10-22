@@ -39,10 +39,11 @@ class CouponService
         ?string $code,
         float $subtotal,
         ?User $user = null,
-        bool $lock = false
+        bool $lock = false,
+        ?float $shippingFee = null
     ): array {
         $subtotal   = max(0, $subtotal);
-        $shipping   = self::shippingFee($subtotal);
+        $shipping   = $shippingFee !== null ? max(0, $shippingFee) : self::shippingFee($subtotal);
         $noCoupon   = [
             'coupon'            => null,
             'subtotal'          => $subtotal,

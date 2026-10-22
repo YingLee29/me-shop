@@ -956,13 +956,15 @@ CSKH         → xem/cập nhật trạng thái đơn hàng, chat support
 
 ---
 
-### 📦 Bước A – Tích Hợp Vận Chuyển
+### 📦 Bước A – Tích Hợp Vận Chuyển ✅
 
 **GHN (Giao Hàng Nhanh) API:**
-- [ ] Tính phí ship tự động theo địa chỉ người nhận
-- [ ] Tạo đơn vận chuyển tự động khi xác nhận đơn hàng
-- [ ] Lấy tracking code + cập nhật trạng thái đơn theo webhook GHN
-- [ ] Hiển thị tracking timeline cho người dùng
+- [x] Tính phí ship tự động theo địa chỉ người nhận (`POST /api/v1/shipping/quote`, miễn phí từ 300.000đ)
+- [x] Tạo đơn vận chuyển tự động khi xác nhận đơn hàng (mã `GHND...`, có retry thủ công)
+- [x] Lấy tracking code + cập nhật trạng thái đơn theo webhook GHN (secret header, idempotent `event_id`)
+- [x] Hiển thị tracking timeline cho người dùng (trang đơn hàng + modal admin)
+
+> **Demo mode:** mặc định `GHN_DEMO=true`, tính phí theo khu vực và sinh mã vận đơn nội bộ, không cần credential. Cấu hình `GHN_TOKEN`, `GHN_SHOP_ID`, `GHN_WEBHOOK_SECRET` khi nối cổng thật.
 
 ---
 

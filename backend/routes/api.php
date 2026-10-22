@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\ShippingController;
+use App\Http\Controllers\Api\ShippingWebhookController;
 use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -106,6 +108,12 @@ Route::prefix('v1')->group(function () {
     Route::post('orders',        [OrderController::class, 'store']);
     Route::get('orders/{code}',  [OrderController::class, 'show']);
 
+    // Shipping quote (public)
+    Route::post('shipping/quote', [ShippingController::class, 'quote'])->middleware('throttle:60,1');
+
+    // Webhook nhà vận chuyển (xác thực bằng secret)
+    Route::post('webhooks/ghn', [ShippingWebhookController::class, 'ghn'])->middleware('throttle:120,1');
+
     // ── Payments (public callbacks) ────────────────────────────────────────
     Route::prefix('payments')->group(function () {
         Route::post('momo/ipn',       [PaymentController::class, 'momoIpn']);
@@ -146,6 +154,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/',                    [AdminOrderController::class, 'index'])->middleware('permission:orders.view');
             Route::get('{id}',                 [AdminOrderController::class, 'show'])->whereNumber('id')->middleware('permission:orders.view');
             Route::patch('{id}/status',        [AdminOrderController::class, 'updateStatus'])->whereNumber('id')->middleware('permission:orders.update-status');
+            Route::post('{id}/shipment',       [AdminOrderController::class, 'createShipment'])->whereNumber('id')->middleware('permission:orders.update-status');
         });
 
         // Admin Flash Sales
