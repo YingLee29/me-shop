@@ -14,8 +14,8 @@ class FlashSaleSeeder extends Seeder
         $sale = FlashSale::updateOrCreate(
             ['slug' => 'gio-vang-nong-san'],
             [
-                'name'         => 'Giờ Vàng Nông Sản',
-                'description'  => 'Ưu đãi giá sốc mỗi ngày cho nông sản tươi sạch.',
+                'name'         => 'Giờ Vàng MocSon Farm',
+                'description'  => 'Ưu đãi mỗi ngày cho đặc sản gừng Kỳ Sơn, nghệ và trà Nghệ An.',
                 'start_at'     => now()->subHour(),
                 'end_at'       => now()->addDays(3),
                 'is_active'    => true,

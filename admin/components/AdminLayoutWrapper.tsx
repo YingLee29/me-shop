@@ -24,7 +24,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
     return (
       <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: '#F8F9FA' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🌾</div>
+          <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🌿</div>
           <div style={{ fontWeight: 600, color: 'var(--admin-brown)' }}>Đang tải bảng điều khiển...</div>
         </div>
       </div>
@@ -77,10 +77,10 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
             justifyContent: 'center',
             fontSize: '1.2rem',
           }}>
-            🌾
+            🌿
           </div>
           <div className="admin-logo-text">
-            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#FFF' }}>NÔNG SẢN ADMIN</div>
+            <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#FFF' }}>MOCSON FARM ADMIN</div>
             <div style={{ fontSize: '0.7rem', color: 'var(--admin-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bảng Điều Khiển</div>
           </div>
         </div>
@@ -188,7 +188,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
           </button>
 
           <div className="admin-topbar-title" style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--admin-brown)', minWidth: 0 }}>
-            Hệ Thống Quản Lý Thương Mại Điện Tử Nông Sản
+            Hệ Thống Quản Lý Đặc Sản Nghệ An
           </div>
           <div className="admin-topbar-meta" style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
             <span style={{ fontSize: '0.82rem', color: 'var(--admin-text-muted)' }}>

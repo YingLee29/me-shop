@@ -30,7 +30,7 @@ async function getToken(email: string, password: string) {
 async function globalSetup() {
   const [customerToken, adminToken] = await Promise.all([
     getToken('khach@example.com', 'password'),
-    getToken('admin@nongsan.vn', 'Admin@123456'),
+    getToken('admin@mocsonfarm.vn', 'Admin@123456'),
   ]);
 
   fs.mkdirSync(AUTH_DIR, { recursive: true });

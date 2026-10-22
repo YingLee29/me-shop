@@ -1,4 +1,4 @@
-# 📊 TIẾN ĐỘ DỰ ÁN – WEBSITE BÁN NÔNG SẢN SẠCH
+# 📊 TIẾN ĐỘ DỰ ÁN – MOCSON FARM (ĐẶC SẢN NGHỆ AN)
 
 > **File này dùng để team cập nhật tiến độ hàng ngày.**
 > Khi hoàn thành một task, đổi `[ ]` → `[x]` và ghi ngày + tên người thực hiện.
@@ -13,7 +13,7 @@
 |-----------|----------|
 | **Cập nhật lúc** | 22/10/2026 |
 | **Người cập nhật** | AI Pair Programmer |
-| **Trạng thái chung** | 🟢 Phần trưng bày hoàn thành; thanh toán/đặt hàng **tạm hoãn**; **Phase 4 đã đóng gói** ở mức demo (module A) |
+| **Trạng thái chung** | 🟢 Đã rebrand **MocSon Farm** + catalog tạm; thanh toán/đặt hàng **tạm hoãn**; **Phase 4 đã đóng gói** ở mức demo (module A) |
 
 ---
 
@@ -35,9 +35,21 @@
 | Link/nút “Mua trên Shopee” | [ ] Pending | Cần chốt phương án và bổ sung link |
 | Affiliate / App Expo / Multi-warehouse | [ ] Pending | Phase 4 B/C/D, chưa làm |
 
+### 🎨 Rebrand & catalog MocSon Farm (22/10/2026)
+
+- [x] Đổi tên hiển thị, SEO metadata, Open Graph, header/footer, admin, email và `.env` sang **MocSon Farm**.
+- [x] Tạo bộ nhận diện tạm: logo text, hero SVG, OG image và 12 ảnh sản phẩm SVG nội bộ.
+- [x] Cập nhật catalog theo định hướng đặc sản Nghệ An: **5 nhóm gốc / 9 nhóm con / 12 sản phẩm** (gừng Kỳ Sơn, nghệ & thảo mộc, mật ong & đường phèn, đặc sản Nghệ An, combo quà tặng).
+- [x] Cập nhật seeder an toàn: ẩn sản phẩm/danh mục cũ, giữ dữ liệu đơn hàng; thêm review mẫu cho sản phẩm mới.
+- [x] Đổi tài khoản admin mẫu sang `admin@mocsonfarm.vn / Admin@123456` (customer giữ `khach@example.com / password`).
+- [x] Cập nhật blog mẫu theo gừng, trà gừng và tinh bột nghệ; ẩn bài cũ không còn phù hợp.
+- [x] Sửa hydration mismatch của countdown Flash Sale.
+- [~] Catalog hiện là **bản tạm từ thông tin công khai**; cần người dùng xác nhận lại danh mục, giá, mô tả và ảnh thật.
+- [!] Chưa thể lấy toàn bộ catalog Shopee: Playwright/Jina đều gặp cổng đăng nhập/CAPTCHA của Shopee. Cần login/cookie, file export hoặc ảnh chụp từ shop để đối chiếu 100%.
+
 ### ✅ Việc cần làm trước khi go-live phần trưng bày
 
-- [ ] Chốt danh mục, sản phẩm, giá và nội dung thật
+- [/] Chốt danh mục, sản phẩm, giá và nội dung thật _(đã có bản tạm; chờ xác nhận)_
 - [ ] Chốt dùng Shopee hay giữ checkout nội bộ
 - [ ] Thêm `shopee_url` cho sản phẩm và nút “Mua trên Shopee” (nếu chốt)
 - [ ] Ẩn/chặn cart, checkout, orders, payment nếu không dùng
@@ -50,6 +62,7 @@
 
 | Việc đã làm | Kết quả | Commit |
 |-------------|---------|--------|
+| Rebrand MocSon Farm + catalog đặc sản Nghệ An + ảnh SVG + blog/review mẫu | ✅ Done – 21/21 Playwright pass; PHP lint, `tsc`, build frontend/admin OK | Commit rebrand MocSon Farm |
 | Hoàn tất Phase 3: Playwright E2E, responsive, tối ưu LCP/ảnh | ✅ Done – 21/21 test pass | `926c1a6` |
 | Phase 4 A: báo phí GHN, tạo vận đơn, webhook, tracking timeline | ✅ Done ở mức **demo** | `d3a867a` |
 | Thanh toán MoMo/VNPay/COD thật | ⏸️ Pending – chưa triển khai | — |
@@ -126,7 +139,7 @@ npm run test:e2e
 | Trang chủ | 98 | 2.2s | 0.001 | 100 |
 | Chi tiết sản phẩm | 98 | 2.2s | 0 | 100 |
 
-> Đo qua Docker network với production build. LCP đạt mục tiêu < 2.5s; hero dùng ảnh WebP nội bộ, ảnh sản phẩm upload được Next resize/WebP. Các trang chính không còn tràn ngang từ 320px.
+> Baseline đo ngày 20/10/2026 qua Docker network với production build. Sau rebrand, hero dùng SVG nội bộ nhẹ; cần đo lại Lighthouse khi chốt ảnh sản phẩm thật. Các trang chính không còn tràn ngang từ 320px (Playwright 22/10/2026).
 
 ---
 
@@ -301,7 +314,7 @@ npm run test:e2e
 ### 📦 Bước 4.6 – Khởi tạo Admin Dashboard
 
 - [x] `admin/components/AdminLayoutWrapper.tsx`: Sidebar màu nâu đậm (#2C1A0E), icon điều hướng
-- [x] `admin/app/login/page.tsx`: Trang đăng nhập admin riêng biệt (mặc định admin@nongsan.vn)
+- [x] `admin/app/login/page.tsx`: Trang đăng nhập admin riêng biệt (mặc định admin@mocsonfarm.vn)
 - [x] `admin/app/page.tsx`: Bảng điều khiển KPI (Tổng doanh thu, Đơn chờ xử lý, Tổng sản phẩm) + Bảng 10 đơn hàng gần nhất
 - [x] `admin/app/orders/page.tsx`: Bộ lọc trạng thái đơn, tìm kiếm mã đơn/SĐT, modal xem chi tiết và cập nhật trạng thái đơn (Pending -> Confirmed -> Preparing -> Shipping -> Completed / Cancelled) kèm ghi chú
 - [x] `admin/app/products/page.tsx`: Danh sách nông sản, modal thêm/sửa sản phẩm đầy đủ thông tin, upload nhiều ảnh, đặt ảnh chính/xóa từng ảnh, xóa từng sản phẩm và xóa hàng loạt
@@ -538,7 +551,7 @@ npm run test:e2e
 > - SEO: metadata động, JSON-LD Product/Breadcrumb/Organization/Article, sitemap + robots.
 > - RBAC: super-admin (toàn bộ quyền), admin, warehouse, support được cập nhật thêm quyền categories/reviews/blogs; menu admin ẩn theo quyền.
 > - Responsive: Playwright Chromium tại 6 breakpoint storefront + 3 breakpoint admin; không thay thế kiểm thử trên thiết bị thật.
-> - Performance: ảnh upload trả URL tương đối + nginx proxy `/storage` + Next Image optimizer; hero dùng WebP nội bộ.
+> - Performance: ảnh upload trả URL tương đối + nginx proxy `/storage` + Next Image optimizer; hero hiện dùng SVG nội bộ.
 > - Thanh toán online: giữ ở mức tượng trưng/minh hoạ, không cần cấu hình `MOMO_*` / `VNPAY_*`.
 
 ---
@@ -623,8 +636,9 @@ npm run test:e2e
 | 22/10/2026 | AI | Phase 4 module A: báo phí GHN theo địa chỉ, tạo vận đơn tự động khi xác nhận, webhook tracking idempotent, timeline đơn hàng + admin; thêm 2 Playwright test shipping. |
 | 22/10/2026 | AI | Điều chỉnh phạm vi: ưu tiên website trưng bày; tạm hoãn go-live thanh toán/đặt hàng nội bộ; đánh dấu pending GHN thật và phương án chuyển CTA sang Shopee. |
 | 22/10/2026 | AI | **Đóng gói Phase 4:** giữ module A ở mức demo; dừng B (đại lý), C (Expo), D (multi-warehouse); chuyển trọng tâm sang hoàn thiện trưng bày và link Shopee. |
+| 22/10/2026 | AI | **Rebrand MocSon Farm:** đổi metadata/header/footer/admin/email/env; tạo hero + OG + 12 ảnh SVG; cập nhật catalog 5 nhóm/12 sản phẩm; blog/review mẫu; đổi admin mẫu sang `admin@mocsonfarm.vn`; 21/21 Playwright, PHP lint, `tsc`, build OK. |
 
 ---
 
 *📅 Tạo: 14/09/2026 | Cập nhật: 22/10/2026*
-*🌾 Dự án: Website bán Nông Sản Sạch*
+*🌿 Dự án: MocSon Farm – Đặc sản Nghệ An*

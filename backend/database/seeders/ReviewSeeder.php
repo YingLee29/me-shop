@@ -22,10 +22,10 @@ class ReviewSeeder extends Seeder
         }
 
         $samples = [
-            ['rating' => 5, 'title' => 'Tươi ngon, giao nhanh', 'content' => 'Sản phẩm nhận được rất tươi, đóng gói cẩn thận và giao đúng hẹn. Gia đình mình rất hài lòng.'],
-            ['rating' => 4, 'title' => 'Chất lượng tốt', 'content' => 'Hàng đúng mô tả, độ tươi ổn. Sẽ tiếp tục ủng hộ shop trong những lần sau.'],
-            ['rating' => 5, 'title' => 'Đáng tiền', 'content' => 'Nông sản sạch, vị ngon tự nhiên. Đóng gói chắc chắn, nhân viên tư vấn nhiệt tình.'],
-            ['rating' => 5, 'title' => 'Rất hài lòng', 'content' => 'Mua lần đầu nhưng chất lượng vượt mong đợi. Rau củ tươi, trái cây ngọt và thơm.'],
+            ['rating' => 5, 'title' => 'Thơm ấm, đóng gói kỹ', 'content' => 'Gừng thơm tự nhiên, vị cay ấm vừa phải. Hũ được đóng gói cẩn thận, giao đúng hẹn.'],
+            ['rating' => 4, 'title' => 'Chất lượng tốt', 'content' => 'Sản phẩm đúng mô tả, hương vị dễ dùng. Sẽ tiếp tục ủng hộ MocSon Farm trong lần sau.'],
+            ['rating' => 5, 'title' => 'Đáng tiền', 'content' => 'Đặc sản Nghệ An thơm ngon, vị tự nhiên. Đóng gói chắc chắn, nhân viên tư vấn nhiệt tình.'],
+            ['rating' => 5, 'title' => 'Rất hài lòng', 'content' => 'Mua lần đầu nhưng chất lượng vượt mong đợi. Trà gừng và tinh bột nghệ đều thơm, dễ dùng.'],
         ];
 
         $products = Product::active()->orderBy('id')->get();

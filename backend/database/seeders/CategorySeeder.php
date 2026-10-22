@@ -4,89 +4,90 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Cache;
 
 class CategorySeeder extends Seeder
 {
     public function run(): void
     {
+        // Giữ dữ liệu cũ để không ảnh hưởng đơn hàng, nhưng ẩn khỏi storefront.
+        Category::query()->update(['is_active' => false]);
+
         $categories = [
             [
-                'name'        => 'Rau Củ',
-                'slug'        => 'rau-cu',
-                'icon'        => '🥦',
-                'description' => 'Rau củ tươi sạch từ vườn nông nghiệp hữu cơ',
+                'name'        => 'Gừng Kỳ Sơn',
+                'slug'        => 'gung-ky-son',
+                'icon'        => '🌿',
+                'description' => 'Gừng sẻ núi Kỳ Sơn và các sản phẩm chế biến từ gừng: viên ngậm, cao gừng, cốt gừng, trà gừng.',
                 'sort_order'  => 1,
                 'children'    => [
-                    ['name' => 'Rau Lá',     'slug' => 'rau-la',     'icon' => '🥬', 'sort_order' => 1],
-                    ['name' => 'Củ Quả',     'slug' => 'cu-qua',     'icon' => '🥕', 'sort_order' => 2],
-                    ['name' => 'Nấm',        'slug' => 'nam',         'icon' => '🍄', 'sort_order' => 3],
+                    ['name' => 'Viên Ngậm Gừng', 'slug' => 'vien-ngam-gung', 'icon' => '🍬', 'sort_order' => 1],
+                    ['name' => 'Cao & Cốt Gừng', 'slug' => 'cao-cot-gung', 'icon' => '🍯', 'sort_order' => 2],
+                    ['name' => 'Trà Gừng', 'slug' => 'tra-gung', 'icon' => '🍵', 'sort_order' => 3],
                 ],
             ],
             [
-                'name'        => 'Trái Cây',
-                'slug'        => 'trai-cay',
-                'icon'        => '🍎',
-                'description' => 'Trái cây tươi ngon, không thuốc bảo vệ thực vật',
+                'name'        => 'Nghệ & Thảo Mộc',
+                'slug'        => 'nghe-thao-moc',
+                'icon'        => '🌱',
+                'description' => 'Tinh bột nghệ nếp Nghệ An, trà Shan Tuyết và các sản phẩm thảo mộc tự nhiên.',
                 'sort_order'  => 2,
                 'children'    => [
-                    ['name' => 'Trái Cây Nhiệt Đới', 'slug' => 'trai-cay-nhiet-doi', 'icon' => '🥭', 'sort_order' => 1],
-                    ['name' => 'Trái Cây Có Múi',    'slug' => 'trai-cay-co-mui',    'icon' => '🍊', 'sort_order' => 2],
+                    ['name' => 'Tinh Bột Nghệ', 'slug' => 'tinh-bot-nghe', 'icon' => '🟡', 'sort_order' => 1],
+                    ['name' => 'Trà Shan Tuyết', 'slug' => 'tra-shan-tuyet', 'icon' => '🍃', 'sort_order' => 2],
                 ],
             ],
             [
-                'name'        => 'Thịt Sạch',
-                'slug'        => 'thit-sach',
-                'icon'        => '🥩',
-                'description' => 'Thịt heo, bò, gà từ trang trại VietGAP',
+                'name'        => 'Mật Ong & Đường Phèn',
+                'slug'        => 'mat-ong-duong-phen',
+                'icon'        => '🍯',
+                'description' => 'Mật ong rừng và đường phèn Nghĩa Đàn – nguyên liệu làm nên vị ngọt tự nhiên của các sản phẩm MocSon Farm.',
                 'sort_order'  => 3,
                 'children'    => [
-                    ['name' => 'Thịt Heo', 'slug' => 'thit-heo', 'icon' => '🐷', 'sort_order' => 1],
-                    ['name' => 'Thịt Bò',  'slug' => 'thit-bo',  'icon' => '🐄', 'sort_order' => 2],
-                    ['name' => 'Thịt Gà',  'slug' => 'thit-ga',  'icon' => '🐔', 'sort_order' => 3],
+                    ['name' => 'Mật Ong Rừng', 'slug' => 'mat-ong-rung', 'icon' => '🐝', 'sort_order' => 1],
+                    ['name' => 'Đường Phèn', 'slug' => 'duong-phen', 'icon' => '🧂', 'sort_order' => 2],
                 ],
             ],
             [
-                'name'        => 'Thủy Sản',
-                'slug'        => 'thuy-san',
-                'icon'        => '🐟',
-                'description' => 'Cá, tôm, hải sản tươi sống mỗi ngày',
+                'name'        => 'Đặc Sản Nghệ An',
+                'slug'        => 'dac-san-nghe-an',
+                'icon'        => '🏞️',
+                'description' => 'Bánh, mứt, hạt và nông sản khô mang hương vị đặc trưng của xứ Nghệ.',
                 'sort_order'  => 4,
+                'children'    => [
+                    ['name' => 'Bánh & Mứt', 'slug' => 'banh-mut', 'icon' => '🥮', 'sort_order' => 1],
+                    ['name' => 'Hạt & Nông Sản Khô', 'slug' => 'hat-nong-san-kho', 'icon' => '🌰', 'sort_order' => 2],
+                ],
             ],
             [
-                'name'        => 'Trứng & Sữa',
-                'slug'        => 'trung-sua',
-                'icon'        => '🥚',
-                'description' => 'Trứng gà ta, trứng vịt, sữa tươi và các sản phẩm từ sữa',
+                'name'        => 'Combo Quà Tặng',
+                'slug'        => 'combo-qua-tang',
+                'icon'        => '🎁',
+                'description' => 'Hộp quà đặc sản Nghệ An được chọn lọc, phù hợp biếu tặng gia đình, đối tác và khách hàng.',
                 'sort_order'  => 5,
-            ],
-            [
-                'name'        => 'Gia Vị & Khô',
-                'slug'        => 'gia-vi-kho',
-                'icon'        => '🧄',
-                'description' => 'Gia vị, mắm muối, hàng khô thiết yếu',
-                'sort_order'  => 6,
+                'children'    => [],
             ],
         ];
 
-        foreach ($categories as $catData) {
-            $children = $catData['children'] ?? [];
-            unset($catData['children']);
-
-            $catData['is_active'] = true;
+        foreach ($categories as $categoryData) {
+            $children = $categoryData['children'] ?? [];
+            unset($categoryData['children']);
 
             $parent = Category::updateOrCreate(
-                ['slug' => $catData['slug']],
-                $catData
+                ['slug' => $categoryData['slug']],
+                array_merge($categoryData, ['parent_id' => null, 'is_active' => true])
             );
 
-            foreach ($children as $childData) {
-                $childData['parent_id'] = $parent->id;
-                $childData['is_active'] = true;
-                Category::updateOrCreate(['slug' => $childData['slug']], $childData);
+            foreach ($children as $child) {
+                Category::updateOrCreate(
+                    ['slug' => $child['slug']],
+                    array_merge($child, ['parent_id' => $parent->id, 'is_active' => true])
+                );
             }
         }
 
-        $this->command->info('✅ Đã tạo ' . Category::count() . ' danh mục.');
+        Cache::forget('categories.tree');
+
+        $this->command->info('✅ Đã cập nhật danh mục MocSon Farm.');
     }
 }

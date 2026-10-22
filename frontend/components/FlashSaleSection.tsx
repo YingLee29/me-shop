@@ -24,19 +24,21 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 export default function FlashSaleSection({ products, endsAt, saleName }: FlashSaleSectionProps) {
   const target = useMemo(() => (endsAt ? new Date(endsAt).getTime() : null), [endsAt]);
-  const [now, setNow] = useState<number>(() => Date.now());
+  // Khởi tạo null để server/client không lệch giờ khi hydrate.
+  const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
     if (!target) return;
+    setNow(Date.now());
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, [target]);
 
   if (products.length === 0) return null;
 
-  const remaining = target ? target - now : 0;
+  const remaining = target && now !== null ? target - now : 0;
   const time = breakdown(remaining);
-  const isOver = target !== null && remaining <= 0;
+  const isOver = target !== null && now !== null && remaining <= 0;
 
   return (
     <section style={{ padding: '60px 0', background: 'linear-gradient(180deg, #FAF7F0 0%, #F5EDD6 100%)' }}>

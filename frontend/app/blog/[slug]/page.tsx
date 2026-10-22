@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
   if (!blog) return { title: 'Không tìm thấy bài viết' };
 
-  const description = blog.meta_description || blog.excerpt || 'Tin tức và kiến thức nông sản.';
+  const description = blog.meta_description || blog.excerpt || 'Tin tức và kiến thức đặc sản Nghệ An.';
   const image = blog.thumbnail || undefined;
 
   return {
@@ -61,10 +61,10 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
     image: blog.thumbnail ? [blog.thumbnail] : undefined,
     datePublished: blog.published_at,
     dateModified: blog.updated_at || blog.published_at,
-    author: { '@type': 'Person', name: blog.author || 'Nông Sản Sạch' },
+    author: { '@type': 'Person', name: blog.author || 'MocSon Farm' },
     publisher: {
       '@type': 'Organization',
-      name: 'Nông Sản Sạch',
+      name: 'MocSon Farm',
       url: SITE_URL,
     },
     mainEntityOfPage: `${SITE_URL}/blog/${blog.slug}`,
@@ -112,7 +112,7 @@ export default async function BlogDetailPage({ params }: { params: { slug: strin
                 <ArrowLeft size={16} /> Về trang tin tức
               </Link>
               <Link href="/products" className="btn-primary" style={{ padding: '10px 18px' }}>
-                Mua nông sản sạch <ArrowRight size={16} />
+                Mua đặc sản Nghệ An <ArrowRight size={16} />
               </Link>
             </div>
           </div>

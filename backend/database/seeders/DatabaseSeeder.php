@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
 
         // Tạo tài khoản Admin
         $admin = User::firstOrCreate(
-            ['email' => 'admin@nongsan.vn'],
+            ['email' => 'admin@mocsonfarm.vn'],
             [
                 'name'     => 'Super Admin',
                 'password' => Hash::make('Admin@123456'),
@@ -48,8 +48,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->command->info('');
-        $this->command->info('🌾 ====== SEED HOÀN TẤT ======');
-        $this->command->info('👤 Admin: admin@nongsan.vn / Admin@123456');
+        $this->command->info('🌿 ====== SEED HOÀN TẤT ======');
+        $this->command->info('👤 Admin: admin@mocsonfarm.vn / Admin@123456');
         $this->command->info('👤 Customer: khach@example.com / password');
         $this->command->info('================================');
     }

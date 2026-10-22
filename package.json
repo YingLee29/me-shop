@@ -1,8 +1,8 @@
 {
-  "name": "nongsan-e2e",
+  "name": "mocson-e2e",
   "version": "1.0.0",
   "private": true,
-  "description": "Playwright smoke and responsive tests for Nông Sản Việt",
+  "description": "Playwright smoke and responsive tests for MocSon Farm",
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",

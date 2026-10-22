@@ -1,7 +1,7 @@
 import { expect, Page, test } from '@playwright/test';
 
 const VIEWPORTS = [320, 375, 425, 768, 1024, 1440];
-const PUBLIC_PAGES = ['/', '/products', '/products/banh-tet', '/cart', '/checkout', '/blog', '/account/wishlist', '/account/points'];
+const PUBLIC_PAGES = ['/', '/products', '/products/vien-ngam-gung-ky-son', '/cart', '/checkout', '/blog', '/account/wishlist', '/account/points'];
 
 async function assertNoHorizontalOverflow(page: Page) {
   await page.waitForTimeout(500);
@@ -42,12 +42,12 @@ test.describe('Storefront responsive', () => {
 test.describe('Storefront smoke', () => {
   test('trang chủ, danh sách và chi tiết sản phẩm', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: /Nông Sản Tươi Lành/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Đặc Sản Nghệ An/i })).toBeVisible();
 
     const title = await page.title();
-    expect(title).toContain('Nông Sản Việt');
+    expect(title).toContain('MocSon Farm');
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /.+/);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /localhost:5000|nongsan/i);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /localhost:5000|mocson/i);
     await expect(page.locator('script[type="application/ld+json"]').first()).toBeAttached();
 
     await page.goto('/products', { waitUntil: 'domcontentloaded' });
@@ -59,10 +59,10 @@ test.describe('Storefront smoke', () => {
   });
 
   test('thêm sản phẩm vào giỏ hàng', async ({ page }) => {
-    await page.goto('/products/banh-tet', { waitUntil: 'domcontentloaded' });
+    await page.goto('/products/vien-ngam-gung-ky-son', { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: /Thêm Vào Giỏ/i }).click();
     await page.goto('/cart', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByText('Bánh tét').first()).toBeVisible();
+    await expect(page.getByText('Viên Ngậm Gừng Kỳ Sơn').first()).toBeVisible();
   });
 
   test('trang blog và bài viết có SEO', async ({ page }) => {

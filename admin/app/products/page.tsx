@@ -390,7 +390,7 @@ export default function AdminProductsPage() {
             Quản Lý Sản Phẩm
           </h1>
           <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.88rem', marginTop: '4px' }}>
-            Thêm, sửa, xóa và cập nhật hình ảnh nông sản
+            Thêm, sửa, xóa và cập nhật hình ảnh đặc sản
           </p>
         </div>
 

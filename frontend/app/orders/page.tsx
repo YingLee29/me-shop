@@ -119,7 +119,7 @@ export default function OrdersPage() {
           <div style={{ background: '#FFF', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '60px 20px', textAlign: 'center' }}>
             <Package size={46} color="var(--color-primary)" style={{ marginBottom: '12px' }} />
             <h2 style={{ fontWeight: 800, color: 'var(--color-brown-dark)' }}>Bạn chưa có đơn hàng nào</h2>
-            <p style={{ color: 'var(--color-gray-mid)', margin: '6px 0 20px' }}>Khám phá nông sản tươi sạch và đặt đơn đầu tiên nhé!</p>
+            <p style={{ color: 'var(--color-gray-mid)', margin: '6px 0 20px' }}>Khám phá đặc sản Nghệ An và đặt đơn đầu tiên nhé!</p>
             <Link href="/products" className="btn-primary">Mua sắm ngay</Link>
           </div>
         ) : (

@@ -1,8 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#2C1A0E"/>
-  <circle cx="1020" cy="110" r="180" fill="#C8A45A" opacity="0.12"/>
-  <circle cx="120" cy="560" r="140" fill="#C8A45A" opacity="0.08"/>
-  <text x="80" y="290" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#FFFFFF">NÔNG SẢN VIỆT</text>
-  <text x="80" y="370" font-family="Arial, sans-serif" font-size="34" fill="#C8A45A">Nông sản hữu cơ · Tươi sạch tận vườn</text>
-  <text x="80" y="430" font-family="Arial, sans-serif" font-size="26" fill="#D8CDBA">VietGAP · Giao lạnh 2h · Nguồn gốc rõ ràng</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2C1A0E"/>
+      <stop offset="1" stop-color="#5A3A21"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F2D9A4"/>
+      <stop offset="1" stop-color="#C8A45A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1020" cy="110" r="180" fill="#C8A45A" opacity="0.14"/>
+  <circle cx="120" cy="560" r="140" fill="#C8A45A" opacity="0.09"/>
+  <text x="80" y="285" font-family="Georgia, serif" font-size="78" font-weight="bold" fill="url(#gold)">MocSon Farm</text>
+  <text x="80" y="365" font-family="Arial, sans-serif" font-size="34" fill="#F4E9D6">Đặc sản Nghệ An · Trọn vị núi rừng</text>
+  <text x="80" y="430" font-family="Arial, sans-serif" font-size="26" fill="#D8CDBA">Gừng Kỳ Sơn · Tinh bột nghệ · Trà Shan Tuyết · Mật ong rừng</text>
+  <text x="80" y="530" font-family="Arial, sans-serif" font-size="22" fill="#C8A45A" letter-spacing="2">MOCSONFARM.VN</text>
 </svg>

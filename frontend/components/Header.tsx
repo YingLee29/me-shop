@@ -72,10 +72,10 @@ export default function Header() {
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Sparkles size={14} /> <strong>Ưu đãi tháng 9:</strong> Freeship cho đơn hàng từ 300.000đ!
+              <Sparkles size={14} /> <strong>Ưu đãi tháng 10:</strong> Freeship cho đơn hàng từ 300.000đ!
             </span>
             <span className="topbar-secondary" style={{ alignItems: 'center', gap: '4px', opacity: 0.9 }}>
-              <ShieldCheck size={14} /> 100% Hữu cơ & VietGAP
+              <ShieldCheck size={14} /> 100% Nguồn gốc tự nhiên
             </span>
           </div>
           <div className="topbar-contact" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -110,14 +110,14 @@ export default function Header() {
               fontSize: '1.4rem',
               boxShadow: '0 4px 10px rgba(107, 66, 38, 0.25)',
             }}>
-              🌾
+              🌿
             </div>
             <div>
               <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--color-brown)', letterSpacing: '-0.5px' }}>
-                NÔNG SẢN <span style={{ color: 'var(--color-primary-dark)' }}>VIỆT</span>
+                MocSon <span style={{ color: 'var(--color-primary-dark)' }}>Farm</span>
               </div>
               <div style={{ fontSize: '0.72rem', color: 'var(--color-gray-dark)', letterSpacing: '0.8px', textTransform: 'uppercase', fontWeight: 600 }}>
-                Tươi Sạch Tận Vườn
+                Đặc Sản Nghệ An
               </div>
             </div>
           </Link>
@@ -131,7 +131,7 @@ export default function Header() {
           }}>
             <input
               type="text"
-              placeholder="Tìm kiếm rau củ hữu cơ, trái cây sạch, gạo lứt..."
+              placeholder="Tìm gừng Kỳ Sơn, tinh bột nghệ, trà Shan Tuyết..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -436,14 +436,17 @@ export default function Header() {
             <Link href="/products?is_featured=1" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
               Sản Phẩm Nổi Bật
             </Link>
-            <Link href="/products?category=rau-cu" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
-              Rau Củ Tươi
+            <Link href="/products?category=gung-ky-son" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
+              Gừng Kỳ Sơn
             </Link>
-            <Link href="/products?category=trai-cay" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
-              Trái Cây Sạch
+            <Link href="/products?category=nghe-thao-moc" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
+              Nghệ & Thảo Mộc
             </Link>
-            <Link href="/products?category=gao-ngu-coc" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
-              Gạo & Ngũ Cốc
+            <Link href="/products?category=mat-ong-duong-phen" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
+              Mật Ong
+            </Link>
+            <Link href="/products?category=combo-qua-tang" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
+              Quà Tặng
             </Link>
             <Link href="/blog" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
               Tin Tức
@@ -466,9 +469,10 @@ export default function Header() {
               { href: '/', label: 'Trang chủ' },
               { href: '/products', label: 'Tất cả sản phẩm' },
               { href: '/products?is_featured=1', label: 'Sản phẩm nổi bật' },
-              { href: '/products?category=rau-cu', label: 'Rau củ tươi' },
-              { href: '/products?category=trai-cay', label: 'Trái cây sạch' },
-              { href: '/products?category=gao-ngu-coc', label: 'Gạo & ngũ cốc' },
+              { href: '/products?category=gung-ky-son', label: 'Gừng Kỳ Sơn' },
+              { href: '/products?category=nghe-thao-moc', label: 'Nghệ & thảo mộc' },
+              { href: '/products?category=mat-ong-duong-phen', label: 'Mật ong & đường phèn' },
+              { href: '/products?category=combo-qua-tang', label: 'Combo quà tặng' },
               { href: '/account/wishlist', label: '♡ Sản phẩm yêu thích' },
               { href: '/account/points', label: '🎁 Điểm thưởng' },
               { href: '/orders', label: 'Đơn hàng của tôi' },

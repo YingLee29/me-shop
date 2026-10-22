@@ -138,7 +138,7 @@ function ProductCard({ product }: { product: Product }) {
         {/* Category & Origin */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
           <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-primary-dark)', textTransform: 'uppercase' }}>
-            {product.category?.name || 'Hữu cơ'}
+            {product.category?.name || 'Đặc sản'}
           </span>
           {product.origin && (
             <span style={{ fontSize: '0.75rem', color: 'var(--color-gray-mid)', display: 'flex', alignItems: 'center', gap: 3 }}>

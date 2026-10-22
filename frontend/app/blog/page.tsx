@@ -8,11 +8,11 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'Tin Tức & Mẹo Nấu Ăn',
-  description: 'Kiến thức chọn và bảo quản nông sản, mẹo nấu ăn, dinh dưỡng và câu chuyện nhà nông.',
+  description: 'Cẩm nang chọn và thưởng thức đặc sản Nghệ An, mẹo pha trà và chuyện nhà nông.',
   alternates: { canonical: '/blog' },
   openGraph: {
-    title: 'Tin Tức & Mẹo Nấu Ăn | Nông Sản Sạch',
-    description: 'Kiến thức chọn và bảo quản nông sản, mẹo nấu ăn và dinh dưỡng mỗi ngày.',
+    title: 'Tin Tức & Cẩm Nang Đặc Sản | MocSon Farm',
+    description: 'Cẩm nang chọn và thưởng thức đặc sản Nghệ An, mẹo pha trà và dinh dưỡng mỗi ngày.',
     url: '/blog',
     type: 'website',
   },
@@ -73,7 +73,7 @@ export default async function BlogPage({
       <div className="container">
         <div style={{ background: 'linear-gradient(135deg, #3E6B3A, #6B4226)', borderRadius: 'var(--radius-lg)', padding: '44px 36px', color: '#FFF', marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', opacity: 0.85, marginBottom: '10px' }}>
-            <BookOpen size={17} /> Cẩm nang nông sản
+            <BookOpen size={17} /> Cẩm nang đặc sản
           </div>
           <h1 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '8px' }}>Tin Tức & Mẹo Nấu Ăn</h1>
           <p style={{ maxWidth: '620px', opacity: 0.9, lineHeight: 1.7 }}>

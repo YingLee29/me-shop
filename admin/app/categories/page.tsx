@@ -156,7 +156,7 @@ export default function AdminCategoriesPage() {
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--admin-brown-dark)' }}>Quản Lý Danh Mục</h1>
           <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.88rem', marginTop: '4px' }}>
-            Tổ chức danh mục nông sản nhiều cấp
+            Tổ chức danh mục đặc sản nhiều cấp
           </p>
         </div>
         {can('categories.manage') && (

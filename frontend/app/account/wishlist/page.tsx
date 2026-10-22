@@ -68,7 +68,7 @@ export default function WishlistPage() {
             <p style={{ color: 'var(--color-gray-mid)', marginTop: '6px', marginBottom: '20px' }}>
               Nhấn vào biểu tượng ♡ trên sản phẩm để lưu lại nhé!
             </p>
-            <Link href="/products" className="btn-primary">Khám phá nông sản</Link>
+            <Link href="/products" className="btn-primary">Khám phá đặc sản</Link>
           </div>
         ) : (
           <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px' }}>

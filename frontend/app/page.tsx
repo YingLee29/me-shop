@@ -71,7 +71,7 @@ export default async function HomePage() {
               fontWeight: 700,
               marginBottom: '20px',
             }}>
-              <Leaf size={16} color="var(--color-green)" /> NÔNG SẢN HỮU CƠ 100% VIETGAP
+              <Leaf size={16} color="var(--color-green)" /> TỪ GỪNG KỲ SƠN ĐẾN BÀN TRÀ
             </div>
 
             <h1 style={{
@@ -82,13 +82,13 @@ export default async function HomePage() {
               letterSpacing: '-1px',
               marginBottom: '20px',
             }}>
-              Nông Sản Tươi Lành <br />
+              Đặc Sản Nghệ An <br />
               <span style={{
                 background: 'linear-gradient(90deg, #A0783A 0%, #6B4226 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
               }}>
-                Thu Hoạch Tận Vườn
+                Trọn Vị Núi Rừng
               </span>
             </h1>
 
@@ -99,15 +99,15 @@ export default async function HomePage() {
               marginBottom: '32px',
               maxWidth: '520px',
             }}>
-              Cam kết không thuốc trừ sâu, không chất bảo quản. Đưa rau củ quả tươi sạch từ các nông trại Đà Lạt & Miền Tây đến bàn ăn gia đình bạn trong vòng 2 giờ.
+              Gừng sẻ Kỳ Sơn, tinh bột nghệ nếp, trà Shan Tuyết và mật ong rừng – tuyển chọn từ nông hộ Nghệ An, chế biến thủ công để giữ trọn hương vị tự nhiên.
             </p>
 
             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
               <Link href="/products" className="btn-primary" style={{ padding: '14px 28px', fontSize: '1rem' }}>
-                Mua Ngay Hôm Nay <ArrowRight size={18} />
+                Khám Phá Đặc Sản <ArrowRight size={18} />
               </Link>
               <Link href="/products?is_flash_sale=1" className="btn-outline" style={{ padding: '14px 24px', fontSize: '1rem' }}>
-                ⚡ Xem Flash Sale
+                ⚡ Ưu Đãi Hôm Nay
               </Link>
             </div>
 
@@ -121,15 +121,15 @@ export default async function HomePage() {
             }}>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-brown)' }}>15.000+</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--color-gray-mid)' }}>Khách hàng hài lòng</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--color-gray-mid)' }}>Khách hàng tin dùng</div>
               </div>
               <div>
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-brown)' }}>100%</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--color-gray-mid)' }}>Chuẩn VietGAP</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--color-gray-mid)' }}>Nguồn gốc rõ ràng</div>
               </div>
               <div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-brown)' }}>2H</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--color-gray-mid)' }}>Giao nội thành</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-brown)' }}>Nghệ An</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--color-gray-mid)' }}>Từ nông hộ địa phương</div>
               </div>
             </div>
           </div>
@@ -146,8 +146,8 @@ export default async function HomePage() {
               overflow: 'hidden',
             }}>
               <Image
-                src="/hero-rau-cu.webp"
-                alt="Rau củ hữu cơ tươi sạch"
+                src="/hero-mocson.svg"
+                alt="Gừng Kỳ Sơn, trà thảo mộc và mật ong MocSon Farm"
                 width={720}
                 height={540}
                 priority
@@ -170,8 +170,8 @@ export default async function HomePage() {
                 color: '#FFF',
                 border: '1px solid rgba(255,255,255,0.15)',
               }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--color-primary-light)', fontWeight: 600 }}>TƯƠI MỖI SÁNG</div>
-                <div style={{ fontSize: '1rem', fontWeight: 700 }}>Hái tại vườn lúc 5h sáng</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--color-primary-light)', fontWeight: 600 }}>TỪ NÚI RỪNG KỲ SƠN</div>
+                <div style={{ fontSize: '1rem', fontWeight: 700 }}>Chế biến thủ công từng mẻ nhỏ</div>
               </div>
             </div>
           </div>
@@ -187,7 +187,7 @@ export default async function HomePage() {
                 KHÁM PHÁ DANH MỤC
               </span>
               <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-brown-dark)' }}>
-                Nông Sản Tuyển Chọn
+                Đặc Sản Tuyển Chọn
               </h2>
             </div>
             <Link href="/products" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-primary-dark)' }}>
@@ -226,7 +226,7 @@ export default async function HomePage() {
                   {cat.name}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--color-gray-mid)', marginTop: '4px' }}>
-                  {cat.products_count ? `${cat.products_count} sản phẩm` : 'Tươi ngon'}
+                  {cat.products_count ? `${cat.products_count} sản phẩm` : 'Đặc sản'}
                 </div>
               </Link>
             ))}
@@ -250,7 +250,7 @@ export default async function HomePage() {
                 KHUYÊN DÙNG HÔM NAY
               </span>
               <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-brown-dark)' }}>
-                Sản Phẩm Bán Chạy Nhất
+                Sản Phẩm Nổi Bật
               </h2>
             </div>
             <Link href="/products" className="btn-outline" style={{ fontSize: '0.88rem' }}>
@@ -278,23 +278,23 @@ export default async function HomePage() {
       }}>
         <div className="container" style={{ textAlign: 'center', maxWidth: '820px' }}>
           <span style={{ color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>
-            TIÊU CHUẨN NÔNG SẢN SẠCH
+            NGUYÊN LIỆU THẬT – CHẾ BIẾN TỬ TẾ
           </span>
           <h2 style={{ fontSize: '2.2rem', fontWeight: 800, margin: '14px 0 20px', lineHeight: 1.3 }}>
-            Tử Tế Từ Đồng Ruộng Tới Mâm Cơm
+            Tử Tế Từ Núi Rừng Tới Bàn Trà
           </h2>
           <p style={{ color: '#E5DFC8', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '32px' }}>
-            Mỗi bó rau, quả cà chua hay cân gạo đều được kiểm tra dư lượng nitrat và kim loại nặng theo quy trình nghiêm ngặt của Bộ Y Tế. Đảm bảo sức khỏe tuyệt đối cho mẹ và bé.
+            Mỗi hũ gừng, tinh bột nghệ hay gói trà đều bắt đầu từ nguyên liệu tuyển chọn tại Nghệ An, chế biến thủ công theo mẻ nhỏ và không pha hương liệu công nghiệp.
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
             <div style={{ background: 'rgba(255,255,255,0.1)', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontSize: '0.9rem', fontWeight: 600 }}>
-              🌿 Không Thuốc Trừ Sâu Hóa Học
+              🌿 Gừng Sẻ Kỳ Sơn
             </div>
             <div style={{ background: 'rgba(255,255,255,0.1)', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontSize: '0.9rem', fontWeight: 600 }}>
-              💧 Nguồn Nước Tưới Đạt Chuẩn
+              🚫 Không Hương Liệu Công Nghiệp
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.1)', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontSize: '0.9rem', fontWeight: 600 }}>
-              🚚 Vận Chuyển Giữ Lạnh
+            <div style={{ background: 'rgba(255,255,255,0.1)', padding: '12px 24px', borderRadius: 'var(--radius-full)', fontSize: '0.9rem', fontWeight: '600' }}>
+              🤲 Chế Biến Thủ Công
             </div>
           </div>
         </div>

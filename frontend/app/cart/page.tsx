@@ -52,10 +52,10 @@ export default function CartPage() {
             Giỏ hàng của bạn đang trống!
           </h2>
           <p style={{ color: 'var(--color-gray-dark)', fontSize: '0.95rem', marginBottom: '30px', lineHeight: 1.6 }}>
-            Hãy dạo quanh cửa hàng để lựa chọn những món nông sản tươi ngon, an toàn cho cả gia đình nhé.
+            Hãy dạo quanh cửa hàng để lựa chọn những món đặc sản Nghệ An, an toàn cho cả gia đình nhé.
           </p>
           <Link href="/products" className="btn-primary" style={{ padding: '14px 32px', fontSize: '1rem' }}>
-            <ShoppingBag size={18} /> Khám Phá Nông Sản Ngay
+            <ShoppingBag size={18} /> Khám Phá Đặc Sản Ngay
           </Link>
         </div>
       </div>

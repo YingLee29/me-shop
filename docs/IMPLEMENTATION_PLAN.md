@@ -1,7 +1,9 @@
-# 🌾 KẾ HOẠCH TRIỂN KHAI – WEBSITE BÁN NÔNG SẢN SẠCH
+# 🌿 KẾ HOẠCH TRIỂN KHAI – MOCSON FARM (ĐẶC SẢN NGHỆ AN)
 > **Step-by-step Implementation Plan** | Laravel 12 + Next.js 14 + Plain CSS + React Context
 
 > **⚠️ Điều chỉnh phạm vi (22/10/2026):** Ưu tiên go-live **phần trưng bày sản phẩm**. Thanh toán/đặt hàng nội bộ **tạm hoãn**; có thể thay CTA mua hàng bằng link **Shopee Store**. Các mục checkout/payment/GHN bên dưới được giữ làm code tham khảo hoặc demo, không tính là đã triển khai thực tế.
+
+> **🎨 Rebrand & catalog (22/10/2026):** Dự án đổi nhận diện hiển thị sang **MocSon Farm – Đặc sản Nghệ An**. Catalog tạm gồm 5 nhóm gốc / 9 nhóm con / 12 sản phẩm (gừng Kỳ Sơn, nghệ & thảo mộc, mật ong & đường phèn, đặc sản Nghệ An, combo quà tặng). Dữ liệu đang dựa trên thông tin công khai và cần chủ shop xác nhận lại giá/mô tả/ảnh thật. Shopee Store yêu cầu đăng nhập/CAPTCHA nên chưa thể export toàn bộ catalog tự động.
 
 ---
 
@@ -9,7 +11,7 @@
 
 | Mục | Nội dung |
 |-----|----------|
-| **Tên dự án** | Website Bán Nông Sản Sạch |
+| **Tên dự án** | MocSon Farm – Website đặc sản Nghệ An |
 | **Tech Stack** | PHP Laravel 12 + Next.js 14 (React 18) + TypeScript + Plain CSS + React Context |
 | **Database** | MySQL 8 + Redis |
 | **Auth** | Laravel Sanctum (SPA Token) |
@@ -531,7 +533,7 @@ components/product/
 **Trang danh sách** (`app/(shop)/products/page.tsx`):
 - [ ] Sidebar filter: danh mục, khoảng giá (range slider), sắp xếp
 - [ ] Grid 4 cột + phân trang
-- [ ] URL sync: `?category=rau-cu&sort=price_asc&page=2`
+- [ ] URL sync: `?category=gung-ky-son&sort=price_asc&page=2`
 - [ ] SEO metadata động
 
 **Trang chi tiết** (`app/(shop)/products/[slug]/page.tsx`):
@@ -748,7 +750,7 @@ php artisan scout:import "App\Models\Product"
 
 **Tasks:**
 - [x] Chọn Option A (MySQL FULLTEXT) + fallback LIKE
-- [x] API `GET /api/v1/products/search?q=cải bó xôi&category=rau-cu`
+- [x] API `GET /api/v1/products/search?q=gừng Kỳ Sơn&category=gung-ky-son`
 - [x] Autocomplete: trả về gợi ý khi gõ (debounce 300ms phía frontend)
 - [x] Frontend: Search bar trong Header với dropdown kết quả gợi ý
 
@@ -1009,6 +1011,7 @@ CSKH         → xem/cập nhật trạng thái đơn hàng, chat support
 ### 📦 Bước E – Chuyển đặt hàng sang Shopee (định hướng, chưa làm)
 
 > [ ] Backlog mới theo yêu cầu: website chỉ trưng bày, đơn hàng có thể chuyển sang Shopee Store.
+> [!] Đã thử Playwright/Jina đọc `shopee.vn/ankhuongstore`: Shopee trả cổng đăng nhập/CAPTCHA, chưa lấy được toàn bộ danh mục/sản phẩm. Cần cookie đăng nhập, file export hoặc ảnh chụp từ shop.
 
 - [ ] Thêm `shopee_url` cho sản phẩm hoặc cấu hình link store chung
 - [ ] Đổi CTA “Thêm vào giỏ” / “Mua ngay” thành “Mua trên Shopee”
@@ -1065,4 +1068,4 @@ PHASE 4 (Advanced – tùy chọn)
 ---
 
 *📅 Tài liệu tạo: 14/09/2026 | Version: 1.0.0*
-*🌾 Dự án: Website bán Nông Sản Sạch*
+*🌿 Dự án: MocSon Farm – Đặc sản Nghệ An*

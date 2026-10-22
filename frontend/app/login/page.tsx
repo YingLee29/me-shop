@@ -40,12 +40,12 @@ export default function LoginPage() {
           boxShadow: 'var(--shadow-md)',
         }}>
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <div style={{ fontSize: '2.4rem', marginBottom: '10px' }}>🌾</div>
+            <div style={{ fontSize: '2.4rem', marginBottom: '10px' }}>🌿</div>
             <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-brown-dark)' }}>
               Đăng Nhập Tài Khoản
             </h1>
             <p style={{ color: 'var(--color-gray-dark)', fontSize: '0.88rem', marginTop: '6px' }}>
-              Truy cập giỏ hàng và theo dõi đơn hàng nông sản
+              Truy cập giỏ hàng và theo dõi đơn hàng đặc sản
             </p>
           </div>
 

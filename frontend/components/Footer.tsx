@@ -21,8 +21,8 @@ export default function Footer() {
               <Truck size={22} />
             </div>
             <div>
-              <div style={{ color: '#FFF', fontWeight: 700, fontSize: '0.95rem' }}>Giao Hàng Nhanh 2H</div>
-              <div style={{ fontSize: '0.8rem', color: '#9A8878' }}>Đảm bảo nông sản tươi mới</div>
+              <div style={{ color: '#FFF', fontWeight: 700, fontSize: '0.95rem' }}>Giao Hàng Toàn Quốc</div>
+              <div style={{ fontSize: '0.8rem', color: '#9A8878' }}>Đóng gói cẩn thận, giao tận tay</div>
             </div>
           </div>
 
@@ -31,8 +31,8 @@ export default function Footer() {
               <ShieldCheck size={22} />
             </div>
             <div>
-              <div style={{ color: '#FFF', fontWeight: 700, fontSize: '0.95rem' }}>100% Hữu Cơ & VietGAP</div>
-              <div style={{ fontSize: '0.8rem', color: '#9A8878' }}>Kiểm định nguồn gốc rõ ràng</div>
+              <div style={{ color: '#FFF', fontWeight: 700, fontSize: '0.95rem' }}>100% Tự Nhiên</div>
+              <div style={{ fontSize: '0.8rem', color: '#9A8878' }}>Nguồn gốc rõ ràng, không hương liệu</div>
             </div>
           </div>
 
@@ -67,21 +67,21 @@ export default function Footer() {
           {/* Col 1: About */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <span style={{ fontSize: '1.8rem' }}>🌾</span>
-              <span style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary)' }}>NÔNG SẢN VIỆT</span>
+              <span style={{ fontSize: '1.8rem' }}>🌿</span>
+              <span style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary)' }}>MOCSON FARM</span>
             </div>
             <p style={{ fontSize: '0.88rem', lineHeight: '1.7', color: '#C8B8A6', marginBottom: '20px' }}>
-              Chuỗi cung ứng nông sản hữu cơ sạch, canh tác thuận tự nhiên từ các nông hộ Đà Lạt, miền Tây và Tây Nguyên đến tận tay người tiêu dùng.
+              Đặc sản Nghệ An từ gừng Kỳ Sơn, tinh bột nghệ, trà Shan Tuyết đến mật ong rừng – chế biến thủ công, giữ trọn vị núi rừng.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MapPin size={16} color="var(--color-primary)" /> 123 Nguyễn Trãi, Quận 1, TP. Hồ Chí Minh
+                <MapPin size={16} color="var(--color-primary)" /> TP. Vinh, Nghệ An
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Phone size={16} color="var(--color-primary)" /> Hotline: 1900 6868 (8:00 - 21:00)
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Mail size={16} color="var(--color-primary)" /> cskh@nongsanviet.vn
+                <Mail size={16} color="var(--color-primary)" /> hello@mocsonfarm.vn
               </span>
             </div>
           </div>
@@ -92,11 +92,11 @@ export default function Footer() {
               Danh Mục Sản Phẩm
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.88rem' }}>
-              <li><Link href="/products?category=rau-cu" style={{ color: '#C8B8A6' }}>🥦 Rau Củ Hữu Cơ</Link></li>
-              <li><Link href="/products?category=trai-cay" style={{ color: '#C8B8A6' }}>🍎 Trái Cây Miền Tây & Đà Lạt</Link></li>
-              <li><Link href="/products?category=gao-ngu-coc" style={{ color: '#C8B8A6' }}>🌾 Gạo ST25 & Ngũ Cốc Dinh Dưỡng</Link></li>
-              <li><Link href="/products?category=nam-tuoi" style={{ color: '#C8B8A6' }}>🍄 Nấm Tươi & Nấm Khô</Link></li>
-              <li><Link href="/products?category=dac-san-vung-mien" style={{ color: '#C8B8A6' }}>🍯 Đặc Sản Vùng Miền</Link></li>
+              <li><Link href="/products?category=gung-ky-son" style={{ color: '#C8B8A6' }}>🌿 Gừng Kỳ Sơn</Link></li>
+              <li><Link href="/products?category=nghe-thao-moc" style={{ color: '#C8B8A6' }}>🌱 Nghệ & Thảo Mộc</Link></li>
+              <li><Link href="/products?category=mat-ong-duong-phen" style={{ color: '#C8B8A6' }}>🍯 Mật Ong & Đường Phèn</Link></li>
+              <li><Link href="/products?category=dac-san-nghe-an" style={{ color: '#C8B8A6' }}>🏞️ Đặc Sản Nghệ An</Link></li>
+              <li><Link href="/products?category=combo-qua-tang" style={{ color: '#C8B8A6' }}>🎁 Combo Quà Tặng</Link></li>
             </ul>
           </div>
 
@@ -108,9 +108,9 @@ export default function Footer() {
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.88rem' }}>
               <li><Link href="/blog" style={{ color: '#C8B8A6' }}>Tin tức & mẹo nấu ăn</Link></li>
               <li><Link href="/orders" style={{ color: '#C8B8A6' }}>Tra cứu đơn hàng</Link></li>
-              <li><span style={{ color: '#C8B8A6' }}>Chính sách giao hàng 2h</span></li>
+              <li><span style={{ color: '#C8B8A6' }}>Chính sách giao hàng toàn quốc</span></li>
               <li><span style={{ color: '#C8B8A6' }}>Chính sách đổi trả & hoàn tiền</span></li>
-              <li><span style={{ color: '#C8B8A6' }}>Tiêu chuẩn chứng nhận VietGAP</span></li>
+              <li><span style={{ color: '#C8B8A6' }}>Cam kết chất lượng & nguồn gốc</span></li>
               <li><span style={{ color: '#C8B8A6' }}>Hướng dẫn mua hàng & thanh toán COD</span></li>
             </ul>
           </div>
@@ -157,7 +157,7 @@ export default function Footer() {
           fontSize: '0.8rem',
           color: '#8B7B6D',
         }}>
-          © {new Date().getFullYear()} Nông Sản Việt. Tất cả bản quyền được bảo lưu. Thiết kế & Phát triển với chuẩn nông sản hữu cơ sạch.
+          © {new Date().getFullYear()} MocSon Farm. Tất cả bản quyền được bảo lưu. Đặc sản Nghệ An – trọn vị núi rừng.
         </div>
       </div>
     </footer>

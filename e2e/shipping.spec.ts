@@ -19,7 +19,7 @@ async function login(request: APIRequestContext, email: string, password: string
 
 test.describe('Checkout shipping quote', () => {
   test('tự tính phí GHN theo tỉnh/thành', async ({ page }) => {
-    await page.goto('/products/banh-tet', { waitUntil: 'domcontentloaded' });
+    await page.goto('/products/vien-ngam-gung-ky-son', { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: /Thêm Vào Giỏ/i }).click();
 
     await page.goto('/checkout', { waitUntil: 'domcontentloaded' });
@@ -43,10 +43,10 @@ test.describe('Shipping lifecycle', () => {
   test('xác nhận đơn tạo vận đơn, webhook cập nhật timeline và admin xem tracking', async ({ page, request }) => {
     const [customerToken, adminToken] = await Promise.all([
       login(request, 'khach@example.com', 'password'),
-      login(request, 'admin@nongsan.vn', 'Admin@123456'),
+      login(request, 'admin@mocsonfarm.vn', 'Admin@123456'),
     ]);
 
-    const productResponse = await request.get(`${API_URL}/products/banh-tet`, {
+    const productResponse = await request.get(`${API_URL}/products/vien-ngam-gung-ky-son`, {
       headers: { Accept: 'application/json' },
     });
     expect(productResponse.ok()).toBeTruthy();

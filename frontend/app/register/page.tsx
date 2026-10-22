@@ -52,12 +52,12 @@ export default function RegisterPage() {
           boxShadow: 'var(--shadow-md)',
         }}>
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <div style={{ fontSize: '2.4rem', marginBottom: '10px' }}>🌾</div>
+            <div style={{ fontSize: '2.4rem', marginBottom: '10px' }}>🌿</div>
             <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-brown-dark)' }}>
               Đăng Ký Thành Viên
             </h1>
             <p style={{ color: 'var(--color-gray-dark)', fontSize: '0.88rem', marginTop: '6px' }}>
-              Nhận ngay voucher 50.000đ và tích điểm mua nông sản sạch
+              Nhận ngay voucher 50.000đ và tích điểm mua đặc sản
             </p>
           </div>
 

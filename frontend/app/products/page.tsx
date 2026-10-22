@@ -18,6 +18,23 @@ interface SearchParams {
   price_max?: string;
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  'gung-ky-son': 'Gừng Kỳ Sơn',
+  'vien-ngam-gung': 'Viên Ngậm Gừng',
+  'cao-cot-gung': 'Cao & Cốt Gừng',
+  'tra-gung': 'Trà Gừng',
+  'nghe-thao-moc': 'Nghệ & Thảo Mộc',
+  'tinh-bot-nghe': 'Tinh Bột Nghệ',
+  'tra-shan-tuyet': 'Trà Shan Tuyết',
+  'mat-ong-duong-phen': 'Mật Ong & Đường Phèn',
+  'mat-ong-rung': 'Mật Ong Rừng',
+  'duong-phen': 'Đường Phèn',
+  'dac-san-nghe-an': 'Đặc Sản Nghệ An',
+  'banh-mut': 'Bánh & Mứt',
+  'hat-nong-san-kho': 'Hạt & Nông Sản Khô',
+  'combo-qua-tang': 'Combo Quà Tặng',
+};
+
 async function getProductsData(searchParams: SearchParams) {
   try {
     const params = new URLSearchParams();
@@ -52,14 +69,14 @@ export async function generateMetadata({
   searchParams: SearchParams;
 }): Promise<Metadata> {
   const categoryName = searchParams.category
-    ? searchParams.category.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    ? CATEGORY_LABELS[searchParams.category] || searchParams.category.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
     : null;
 
   const title = searchParams.search
     ? `Tìm kiếm "${searchParams.search}"`
     : categoryName
       ? `Sản phẩm ${categoryName}`
-      : 'Tất cả nông sản sạch';
+      : 'Tất cả đặc sản Nghệ An';
 
   const query = new URLSearchParams();
   if (searchParams.category) query.set('category', searchParams.category);
@@ -68,7 +85,7 @@ export async function generateMetadata({
 
   return {
     title,
-    description: 'Khám phá rau củ quả hữu cơ, gạo sạch, trái cây đặc sản chuẩn VietGAP – giao lạnh trong 2h.',
+    description: 'Khám phá gừng Kỳ Sơn, tinh bột nghệ, trà Shan Tuyết, mật ong rừng và quà tặng đặc sản Nghệ An.',
     alternates: { canonical },
     openGraph: { title, url: canonical },
   };
@@ -80,6 +97,10 @@ export default async function ProductsPage({
   searchParams: SearchParams;
 }) {
   const { products, meta, categories } = await getProductsData(searchParams);
+  const allCategories = categories.flatMap((cat: any) => [cat, ...(cat.children || [])]);
+  const activeCategory = searchParams.category
+    ? allCategories.find((cat: any) => cat.slug === searchParams.category)
+    : null;
 
   return (
     <div style={{ padding: '40px 0 80px 0' }}>
@@ -87,7 +108,7 @@ export default async function ProductsPage({
         {/* Breadcrumb */}
         <div style={{ fontSize: '0.85rem', color: 'var(--color-gray-mid)', marginBottom: '24px' }}>
           <Link href="/" style={{ color: 'var(--color-brown)' }}>Trang chủ</Link> / <span>Sản phẩm</span>
-          {searchParams.category && <span> / Danh mục: <strong>{searchParams.category}</strong></span>}
+          {searchParams.category && <span> / Danh mục: <strong>{activeCategory?.name || searchParams.category}</strong></span>}
           {searchParams.search && <span> / Từ khóa: <strong>"{searchParams.search}"</strong></span>}
         </div>
 
@@ -104,10 +125,10 @@ export default async function ProductsPage({
         }}>
           <div>
             <h1 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-brown-dark)', margin: 0 }}>
-              {searchParams.search ? `Kết quả tìm kiếm cho "${searchParams.search}"` : 'Tất Cả Nông Sản Sạch'}
+              {searchParams.search ? `Kết quả tìm kiếm cho "${searchParams.search}"` : activeCategory?.name || 'Tất Cả Đặc Sản'}
             </h1>
             <div style={{ fontSize: '0.85rem', color: 'var(--color-gray-mid)', marginTop: '4px' }}>
-              Hiển thị {products.length} sản phẩm tươi ngon
+              Hiển thị {products.length} sản phẩm
             </div>
           </div>
 

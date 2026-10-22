@@ -199,7 +199,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
         {/* Category & Origin */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
           <span className="badge badge-organic">
-            {product.category?.name || 'Nông sản sạch'}
+            {product.category?.name || 'Đặc sản Nghệ An'}
           </span>
           {product.origin && (
             <span style={{ fontSize: '0.85rem', color: 'var(--color-gray-mid)', display: 'flex', alignItems: 'center', gap: '4px' }}>

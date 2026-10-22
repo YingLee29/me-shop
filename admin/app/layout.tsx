@@ -4,8 +4,8 @@ import { AdminAuthProvider } from '../context/AdminAuthContext';
 import AdminLayoutWrapper from '../components/AdminLayoutWrapper';
 
 export const metadata: Metadata = {
-  title: 'Quản Trị Hệ Thống - Nông Sản Việt',
-  description: 'Trang quản trị bán hàng nông sản sạch',
+  title: 'Quản Trị Hệ Thống - MocSon Farm',
+  description: 'Trang quản trị đặc sản Nghệ An',
 };
 
 export default function RootLayout({

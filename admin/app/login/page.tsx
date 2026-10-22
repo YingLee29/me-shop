@@ -6,7 +6,7 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 
 export default function AdminLoginPage() {
   const { login } = useAdminAuth();
-  const [email, setEmail] = useState('admin@nongsan.vn');
+  const [email, setEmail] = useState('admin@mocsonfarm.vn');
   const [password, setPassword] = useState('Admin@123456');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,10 +55,10 @@ export default function AdminLoginPage() {
             fontSize: '1.8rem',
             color: '#FFF',
           }}>
-            🌾
+            🌿
           </div>
           <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--admin-brown-dark)' }}>
-            Nông Sản Việt Admin
+            MocSon Farm Admin
           </h1>
           <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.88rem', marginTop: '6px' }}>
             Hệ thống quản lý bán hàng & kho vận
@@ -163,7 +163,7 @@ export default function AdminLoginPage() {
         }}>
           <ShieldCheck size={20} color="var(--admin-primary-dark)" />
           <div>
-            Tài khoản mẫu: <strong>admin@nongsan.vn</strong> / <strong>Admin@123456</strong>
+            Tài khoản mẫu: <strong>admin@mocsonfarm.vn</strong> / <strong>Admin@123456</strong>
           </div>
         </div>
       </div>

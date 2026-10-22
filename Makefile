@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────
-# 🌾 NôngSản – Makefile
+# 🌿 MocSon Farm – Makefile
 # Dùng: make <command>
 # ─────────────────────────────────────────────────────
 
@@ -16,7 +16,7 @@ export PHP_GID := $(shell id -g)
 
 help: ## Hiển thị danh sách lệnh
 	@echo ""
-	@echo "$(GREEN)🌾 NôngSản – Available Commands$(RESET)"
+	@echo "$(GREEN)🌿 MocSon Farm – Available Commands$(RESET)"
 	@echo "────────────────────────────────────────"
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*##/ { printf "  $(YELLOW)%-18s$(RESET) %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@echo ""
@@ -124,7 +124,7 @@ test-e2e: ## Chạy Playwright E2E (npm install + npx playwright install chromiu
 
 # ── Setup (chạy lần đầu) ─────────────────────────────
 setup: ## Setup toàn bộ dự án lần đầu
-	@echo "$(GREEN)🚀 Setting up NôngSản project...$(RESET)"
+	@echo "$(GREEN)🚀 Setting up MocSon Farm project...$(RESET)"
 	@cp -n .env.example .env 2>/dev/null || true
 	@test -f backend/.env || cp backend/.env.example backend/.env
 	@echo "$(YELLOW)▶ Building Docker images...$(RESET)"

@@ -16,7 +16,7 @@ test.describe('Đăng nhập', () => {
 
   test('quản trị viên đăng nhập bằng form', async ({ page }) => {
     await page.goto(`${ADMIN_URL}/login`, { waitUntil: 'domcontentloaded' });
-    await page.getByLabel(/Email Quản Trị Viên/i).fill('admin@nongsan.vn');
+    await page.getByLabel(/Email Quản Trị Viên/i).fill('admin@mocsonfarm.vn');
     await page.getByLabel(/Mật khẩu/i).fill('Admin@123456');
     await page.getByRole('button', { name: /Đăng Nhập Quản Trị/i }).click();
 

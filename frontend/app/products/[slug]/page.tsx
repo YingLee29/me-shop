@@ -35,7 +35,7 @@ export async function generateMetadata({
   }
 
   const description = stripHtml(product.short_description || product.description).slice(0, 160)
-    || `Mua ${product.name} nông sản sạch chuẩn VietGAP, giao lạnh trong 2h.`;
+    || `Mua ${product.name} – đặc sản Nghệ An từ MocSon Farm, nguồn gốc rõ ràng.`;
   const image = absoluteUrl(product.primary_image?.url);
 
   return {
@@ -205,7 +205,7 @@ export default async function ProductDetailPage({
               color: 'var(--color-gray-dark)',
             }}
             dangerouslySetInnerHTML={{
-              __html: product.description || `<p>${product.short_description || 'Sản phẩm tươi sạch từ nông trại chuẩn VietGAP.'}</p>`,
+              __html: product.description || `<p>${product.short_description || 'Đặc sản Nghệ An được tuyển chọn và chế biến thủ công.'}</p>`,
             }}
           />
 

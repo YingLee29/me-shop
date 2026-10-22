@@ -5,7 +5,7 @@
 @section('content')
     <h2 style="margin:0 0 10px;font-size:20px;">Đơn hàng đã hoàn thành 🌿</h2>
     <p>Xin chào <strong>{{ $order->shipping_name }}</strong>,</p>
-    <p>Đơn hàng <strong>{{ $order->order_code }}</strong> đã giao thành công. Cảm ơn bạn đã tin chọn nông sản sạch!</p>
+    <p>Đơn hàng <strong>{{ $order->order_code }}</strong> đã giao thành công. Cảm ơn bạn đã tin chọn đặc sản Nghệ An!</p>
 
     @include('emails.orders._summary')
 

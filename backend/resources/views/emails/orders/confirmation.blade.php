@@ -13,5 +13,5 @@
     <p style="margin:22px 0;">
         <a href="{{ config('app.url') }}/orders/{{ $order->order_code }}" style="display:inline-block;background:#C8A45A;color:#2C1A0E;font-weight:bold;text-decoration:none;padding:12px 24px;border-radius:999px;">Theo dõi đơn hàng</a>
     </p>
-    <p style="color:#7A6858;font-size:13px;">Cảm ơn bạn đã tin chọn Nông Sản Việt!</p>
+    <p style="color:#7A6858;font-size:13px;">Cảm ơn bạn đã tin chọn MocSon Farm!</p>
 @endsection

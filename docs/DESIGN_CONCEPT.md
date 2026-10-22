@@ -1,5 +1,7 @@
-# 🌾 THIẾT KẾ WEBSITE BÁN NÔNG SẢN SẠCH
+# 🌿 THIẾT KẾ WEBSITE MOCSON FARM – ĐẶC SẢN NGHỆ AN
 > **Ý tưởng & Kiến trúc hệ thống tổng thể**
+>
+> **Lưu ý:** Đây là tài liệu concept ban đầu. Từ 22/10/2026 dự án đã rebrand **MocSon Farm** và cập nhật catalog đặc sản Nghệ An; xem `PROGRESS.md` và `IMPLEMENTATION_PLAN.md` để biết phạm vi hiện tại.
 
 ---
 
@@ -296,7 +298,7 @@ HERO BANNER
           Slide 3: Chương trình đại lý
 
 TRUST BADGES
-          [✓ Nông sản sạch] [✓ Chất lượng VietGAP] [✓ Giao nhanh 2h] [✓ Đổi trả 24h]
+          [✓ Đặc sản Nghệ An] [✓ Nguồn gốc rõ ràng] [✓ Giao toàn quốc] [✓ Đổi trả 24h]
 
 DANH MỤC NỔI BẬT  (6 icon card theo hàng ngang)
           🥬 Rau Củ | 🌾 Đồ Khô | 🌿 Dược Liệu | 🍎 Trái Cây | 🧄 Hạt Giống | 🎁 Quà Tặng
@@ -517,7 +519,7 @@ Grid 3 cột với:
 ```
 ┌────────────────────────────────────────────────────────┐
 │  TOPBAR ADMIN  [bg: #2C1A0E]                           │
-│  🌾 NôngSản Admin  ──────────  🔔  👤 Admin ▾         │
+│  🌿 MocSon Farm Admin  ──────────  🔔  👤 Admin ▾         │
 ├─────────────────┬──────────────────────────────────────┤
 │                 │                                        │
 │  SIDEBAR        │           NỘI DUNG CHÍNH              │
@@ -902,4 +904,4 @@ settings: id, key (unique), value (text), group, created_at
 ---
 
 *📅 Tài liệu tạo ngày: 14/09/2026 | Cập nhật: 20/10/2026 | Version: 1.1.0*
-*🌾 Dự án: Website bán Nông Sản Sạch – Laravel + Next.js*
+*🌿 Dự án: MocSon Farm – Đặc sản Nghệ An | Laravel + Next.js*

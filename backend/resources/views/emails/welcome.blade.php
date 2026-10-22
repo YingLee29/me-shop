@@ -1,13 +1,13 @@
 @extends('emails.layout')
 
-@section('title', 'Chào mừng bạn đến với Nông Sản Việt')
+@section('title', 'Chào mừng bạn đến với MocSon Farm')
 
 @section('content')
     <h2 style="margin:0 0 14px;font-size:20px;color:#2C1A0E;">Xin chào {{ $user->name }} 🌱</h2>
-    <p>Cảm ơn bạn đã đăng ký tài khoản tại <strong>Nông Sản Việt</strong>.</p>
+    <p>Cảm ơn bạn đã đăng ký tài khoản tại <strong>MocSon Farm</strong>.</p>
     <p>Từ hôm nay bạn có thể:</p>
     <ul style="padding-left:20px;margin:12px 0;">
-        <li>Đặt mua nông sản hữu cơ chuẩn VietGAP, giao lạnh trong 2h.</li>
+        <li>Đặt mua gừng Kỳ Sơn, tinh bột nghệ, trà Shan Tuyết và mật ong rừng.</li>
         <li>Lưu sản phẩm yêu thích và theo dõi đơn hàng dễ dàng.</li>
         <li>Tích điểm thưởng mỗi khi mua sắm – đổi điểm thành giảm giá.</li>
     </ul>

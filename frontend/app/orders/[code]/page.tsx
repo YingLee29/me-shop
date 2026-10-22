@@ -80,7 +80,7 @@ export default async function OrderSuccessPage({
             Đặt Hàng Thành Công!
           </h1>
           <p style={{ color: 'var(--color-gray-dark)', fontSize: '0.95rem', marginBottom: '16px' }}>
-            Cảm ơn bạn đã tin dùng nông sản tươi sạch từ Nông Sản Việt. Đơn hàng của bạn đang được nhân viên chuẩn bị.
+            Cảm ơn bạn đã tin chọn đặc sản Nghệ An từ MocSon Farm. Đơn hàng của bạn đang được nhân viên chuẩn bị.
           </p>
 
           <div style={{
@@ -207,7 +207,7 @@ export default async function OrderSuccessPage({
               <div style={{ fontSize: '0.88rem', lineHeight: 1.8, color: 'var(--color-gray-dark)' }}>
                 Ngân hàng: <strong>Vietcombank – CN TP.HCM</strong><br />
                 Số tài khoản: <strong>0071001234567</strong><br />
-                Chủ tài khoản: <strong>CÔNG TY NÔNG SẢN VIỆT</strong><br />
+                Chủ tài khoản: <strong>MOCSON FARM</strong><br />
                 Số tiền: <strong style={{ color: 'var(--color-red)' }}>{formatPrice(order.total)}</strong><br />
                 Nội dung: <strong>{order.order_code}</strong>
               </div>
