@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\CouponService;
 use App\Services\LoyaltyService;
+use App\Services\ShippingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,7 @@ class OrderController extends Controller
         $user = auth('sanctum')->user();
 
         $query = Order::where('order_code', $code)
-            ->with(['items.product.primaryImage', 'items.variant', 'statusLogs']);
+            ->with(['items.product.primaryImage', 'items.variant', 'statusLogs', 'shipmentEvents']);
 
         if ($user && !$user->hasRole(['admin', 'super-admin'])) {
             $query->where('user_id', $user->id);
@@ -69,6 +70,9 @@ class OrderController extends Controller
             'shipping_name'      => ['required', 'string', 'max:255'],
             'shipping_phone'     => ['required', 'string', 'max:20'],
             'shipping_address'   => ['required', 'string', 'max:500'],
+            'shipping_province'  => ['nullable', 'string', 'max:120'],
+            'shipping_district'  => ['nullable', 'string', 'max:120'],
+            'shipping_ward'      => ['nullable', 'string', 'max:120'],
             'payment_method'     => ['required', 'in:cod,bank_transfer,momo,vnpay'],
             'note'               => ['nullable', 'string', 'max:1000'],
             'coupon_code'        => ['nullable', 'string'],
@@ -141,13 +145,23 @@ class OrderController extends Controller
 
         $order = DB::transaction(function () use ($data, $orderItemsData, $userId, $user) {
             $subtotal = (float) $orderItemsData->sum(fn($i) => $i->price * $i->quantity);
+            $weightGram = (int) $orderItemsData->sum(fn($i) => $i->quantity * 500);
+
+            // Phí vận chuyển do server tính theo địa chỉ nhận hàng.
+            $shippingQuote = app(ShippingService::class)->quote(
+                $data['shipping_province'] ?? null,
+                $data['shipping_district'] ?? null,
+                $subtotal,
+                $weightGram,
+            );
 
             // Tính phí ship + mã giảm giá (server là nguồn tính tiền duy nhất)
             $pricing = app(CouponService::class)->resolve(
                 $data['coupon_code'] ?? null,
                 $subtotal,
                 $user,
-                true
+                true,
+                (float) $shippingQuote['fee'],
             );
 
             $coupon          = $pricing['coupon'];
@@ -179,6 +193,9 @@ class OrderController extends Controller
                 'shipping_name'    => $data['shipping_name'],
                 'shipping_phone'   => $data['shipping_phone'],
                 'shipping_address' => $data['shipping_address'],
+                'shipping_province'=> $data['shipping_province'] ?? null,
+                'shipping_district'=> $data['shipping_district'] ?? null,
+                'shipping_ward'    => $data['shipping_ward'] ?? null,
                 'note'             => $data['note'] ?? null,
             ]);
 
@@ -318,6 +335,14 @@ class OrderController extends Controller
             'shipping_name'    => $order->shipping_name,
             'shipping_phone'   => $order->shipping_phone,
             'shipping_address' => $order->shipping_address,
+            'shipping_province'=> $order->shipping_province,
+            'shipping_district'=> $order->shipping_district,
+            'shipping_ward'    => $order->shipping_ward,
+            'shipping_provider'=> $order->shipping_provider,
+            'tracking_code'    => $order->tracking_code,
+            'shipping_status'  => $order->shipping_status,
+            'shipping_status_label' => app(ShippingService::class)->statusLabel($order->shipping_status),
+            'shipping_estimated_at' => $order->shipping_estimated_at?->toDateTimeString(),
             'note'             => $order->note,
             'created_at'       => $order->created_at?->toDateTimeString(),
             'items'            => $order->items->map(fn($i) => [
@@ -336,6 +361,13 @@ class OrderController extends Controller
                 'status'     => $l->status,
                 'note'       => $l->note,
                 'created_at' => $l->created_at?->toDateTimeString(),
+            ]);
+
+            $result['tracking_events'] = $order->shipmentEvents->map(fn($e) => [
+                'id'          => $e->id,
+                'status'      => $e->status,
+                'description' => $e->description,
+                'occurred_at' => $e->occurred_at?->toDateTimeString(),
             ]);
         }
 

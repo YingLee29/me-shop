@@ -16,6 +16,9 @@ export default function CheckoutPage() {
   const [formData, setFormData] = useState({
     shipping_name: '',
     shipping_phone: '',
+    shipping_province: '',
+    shipping_district: '',
+    shipping_ward: '',
     shipping_address: '',
     payment_method: 'cod',
     note: '',
@@ -25,6 +28,20 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [availablePoints, setAvailablePoints] = useState(0);
   const [pointsUsed, setPointsUsed] = useState(0);
+  const [shippingQuote, setShippingQuote] = useState<{
+    fee: number;
+    original_fee: number;
+    estimated_days: string;
+    provider: string;
+  } | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+
+  const provinces = [
+    'TP. Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ',
+    'Bình Dương', 'Đồng Nai', 'Long An', 'Bà Rịa - Vũng Tàu', 'Quảng Ninh',
+    'Bắc Ninh', 'Thừa Thiên Huế', 'Quảng Nam', 'Khánh Hòa', 'Lâm Đồng',
+    'Thanh Hóa', 'Nghệ An', 'Hà Tĩnh', 'An Giang', 'Đồng Tháp',
+  ];
 
   // Tải số điểm khả dụng
   useEffect(() => {
@@ -51,6 +68,42 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
+  // Báo giá vận chuyển theo địa chỉ (debounce 350ms)
+  useEffect(() => {
+    if (!formData.shipping_province) {
+      setShippingQuote(null);
+      setQuoteLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setQuoteLoading(true);
+      try {
+        const res = await fetchApi('/shipping/quote', {
+          method: 'POST',
+          body: JSON.stringify({
+            province: formData.shipping_province,
+            district: formData.shipping_district,
+            ward: formData.shipping_ward,
+            subtotal: totalAmount,
+          }),
+          signal: controller.signal,
+        });
+        setShippingQuote(res?.data || null);
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') setShippingQuote(null);
+      } finally {
+        setQuoteLoading(false);
+      }
+    }, 350);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [formData.shipping_province, formData.shipping_district, formData.shipping_ward, totalAmount]);
+
   // Giỏ thay đổi → kiểm tra lại mã giảm giá
   useEffect(() => {
     if (coupon) refreshCoupon();
@@ -73,11 +126,12 @@ export default function CheckoutPage() {
     );
   }
 
-  const shippingFee = coupon ? coupon.shipping_fee : (totalAmount >= 300000 ? 0 : 25000);
-  const shippingDiscount = coupon?.shipping_discount || 0;
+  const fallbackShippingFee = totalAmount >= 300000 ? 0 : 25000;
+  const shippingFee = shippingQuote?.fee ?? fallbackShippingFee;
+  const shippingDiscount = coupon?.type === 'freeship' ? shippingFee : 0;
   const payableShipping = Math.max(0, shippingFee - shippingDiscount);
   const discountAmount = coupon?.discount_amount || 0;
-  const baseTotal = coupon ? coupon.total : totalAmount + shippingFee;
+  const baseTotal = Math.max(0, totalAmount + shippingFee - discountAmount - shippingDiscount);
 
   // 1 điểm = 100đ, không vượt quá giá trị đơn
   const maxPoints = Math.min(availablePoints, Math.floor(baseTotal / 100));
@@ -191,10 +245,11 @@ export default function CheckoutPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
+                <label htmlFor="checkout-name" style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
                   Họ và tên người nhận <span style={{ color: 'var(--color-red)' }}>*</span>
                 </label>
                 <input
+                  id="checkout-name"
                   type="text"
                   required
                   placeholder="Ví dụ: Nguyễn Văn A"
@@ -212,10 +267,11 @@ export default function CheckoutPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
+                <label htmlFor="checkout-phone" style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
                   Số điện thoại <span style={{ color: 'var(--color-red)' }}>*</span>
                 </label>
                 <input
+                  id="checkout-phone"
                   type="tel"
                   required
                   placeholder="Ví dụ: 0901234567"
@@ -232,14 +288,86 @@ export default function CheckoutPage() {
                 />
               </div>
 
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
+                <div>
+                  <label htmlFor="checkout-province" style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
+                    Tỉnh / Thành phố <span style={{ color: 'var(--color-red)' }}>*</span>
+                  </label>
+                  <input
+                    id="checkout-province"
+                    type="text"
+                    required
+                    list="checkout-provinces"
+                    placeholder="Chọn tỉnh/thành"
+                    value={formData.shipping_province}
+                    onChange={(e) => setFormData({ ...formData, shipping_province: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1.5px solid var(--color-border)',
+                      outline: 'none',
+                      fontSize: '0.92rem',
+                    }}
+                  />
+                  <datalist id="checkout-provinces">
+                    {provinces.map((province) => <option key={province} value={province} />)}
+                  </datalist>
+                </div>
+
+                <div>
+                  <label htmlFor="checkout-district" style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
+                    Quận / Huyện <span style={{ color: 'var(--color-red)' }}>*</span>
+                  </label>
+                  <input
+                    id="checkout-district"
+                    type="text"
+                    required
+                    placeholder="Ví dụ: Quận 1"
+                    value={formData.shipping_district}
+                    onChange={(e) => setFormData({ ...formData, shipping_district: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1.5px solid var(--color-border)',
+                      outline: 'none',
+                      fontSize: '0.92rem',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="checkout-ward" style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
+                    Phường / Xã
+                  </label>
+                  <input
+                    id="checkout-ward"
+                    type="text"
+                    placeholder="Ví dụ: Phường Bến Nghé"
+                    value={formData.shipping_ward}
+                    onChange={(e) => setFormData({ ...formData, shipping_ward: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1.5px solid var(--color-border)',
+                      outline: 'none',
+                      fontSize: '0.92rem',
+                    }}
+                  />
+                </div>
+              </div>
+
               <div>
-                <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
+                <label htmlFor="checkout-address" style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
                   Địa chỉ giao hàng chi tiết <span style={{ color: 'var(--color-red)' }}>*</span>
                 </label>
                 <input
+                  id="checkout-address"
                   type="text"
                   required
-                  placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành"
+                  placeholder="Số nhà, tên đường, thôn/ấp (nếu có)"
                   value={formData.shipping_address}
                   onChange={(e) => setFormData({ ...formData, shipping_address: e.target.value })}
                   style={{
@@ -254,10 +382,11 @@ export default function CheckoutPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
+                <label htmlFor="checkout-note" style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
                   Ghi chú đơn hàng (Tùy chọn)
                 </label>
                 <textarea
+                  id="checkout-note"
                   rows={3}
                   placeholder="Giao hàng buổi sáng, gọi trước khi đến..."
                   value={formData.note}
@@ -434,8 +563,21 @@ export default function CheckoutPage() {
                 <strong>{formatPrice(totalAmount)}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-gray-dark)' }}>
-                <span>Phí vận chuyển:</span>
-                <span>{payableShipping === 0 ? <strong style={{ color: 'var(--color-green)' }}>Miễn phí</strong> : formatPrice(payableShipping)}</span>
+                <span>
+                  Phí vận chuyển:
+                  {shippingQuote && (
+                    <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--color-gray-mid)', marginTop: '2px' }}>
+                      GHN dự kiến {shippingQuote.estimated_days}
+                    </span>
+                  )}
+                </span>
+                <span>
+                  {quoteLoading
+                    ? 'Đang tính...'
+                    : payableShipping === 0
+                      ? <strong style={{ color: 'var(--color-green)' }}>Miễn phí</strong>
+                      : formatPrice(payableShipping)}
+                </span>
               </div>
 
               {coupon && (
@@ -521,7 +663,7 @@ export default function CheckoutPage() {
             {/* Submit button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (quoteLoading && !!formData.shipping_province)}
               className="btn-primary"
               style={{
                 width: '100%',
@@ -529,7 +671,7 @@ export default function CheckoutPage() {
                 fontSize: '1.05rem',
                 borderRadius: 'var(--radius-md)',
                 marginTop: '24px',
-                opacity: loading ? 0.7 : 1,
+                opacity: loading || quoteLoading ? 0.7 : 1,
               }}
             >
               {loading ? 'Đang Xử Lý Đơn Hàng...' : 'Xác Nhận Đặt Hàng'}

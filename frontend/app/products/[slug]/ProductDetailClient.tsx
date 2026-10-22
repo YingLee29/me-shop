@@ -69,7 +69,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
   return (
     <div className="product-detail" style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))',
       gap: '40px',
     }}>
       {/* ── Left: Image Gallery ── */}
@@ -245,7 +245,8 @@ export default function ProductDetailClient({ product }: { product: any }) {
           marginBottom: '24px',
           display: 'flex',
           alignItems: 'baseline',
-          gap: '16px',
+          flexWrap: 'wrap',
+          gap: '10px 16px',
         }}>
           <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-red)' }}>
             {formatPrice(currentPrice)}

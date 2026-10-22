@@ -78,7 +78,7 @@ export default function Header() {
               <ShieldCheck size={14} /> 100% Hữu cơ & VietGAP
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="topbar-contact" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Phone size={13} /> Hotline: <strong>1900 6868</strong>
             </span>
@@ -214,9 +214,9 @@ export default function Header() {
           </form>
 
           {/* Actions: Auth & Cart */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             {/* User Profile */}
-            <div style={{ position: 'relative' }}>
+            <div className="header-account" style={{ position: 'relative' }}>
               {user ? (
                 <div style={{ position: 'relative' }}>
                   <button
@@ -321,6 +321,7 @@ export default function Header() {
             <Link
               href="/account/wishlist"
               title="Sản phẩm yêu thích"
+              className="header-wishlist"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -352,6 +353,7 @@ export default function Header() {
             {/* Cart Button */}
             <Link
               href="/cart"
+              className="header-cart"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -389,7 +391,7 @@ export default function Header() {
                   </span>
                 )}
               </div>
-              <span>Giỏ hàng</span>
+              <span className="header-cart-label">Giỏ hàng</span>
             </Link>
           </div>
         </div>

@@ -85,11 +85,12 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--admin-brown)', marginBottom: '6px' }}>
+            <label htmlFor="admin-login-email" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--admin-brown)', marginBottom: '6px' }}>
               Email Quản Trị Viên
             </label>
             <div style={{ position: 'relative' }}>
               <input
+                id="admin-login-email"
                 type="email"
                 required
                 value={email}
@@ -108,11 +109,12 @@ export default function AdminLoginPage() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--admin-brown)', marginBottom: '6px' }}>
+            <label htmlFor="admin-login-password" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--admin-brown)', marginBottom: '6px' }}>
               Mật khẩu
             </label>
             <div style={{ position: 'relative' }}>
               <input
+                id="admin-login-password"
                 type="password"
                 required
                 value={password}

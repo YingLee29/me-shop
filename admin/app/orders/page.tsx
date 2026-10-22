@@ -16,6 +16,7 @@ export default function AdminOrdersPage() {
   const [dateTo, setDateTo] = useState<string>('');
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
+  const [shipmentLoading, setShipmentLoading] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [adminNote, setAdminNote] = useState('');
 
@@ -80,6 +81,20 @@ export default function AdminOrdersPage() {
       alert(err.message || 'Cập nhật trạng thái thất bại');
     } finally {
       setStatusUpdateLoading(false);
+    }
+  };
+
+  const handleCreateShipment = async () => {
+    if (!selectedOrder) return;
+    setShipmentLoading(true);
+    try {
+      await fetchAdminApi(`/admin/orders/${selectedOrder.id}/shipment`, { method: 'POST' });
+      await handleViewDetails(selectedOrder.id);
+      await loadOrders();
+    } catch (err: any) {
+      alert(err.message || 'Không tạo được vận đơn');
+    } finally {
+      setShipmentLoading(false);
     }
   };
 
@@ -285,9 +300,77 @@ export default function AdminOrdersPage() {
               <div style={{ marginTop: '8px', fontSize: '0.88rem', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <div><strong>Người nhận:</strong> {selectedOrder.shipping_name} ({selectedOrder.shipping_phone})</div>
                 <div><strong>Địa chỉ:</strong> {selectedOrder.shipping_address}</div>
+                {(selectedOrder.shipping_province || selectedOrder.shipping_district) && (
+                  <div>
+                    <strong>Khu vực:</strong>{' '}
+                    {[selectedOrder.shipping_ward, selectedOrder.shipping_district, selectedOrder.shipping_province].filter(Boolean).join(', ')}
+                  </div>
+                )}
                 {selectedOrder.note && <div><strong>Ghi chú:</strong> {selectedOrder.note}</div>}
               </div>
             </div>
+
+            {/* Shipment tracking */}
+            {(selectedOrder.tracking_code || ['confirmed', 'preparing', 'shipping'].includes(selectedOrder.status)) && (
+              <div style={{ background: '#F3F8FF', border: '1px solid #BBDEFB', borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0D47A1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Truck size={17} /> Vận Chuyển GHN
+                  </div>
+                  <span className="badge" style={{ background: '#E3F2FD', color: '#1565C0' }}>
+                    {selectedOrder.shipping_status_label || selectedOrder.shipping_status || 'Chưa tạo vận đơn'}
+                  </span>
+                </div>
+
+                {selectedOrder.tracking_code ? (
+                  <>
+                    <div style={{ marginTop: '10px', fontSize: '0.86rem', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div><strong>Mã vận đơn:</strong> {selectedOrder.tracking_code}</div>
+                      <div><strong>Nhà vận chuyển:</strong> {selectedOrder.shipping_provider || 'GHN'}</div>
+                      {selectedOrder.shipping_estimated_at && <div><strong>Dự kiến giao:</strong> {selectedOrder.shipping_estimated_at}</div>}
+                    </div>
+
+                    <div style={{ marginTop: '14px', borderTop: '1px solid #BBDEFB', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '9px' }}>
+                      {[...(selectedOrder.tracking_events || [])].reverse().map((event: any, index: number) => (
+                        <div key={event.id || index} style={{ display: 'flex', gap: '9px', fontSize: '0.82rem' }}>
+                          <span style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            background: index === 0 ? '#1976D2' : '#90CAF9',
+                            marginTop: '5px',
+                            flexShrink: 0,
+                          }} />
+                          <div>
+                            <div style={{ fontWeight: 600 }}>{event.description || event.status}</div>
+                            <div style={{ color: 'var(--admin-text-muted)', fontSize: '0.76rem', marginTop: '2px' }}>
+                              {event.occurred_at ? new Date(event.occurred_at.replace(' ', 'T')).toLocaleString('vi-VN') : ''}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {(selectedOrder.tracking_events || []).length === 0 && (
+                        <div style={{ fontSize: '0.82rem', color: 'var(--admin-text-muted)' }}>Chưa có cập nhật vận chuyển.</div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ marginTop: '10px' }}>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--admin-text-muted)', marginBottom: '10px' }}>
+                      Đơn đã xác nhận nhưng chưa có mã vận đơn. Tạo vận đơn để bắt đầu theo dõi giao hàng.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCreateShipment}
+                      disabled={shipmentLoading || !canUpdateStatus}
+                      className="btn-primary btn-sm"
+                    >
+                      {shipmentLoading ? 'Đang tạo vận đơn...' : 'Tạo Vận Đơn GHN'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Items */}
             <div style={{ marginBottom: '20px' }}>

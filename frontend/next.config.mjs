@@ -20,6 +20,14 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/storage/:path*',
+        destination: `${process.env.INTERNAL_STORAGE_URL || 'http://nginx'}/storage/:path*`,
+      },
+    ];
+  },
 };
 
 export default withBundleAnalyzer(nextConfig);

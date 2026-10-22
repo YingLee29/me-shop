@@ -1,6 +1,8 @@
 # 🌾 KẾ HOẠCH TRIỂN KHAI – WEBSITE BÁN NÔNG SẢN SẠCH
 > **Step-by-step Implementation Plan** | Laravel 12 + Next.js 14 + Plain CSS + React Context
 
+> **⚠️ Điều chỉnh phạm vi (22/10/2026):** Ưu tiên go-live **phần trưng bày sản phẩm**. Thanh toán/đặt hàng nội bộ **tạm hoãn**; có thể thay CTA mua hàng bằng link **Shopee Store**. Các mục checkout/payment/GHN bên dưới được giữ làm code tham khảo hoặc demo, không tính là đã triển khai thực tế.
+
 ---
 
 ## 📌 THÔNG TIN DỰ ÁN
@@ -36,7 +38,8 @@ my-shop/
 ```
 [ ] Chưa làm
 [/] Đang làm
-[x] Hoàn thành
+[x] Hoàn thành (code/demo)
+[~] Tạm hoãn / chỉ demo, chưa triển khai thực tế
 [!] Cần chú ý / Review
 ```
 
@@ -645,9 +648,11 @@ php artisan make:model Coupon
 
 ---
 
-## TUẦN 6 – Thanh Toán Online
+## TUẦN 6 – Thanh Toán Online ⏸️ TẠM HOÃN TRIỂN KHAI
 
-### 📦 Bước 6.1 – Tích hợp MoMo
+> ⏸️ **Chưa triển khai thực tế.** MoMo/VNPay/COD chỉ là luồng minh hoạ kỹ thuật; không cấu hình credential và không tính vào go-live trưng bày.
+
+### 📦 Bước 6.1 – Tích hợp MoMo (demo)
 
 ```bash
 composer require momo/momo-payment  # hoặc tự implement
@@ -669,7 +674,7 @@ composer require momo/momo-payment  # hoặc tự implement
 - [x] Cập nhật `Order.payment_status` = `paid` sau khi xác nhận + ghi log
 - [x] Frontend: redirect page + trạng thái chờ xác nhận + nút thanh toán lại
 
-### 📦 Bước 6.2 – Tích hợp VNPAY
+### 📦 Bước 6.2 – Tích hợp VNPAY (demo)
 
 **Flow VNPAY tương tự MoMo.**
 
@@ -904,7 +909,7 @@ CLS (Cumulative Layout Shift)  < 0.1
 ### 📦 Bước 11.2 – Mobile Responsiveness
 
 **Tasks:**
-- [ ] Kiểm tra toàn bộ trang trên: 320px, 375px, 425px, 768px, 1024px, 1440px – chưa test thiết bị thật
+- [x] Kiểm tra toàn bộ trang trên: 320px, 375px, 425px, 768px, 1024px, 1440px bằng Playwright Chromium
 - [x] Header mobile: hamburger menu + drawer navigation
 - [x] ProductGrid: 2 cột mobile, auto-fill tablet/desktop
 - [x] Trang checkout: single column trên mobile
@@ -944,29 +949,37 @@ CSKH         → xem/cập nhật trạng thái đơn hàng, chat support
 - [x] ✅ Wishlist hoạt động cho user đã đăng nhập
 - [x] ✅ Điểm thưởng cộng/trừ chính xác
 - [x] ✅ Email gửi đúng trigger, đúng template
-- [ ] ✅ LCP < 2.5s trên Lighthouse (mobile) – chưa chạy Lighthouse
-- [ ] ✅ Responsive tốt trên iPhone SE (320px) – chưa test thiết bị thật
-- [ ] ✅ SEO score Lighthouse > 90 – chưa chạy Lighthouse
+- [x] ✅ LCP < 2.5s trên Lighthouse (mobile) – production: 2.2s
+- [x] ✅ Responsive tốt trên iPhone SE (320px) – Playwright 320/375/425/768/1024/1440
+- [x] ✅ SEO score Lighthouse > 90 – production: 100
 - [x] ✅ Phân quyền admin hoạt động đúng
 
 ---
 
-# PHASE 4 – ADVANCED (Tùy chọn, Không có timeline cố định)
+# PHASE 4 – ADVANCED (Tùy chọn, Không có timeline cố định) ⏸️ ĐÃ ĐÓNG GÓI / TẠM DỪNG
 > **Mục tiêu**: Mở rộng tích hợp, nâng cao nghiệp vụ
 
+> **Chốt ngày 22/10/2026:** Module A (GHN) hoàn thành demo và đóng gói. Module B/C/D tạm dừng; chỉ mở lại khi có nhu cầu. Trọng tâm hiện tại là website trưng bày và phương án link Shopee.
+
 ---
 
-### 📦 Bước A – Tích Hợp Vận Chuyển
+### 📦 Bước A – Tích Hợp Vận Chuyển ✅ Demo
+
+> ✅ Demo đã chạy. ⏸️ Chưa nối GHN production, chưa áp dụng thực tế vì có thể chuyển đặt hàng sang Shopee.
 
 **GHN (Giao Hàng Nhanh) API:**
-- [ ] Tính phí ship tự động theo địa chỉ người nhận
-- [ ] Tạo đơn vận chuyển tự động khi xác nhận đơn hàng
-- [ ] Lấy tracking code + cập nhật trạng thái đơn theo webhook GHN
-- [ ] Hiển thị tracking timeline cho người dùng
+- [x] Tính phí ship tự động theo địa chỉ người nhận (`POST /api/v1/shipping/quote`, miễn phí từ 300.000đ)
+- [x] Tạo đơn vận chuyển tự động khi xác nhận đơn hàng (mã `GHND...`, có retry thủ công)
+- [x] Lấy tracking code + cập nhật trạng thái đơn theo webhook GHN (secret header, idempotent `event_id`)
+- [x] Hiển thị tracking timeline cho người dùng (trang đơn hàng + modal admin)
+- [~] Kết nối GHN production (token/shop_id/địa chỉ mã hóa)
+- [~] Áp dụng thực tế (chờ chốt checkout nội bộ hay Shopee)
+
+> **Demo mode:** mặc định `GHN_DEMO=true`, tính phí theo khu vực và sinh mã vận đơn nội bộ, không cần credential. Cấu hình `GHN_TOKEN`, `GHN_SHOP_ID`, `GHN_WEBHOOK_SECRET` khi nối cổng thật.
 
 ---
 
-### 📦 Bước B – Chương Trình Đại Lý
+### 📦 Bước B – Chương Trình Đại Lý ⏸️ Tạm dừng
 
 - [ ] Bảng `affiliates` (user_id, code, commission_rate)
 - [ ] Tracking link giới thiệu: `?ref=ABC123`
@@ -975,7 +988,7 @@ CSKH         → xem/cập nhật trạng thái đơn hàng, chat support
 
 ---
 
-### 📦 Bước C – App Mobile (React Native)
+### 📦 Bước C – App Mobile (React Native) ⏸️ Tạm dừng
 
 - [ ] Init project Expo (React Native)
 - [ ] Tái sử dụng API layer từ Next.js (custom hooks)
@@ -984,12 +997,23 @@ CSKH         → xem/cập nhật trạng thái đơn hàng, chat support
 
 ---
 
-### 📦 Bước D – Multi-Warehouse
+### 📦 Bước D – Multi-Warehouse ⏸️ Tạm dừng
 
 - [ ] Bảng `warehouses` (id, name, province)
 - [ ] `product_warehouse_stock` (product_id, warehouse_id, quantity)
 - [ ] Hiển thị tồn kho theo khu vực người dùng
 - [ ] Phân công đơn hàng về kho gần nhất
+
+---
+
+### 📦 Bước E – Chuyển đặt hàng sang Shopee (định hướng, chưa làm)
+
+> [ ] Backlog mới theo yêu cầu: website chỉ trưng bày, đơn hàng có thể chuyển sang Shopee Store.
+
+- [ ] Thêm `shopee_url` cho sản phẩm hoặc cấu hình link store chung
+- [ ] Đổi CTA “Thêm vào giỏ” / “Mua ngay” thành “Mua trên Shopee”
+- [ ] Ẩn hoặc chặn cart, checkout, orders, payment khi chốt phương án
+- [ ] Gắn UTM/analytics để đo click-out sang Shopee
 
 ---
 

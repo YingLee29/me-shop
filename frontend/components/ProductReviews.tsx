@@ -141,7 +141,7 @@ export default function ProductReviews({ slug }: { slug: string }) {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) 2fr', gap: '28px', alignItems: 'center', padding: '20px', background: 'var(--color-cream)', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
+      <div className="review-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) 2fr', gap: '28px', alignItems: 'center', padding: '20px', background: 'var(--color-cream)', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '2.6rem', fontWeight: 900, color: 'var(--color-brown-dark)', lineHeight: 1 }}>
             {Number(summary.avg_rating || 0).toFixed(1)}

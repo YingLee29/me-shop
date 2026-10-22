@@ -69,11 +69,12 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-brown)', marginBottom: '6px' }}>
+              <label htmlFor="customer-login-email" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-brown)', marginBottom: '6px' }}>
                 Địa chỉ Email
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="customer-login-email"
                   type="email"
                   required
                   placeholder="name@example.com"
@@ -93,11 +94,12 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-brown)', marginBottom: '6px' }}>
+              <label htmlFor="customer-login-password" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-brown)', marginBottom: '6px' }}>
                 Mật khẩu
               </label>
               <div style={{ position: 'relative' }}>
                 <input
+                  id="customer-login-password"
                   type="password"
                   required
                   placeholder="••••••••"

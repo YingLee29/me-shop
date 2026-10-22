@@ -1,15 +1,20 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Package, LogOut, User, Store, Zap, Ticket, ShieldCheck, FolderTree, Star, Newspaper, BarChart3, Warehouse } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, LogOut, User, Store, Zap, Ticket, ShieldCheck, FolderTree, Star, Newspaper, BarChart3, Warehouse, Menu, X } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function AdminLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, logout, isLoading } = useAdminAuth();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const can = (permission: string) => user?.permissions?.includes(permission) ?? false;
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
 
   if (pathname === '/login') {
     return <>{children}</>;
@@ -42,8 +47,17 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
+      {mobileNavOpen && (
+        <button
+          type="button"
+          className="admin-overlay"
+          aria-label="Đóng menu quản trị"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
+
       {/* ── Left Sidebar ── */}
-      <aside style={{
+      <aside className={`admin-sidebar${mobileNavOpen ? ' is-open' : ''}`} style={{
         width: '260px',
         background: 'var(--admin-sidebar-bg)',
         color: 'var(--admin-sidebar-text)',
@@ -65,7 +79,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
           }}>
             🌾
           </div>
-          <div>
+          <div className="admin-logo-text">
             <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#FFF' }}>NÔNG SẢN ADMIN</div>
             <div style={{ fontSize: '0.7rem', color: 'var(--admin-primary)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bảng Điều Khiển</div>
           </div>
@@ -95,7 +109,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
                 }}
               >
                 <Icon size={18} color={isActive ? 'var(--admin-primary)' : '#9A8878'} />
-                <span>{item.label}</span>
+                <span className="admin-nav-label">{item.label}</span>
               </Link>
             );
           })}
@@ -118,7 +132,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
               background: 'rgba(255,255,255,0.05)',
             }}
           >
-            <Store size={16} /> Xem Website Cửa Hàng
+            <Store size={16} /> <span className="admin-store-label">Xem Website Cửa Hàng</span>
           </a>
         </div>
 
@@ -134,7 +148,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
             <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(200, 164, 90, 0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <User size={16} color="var(--admin-primary)" />
             </div>
-            <div>
+            <div className="admin-user-info">
               <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#FFF' }}>{user?.name || 'Admin'}</div>
               <div style={{ fontSize: '0.72rem', color: '#9A8878' }}>{user?.roles?.[0] || 'Nhân viên'}</div>
             </div>
@@ -151,21 +165,32 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
       </aside>
 
       {/* ── Main Content Area ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div className="admin-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top bar */}
-        <header style={{
-          height: '64px',
+        <header className="admin-topbar" style={{
+          minHeight: '64px',
           background: '#FFF',
           borderBottom: '1px solid var(--admin-border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 32px',
+          gap: '12px',
         }}>
-          <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--admin-brown)' }}>
+          <button
+            type="button"
+            className="admin-menu-btn"
+            aria-label={mobileNavOpen ? 'Đóng menu' : 'Mở menu'}
+            aria-expanded={mobileNavOpen}
+            onClick={() => setMobileNavOpen((open) => !open)}
+          >
+            {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+
+          <div className="admin-topbar-title" style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--admin-brown)', minWidth: 0 }}>
             Hệ Thống Quản Lý Thương Mại Điện Tử Nông Sản
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="admin-topbar-meta" style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
             <span style={{ fontSize: '0.82rem', color: 'var(--admin-text-muted)' }}>
               Phiên bản <strong>Phase 3 – Wishlist, Loyalty &amp; RBAC</strong>
             </span>
@@ -173,7 +198,7 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
         </header>
 
         {/* Page Content */}
-        <main style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: '32px', minWidth: 0 }}>
           {children}
         </main>
       </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\CouponService;
+use App\Services\ShippingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,12 +23,23 @@ class CouponController extends Controller
         $data = $request->validate([
             'code'     => ['required', 'string', 'max:50'],
             'subtotal' => ['required', 'numeric', 'min:0'],
+            'province' => ['nullable', 'string', 'max:120'],
+            'district' => ['nullable', 'string', 'max:120'],
+            'ward'     => ['nullable', 'string', 'max:120'],
         ]);
+
+        $quote = app(ShippingService::class)->quote(
+            $data['province'] ?? null,
+            $data['district'] ?? null,
+            (float) $data['subtotal'],
+        );
 
         $result = $this->couponService->resolve(
             $data['code'],
             (float) $data['subtotal'],
-            auth('sanctum')->user()
+            auth('sanctum')->user(),
+            false,
+            (float) $quote['fee'],
         );
 
         $coupon = $result['coupon'];

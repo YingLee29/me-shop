@@ -15,6 +15,7 @@ class Order extends Model
         'user_id', 'order_code', 'status', 'payment_method', 'payment_status',
         'shipping_name', 'shipping_phone', 'shipping_email',
         'shipping_province', 'shipping_district', 'shipping_ward', 'shipping_address',
+        'shipping_provider', 'tracking_code', 'shipping_status', 'shipping_estimated_at',
         'subtotal', 'shipping_fee', 'discount_amount', 'points_used', 'points_discount', 'total',
         'coupon_code', 'note', 'admin_note', 'paid_at',
     ];
@@ -27,6 +28,7 @@ class Order extends Model
         'points_discount' => 'decimal:0',
         'total'           => 'decimal:0',
         'paid_at'         => 'datetime',
+        'shipping_estimated_at' => 'datetime',
     ];
 
     const STATUS_PENDING   = 'pending';
@@ -58,6 +60,11 @@ class Order extends Model
     public function paymentTransactions(): HasMany
     {
         return $this->hasMany(PaymentTransaction::class)->orderByDesc('created_at');
+    }
+
+    public function shipmentEvents(): HasMany
+    {
+        return $this->hasMany(ShipmentEvent::class)->orderBy('occurred_at')->orderBy('id');
     }
 
     /** Sinh mã đơn hàng: NS + yyyymmdd + random 4 số */

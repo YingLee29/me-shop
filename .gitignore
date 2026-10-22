@@ -39,3 +39,9 @@ Thumbs.db
 
 # TypeScript incremental build info
 **/tsconfig.tsbuildinfo
+
+# Playwright
+/test-results/
+/playwright-report/
+/e2e/report/
+/e2e/.auth/

@@ -67,6 +67,7 @@ function PendingImageTile({
           type="button"
           onClick={onRemove}
           title="Bỏ ảnh này"
+          aria-label="Bỏ ảnh này"
           style={{
             position: 'absolute',
             top: '-6px',
@@ -631,6 +632,7 @@ export default function AdminProductsPage() {
                             type="button"
                             onClick={() => handleDeleteImage(img.id)}
                             title="Xóa ảnh"
+                            aria-label="Xóa ảnh"
                             style={{
                               position: 'absolute',
                               top: '-6px',

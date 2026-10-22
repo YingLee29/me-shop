@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderStatusLog;
 use App\Services\LoyaltyService;
+use App\Services\ShippingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -56,6 +58,8 @@ class OrderController extends Controller
                 'payment_status'   => $o->payment_status,
                 'total'            => (float) $o->total,
                 'items_count'      => $o->items_count ?? $o->items()->count(),
+                'tracking_code'    => $o->tracking_code,
+                'shipping_status'  => $o->shipping_status,
                 'created_at'       => $o->created_at?->toDateTimeString(),
             ]),
             'meta' => [
@@ -76,8 +80,9 @@ class OrderController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $order = Order::with(['user', 'items.product.primaryImage', 'items.variant', 'statusLogs'])
+        $order = Order::with(['user', 'items.product.primaryImage', 'items.variant', 'statusLogs', 'shipmentEvents'])
             ->findOrFail($id);
+        $shipping = app(ShippingService::class);
 
         return response()->json([
             'data' => [
@@ -95,6 +100,14 @@ class OrderController extends Controller
                 'shipping_name'    => $order->shipping_name,
                 'shipping_phone'   => $order->shipping_phone,
                 'shipping_address' => $order->shipping_address,
+                'shipping_province'=> $order->shipping_province,
+                'shipping_district'=> $order->shipping_district,
+                'shipping_ward'    => $order->shipping_ward,
+                'shipping_provider'=> $order->shipping_provider,
+                'tracking_code'    => $order->tracking_code,
+                'shipping_status'  => $order->shipping_status,
+                'shipping_status_label' => $shipping->statusLabel($order->shipping_status),
+                'shipping_estimated_at' => $order->shipping_estimated_at?->toDateTimeString(),
                 'note'             => $order->note,
                 'created_at'       => $order->created_at?->toDateTimeString(),
                 'customer'         => $order->user ? [
@@ -117,6 +130,12 @@ class OrderController extends Controller
                     'note'       => $l->note,
                     'admin_note' => $l->admin_note,
                     'created_at' => $l->created_at?->toDateTimeString(),
+                ]),
+                'tracking_events' => $order->shipmentEvents->map(fn($e) => [
+                    'id'          => $e->id,
+                    'status'      => $e->status,
+                    'description' => $e->description,
+                    'occurred_at' => $e->occurred_at?->toDateTimeString(),
                 ]),
             ],
         ]);
@@ -181,6 +200,66 @@ class OrderController extends Controller
             }
         });
 
-        return response()->json(['message' => 'Đã cập nhật trạng thái đơn hàng.']);
+        // Tạo vận đơn sau khi đơn đã được xác nhận. Lỗi nhà vận chuyển
+        // không được làm rollback trạng thái đơn hàng.
+        $shipmentError = null;
+        if ($data['status'] === Order::STATUS_CONFIRMED && !$order->fresh()->tracking_code) {
+            try {
+                app(ShippingService::class)->createShipment($order->fresh());
+            } catch (Throwable $e) {
+                report($e);
+                $shipmentError = 'Không tạo được vận đơn: ' . $e->getMessage();
+            }
+        }
+
+        $order->refresh();
+
+        return response()->json([
+            'message' => $shipmentError
+                ? 'Đã cập nhật trạng thái nhưng chưa tạo được vận đơn.'
+                : 'Đã cập nhật trạng thái đơn hàng.',
+            'shipment_error' => $shipmentError,
+            'data' => [
+                'id'            => $order->id,
+                'tracking_code' => $order->tracking_code,
+                'shipping_status' => $order->shipping_status,
+            ],
+        ]);
+    }
+
+    /**
+     * Tạo lại vận đơn cho đơn đã xác nhận (admin).
+     * POST /api/v1/admin/orders/{id}/shipment
+     */
+    public function createShipment(int $id): JsonResponse
+    {
+        $order = Order::findOrFail($id);
+
+        if (!in_array($order->status, [Order::STATUS_CONFIRMED, Order::STATUS_PREPARING, Order::STATUS_SHIPPING], true)) {
+            return response()->json([
+                'message' => 'Chỉ tạo vận đơn cho đơn đã xác nhận/đang chuẩn bị/đang giao.',
+            ], 422);
+        }
+
+        try {
+            $order = app(ShippingService::class)->createShipment($order);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'message' => 'Không tạo được vận đơn: ' . $e->getMessage(),
+            ], 502);
+        }
+
+        return response()->json([
+            'message' => 'Đã tạo vận đơn.',
+            'data' => [
+                'id'            => $order->id,
+                'tracking_code' => $order->tracking_code,
+                'shipping_status' => $order->shipping_status,
+                'shipping_status_label' => app(ShippingService::class)->statusLabel($order->shipping_status),
+                'shipping_estimated_at' => $order->shipping_estimated_at?->toDateTimeString(),
+            ],
+        ]);
     }
 }
