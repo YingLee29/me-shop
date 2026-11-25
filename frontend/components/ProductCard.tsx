@@ -54,7 +54,7 @@ function ProductCard({ product }: { product: Product }) {
   };
 
   return (
-    <div className="card" style={{
+    <div className="card product-card" style={{
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
@@ -135,14 +135,14 @@ function ProductCard({ product }: { product: Product }) {
       </Link>
 
       {/* Content */}
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <div className="product-card-body" style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         {/* Category & Origin */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-primary-dark)', textTransform: 'uppercase' }}>
+          <span className="product-card-category" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-primary-dark)', textTransform: 'uppercase' }}>
             {product.category?.name || 'Đặc sản'}
           </span>
           {product.origin && (
-            <span style={{ fontSize: '0.75rem', color: 'var(--color-gray-mid)', display: 'flex', alignItems: 'center', gap: 3 }}>
+            <span className="product-card-origin" style={{ fontSize: '0.75rem', color: 'var(--color-gray-mid)', display: 'flex', alignItems: 'center', gap: 3 }}>
               <MapPin size={11} /> {product.origin.split(',')[0]}
             </span>
           )}
@@ -190,18 +190,18 @@ function ProductCard({ product }: { product: Product }) {
           paddingTop: 12,
           marginTop: 'auto',
         }}>
-          <div>
-            <div style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-red)' }}>
+          <div className="product-card-price-block">
+            <div className="product-card-price" style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--color-red)' }}>
               {formatPrice(product.current_price)}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {product.sale_price && product.price > product.sale_price && (
-                <span style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)', textDecoration: 'line-through' }}>
+                <span className="product-card-old-price" style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)', textDecoration: 'line-through' }}>
                   {formatPrice(product.price)}
                 </span>
               )}
               {product.unit && (
-                <span style={{ fontSize: '0.72rem', color: 'var(--color-gray-dark)', background: '#F0ECE1', padding: '1px 6px', borderRadius: 4 }}>
+                <span className="product-card-unit" style={{ fontSize: '0.72rem', color: 'var(--color-gray-dark)', background: '#F0ECE1', padding: '1px 6px', borderRadius: 4 }}>
                   /{product.unit}
                 </span>
               )}
@@ -209,6 +209,7 @@ function ProductCard({ product }: { product: Product }) {
           </div>
 
           <button
+            className="product-card-cart"
             onClick={handleAddToCart}
             style={{
               width: 38,

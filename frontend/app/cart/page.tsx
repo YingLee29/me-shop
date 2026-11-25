@@ -220,7 +220,7 @@ export default function CartPage() {
             </div>
 
             {/* Actions bottom */}
-            <div style={{
+            <div className="cart-actions" style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',

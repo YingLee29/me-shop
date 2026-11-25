@@ -221,7 +221,7 @@ export default function ProductDetailClient({ product }: { product: any }) {
         </h1>
 
         {/* Reviews & SKU */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px', fontSize: '0.85rem' }}>
+        <div className="product-meta" style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px', fontSize: '0.85rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <StarRating
               value={Number(product.avg_rating) || 0}

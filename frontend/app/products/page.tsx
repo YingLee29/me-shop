@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 import ProductCard, { Product } from '../../components/ProductCard';
+import MobileFilter from '../../components/MobileFilter';
 import { fetchApi } from '../../lib/api';
 
 export const revalidate = 60;
@@ -133,7 +134,7 @@ export default async function ProductsPage({
           </div>
 
           {/* Sort bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="sort-bar" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--color-gray-dark)', fontWeight: 600 }}>Sắp xếp:</span>
             <div style={{ display: 'flex', gap: '8px' }}>
               <Link
@@ -190,6 +191,7 @@ export default async function ProductsPage({
           alignItems: 'start',
         }}>
           {/* Sidebar Filters */}
+          <MobileFilter>
           <aside className="product-filters" style={{
             background: '#FFF',
             padding: '24px',
@@ -309,6 +311,7 @@ export default async function ProductsPage({
               </form>
             </div>
           </aside>
+          </MobileFilter>
 
           {/* Product Grid */}
           <div>

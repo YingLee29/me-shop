@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { MessageCircle, Phone, X } from 'lucide-react';
 
 const ZALO_URL = process.env.NEXT_PUBLIC_ZALO_URL || 'https://zalo.me/';
@@ -17,6 +18,7 @@ function MessengerIcon({ size = 22 }: { size?: number }) {
 }
 
 export default function ContactWidget() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -39,6 +41,12 @@ export default function ContactWidget() {
       document.removeEventListener('keydown', handleKey);
     };
   }, [open]);
+
+  // Ẩn ở các trang form/thanh toán để không che CTA & input
+  const hiddenOn = ['/login', '/register', '/checkout', '/cart', '/payment', '/orders'];
+  if (hiddenOn.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    return null;
+  }
 
   return (
     <div className={`contact-widget ${open ? 'is-open' : ''}`} ref={rootRef}>

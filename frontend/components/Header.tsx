@@ -61,7 +61,7 @@ export default function Header() {
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100, background: '#FFF' }}>
       {/* ── Top Bar ── */}
-      <div style={{
+      <div className="topbar" style={{
         background: 'linear-gradient(90deg, #A0783A 0%, #C8A45A 50%, #A0783A 100%)',
         color: '#FFF',
         fontSize: '0.8rem',
@@ -71,7 +71,7 @@ export default function Header() {
       }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span className="topbar-promo" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={14} /> <strong>Ưu đãi tháng 10:</strong> Freeship cho đơn hàng từ 300.000đ!
             </span>
             <span className="topbar-secondary" style={{ alignItems: 'center', gap: '4px', opacity: 0.9 }}>
@@ -95,10 +95,10 @@ export default function Header() {
         padding: '14px 0',
         background: '#FAF7F0',
       }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
+        <div className="container header-main" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '24px' }}>
           {/* Logo */}
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
+          <Link href="/" className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="header-logo-icon" style={{
               width: 44,
               height: 44,
               borderRadius: '12px',
@@ -112,11 +112,11 @@ export default function Header() {
             }}>
               🌿
             </div>
-            <div>
-              <div style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--color-brown)', letterSpacing: '-0.5px' }}>
+            <div className="header-brand">
+              <div className="header-brand-name" style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--color-brown)', letterSpacing: '-0.5px' }}>
                 MocSon <span style={{ color: 'var(--color-primary-dark)' }}>Farm</span>
               </div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--color-gray-dark)', letterSpacing: '0.8px', textTransform: 'uppercase', fontWeight: 600 }}>
+              <div className="header-brand-tagline" style={{ fontSize: '0.72rem', color: 'var(--color-gray-dark)', letterSpacing: '0.8px', textTransform: 'uppercase', fontWeight: 600 }}>
                 Đặc Sản Nghệ An
               </div>
             </div>
