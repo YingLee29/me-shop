@@ -4,7 +4,8 @@ import React, { memo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { shouldUnoptimizeImage } from '../lib/image';
-import { ShoppingCart, Check, Star, MapPin, Heart } from 'lucide-react';
+import { ShoppingCart, Check, MapPin, Heart } from 'lucide-react';
+import StarRating from './StarRating';
 import { formatPrice } from '../lib/api';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -166,16 +167,18 @@ function ProductCard({ product }: { product: Product }) {
         </Link>
 
         {/* Rating */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
-          <div style={{ display: 'flex', color: '#F5A623' }}>
-            <Star size={13} fill="#F5A623" />
-          </div>
-          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-dark)' }}>
-            {product.avg_rating || 5.0}
-          </span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-gray-mid)' }}>
-            ({product.review_count || 12})
-          </span>
+        <div style={{ marginBottom: 12, fontSize: '0.78rem' }}>
+          {Number(product.review_count) > 0 ? (
+            <StarRating
+              value={Number(product.avg_rating) || 0}
+              count={Number(product.review_count) || 0}
+              size={13}
+              showValue
+              showCount
+            />
+          ) : (
+            <span style={{ color: 'var(--color-gray-mid)' }}>Chưa có đánh giá</span>
+          )}
         </div>
 
         {/* Price & Action */}

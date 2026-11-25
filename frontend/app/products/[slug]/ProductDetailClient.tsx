@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { shouldUnoptimizeImage } from '../../../lib/image';
-import { ShoppingCart, Zap, Star, MapPin, Check, Plus, Minus, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Zap, MapPin, Check, Plus, Minus, ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
+import StarRating from '../../../components/StarRating';
 import { formatPrice } from '../../../lib/api';
 import { useCart } from '../../../context/CartContext';
 
@@ -221,12 +222,15 @@ export default function ProductDetailClient({ product }: { product: any }) {
 
         {/* Reviews & SKU */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px', fontSize: '0.85rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <div style={{ display: 'flex', color: '#F5A623' }}>
-              <Star size={15} fill="#F5A623" />
-            </div>
-            <strong style={{ color: 'var(--color-dark)' }}>{product.avg_rating || 5.0}</strong>
-            <span style={{ color: 'var(--color-gray-mid)' }}>({product.review_count || 0} đánh giá)</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <StarRating
+              value={Number(product.avg_rating) || 0}
+              count={Number(product.review_count) || 0}
+              size={15}
+              showValue
+              showCount
+            />
+            <span style={{ color: 'var(--color-gray-mid)' }}>đánh giá</span>
           </div>
           {product.sku && (
             <span style={{ color: 'var(--color-gray-mid)' }}>Mã SP: <strong>{product.sku}</strong></span>

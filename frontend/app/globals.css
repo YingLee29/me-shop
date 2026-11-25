@@ -597,3 +597,56 @@ input, textarea, select {
     display: none;
   }
 }
+
+/* ── Star rating (Google-style partial fill) ── */
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.star-rating__stars {
+  position: relative;
+  display: inline-flex;
+  line-height: 0;
+}
+
+.star-rating__row {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+.star-rating__row--fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.star-rating__row-inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  gap: 2px;
+  width: max-content;
+}
+
+.star-rating__stars svg {
+  flex: 0 0 auto;
+}
+
+.star-rating__value {
+  font-weight: 700;
+  color: var(--color-dark);
+}
+
+.star-rating__count {
+  color: var(--color-gray-mid);
+  font-weight: 500;
+}

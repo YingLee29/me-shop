@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { shouldUnoptimizeImage } from '../lib/image';
 import { Star, Upload, CheckCircle2, ChevronDown } from 'lucide-react';
+import StarRating, { formatRating } from './StarRating';
 import { fetchApi } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -144,9 +145,11 @@ export default function ProductReviews({ slug }: { slug: string }) {
       <div className="review-summary-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) 2fr', gap: '28px', alignItems: 'center', padding: '20px', background: 'var(--color-cream)', borderRadius: 'var(--radius-md)', marginBottom: '24px' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '2.6rem', fontWeight: 900, color: 'var(--color-brown-dark)', lineHeight: 1 }}>
-            {Number(summary.avg_rating || 0).toFixed(1)}
+            {formatRating(Number(summary.avg_rating || 0))}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '2px', margin: '8px 0' }}>{stars(Math.round(summary.avg_rating || 0), 18)}</div>
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
+            <StarRating value={Number(summary.avg_rating) || 0} size={20} />
+          </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--color-gray-mid)' }}>{summary.review_count || 0} đánh giá</div>
         </div>
 
