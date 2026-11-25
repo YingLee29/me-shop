@@ -57,6 +57,23 @@ class Product extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class)->latest();
+    }
+
+    public function recalculateRating(): void
+    {
+        $approvedReviews = $this->reviews()->where('is_approved', true);
+        $count = $approvedReviews->count();
+        $avg = $count > 0 ? $approvedReviews->avg('rating') : 5.0;
+
+        $this->update([
+            'avg_rating'   => round($avg, 2),
+            'review_count' => $count,
+        ]);
+    }
+
     // ── Scopes ────────────────────────────────────────────
 
     public function scopeActive($query)

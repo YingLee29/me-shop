@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Package, LogOut, User, Store, Layers } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, LogOut, User, Store, Layers, Zap, Ticket, BarChart3, Boxes, MessageSquare, BookOpen } from 'lucide-react';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function AdminLayoutWrapper({ children }: { children: React.ReactNode }) {
@@ -29,6 +29,12 @@ export default function AdminLayoutWrapper({ children }: { children: React.React
     { label: 'Tổng Quan (Dashboard)', href: '/', icon: LayoutDashboard },
     { label: 'Quản Lý Đơn Hàng', href: '/orders', icon: ShoppingBag },
     { label: 'Quản Lý Sản Phẩm', href: '/products', icon: Package },
+    { label: 'Quản Lý Tồn Kho', href: '/inventory', icon: Boxes },
+    { label: 'Báo Cáo & Thống Kê', href: '/reports', icon: BarChart3 },
+    { label: 'Đợt Flash Sale', href: '/flash-sales', icon: Zap },
+    { label: 'Mã Giảm Giá (Coupon)', href: '/coupons', icon: Ticket },
+    { label: 'Đánh Giá Khách Hàng', href: '/reviews', icon: MessageSquare },
+    { label: 'Tin Tức & Cẩm Nang', href: '/blogs', icon: BookOpen },
   ];
 
   return (

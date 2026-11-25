@@ -1,23 +1,65 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, Search, User, Phone, MapPin, Sparkles, Menu, X, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Search, User, Phone, MapPin, Sparkles, Menu, X, ShieldCheck, Loader2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { formatPrice } from '../lib/api';
 
 export default function Header() {
   const router = useRouter();
   const { itemCount } = useCart();
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Debounced autocomplete search
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.trim().length < 2) {
+      setSuggestions([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/v1/products/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        if (res.ok) {
+          const json = await res.json();
+          setSuggestions(json.data || []);
+        }
+      } catch (err) {
+        console.error('Search error:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setShowSuggestions(false);
       router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
@@ -38,7 +80,7 @@ export default function Header() {
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={14} /> <strong>Ưu đãi tháng 9:</strong> Freeship cho đơn hàng từ 300.000đ!
             </span>
-            <span style={{ display: 'none', md: 'inline-flex', alignItems: 'center', gap: '4px', opacity: 0.9 }}>
+            <span className="hide-mobile-inline" style={{ alignItems: 'center', gap: '4px', opacity: 0.9 }}>
               <ShieldCheck size={14} /> 100% Hữu cơ & VietGAP
             </span>
           </div>
@@ -86,47 +128,141 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Search Box */}
-          <form onSubmit={handleSearch} style={{
-            flex: 1,
-            maxWidth: '560px',
-            position: 'relative',
-            display: 'flex',
-          }}>
-            <input
-              type="text"
-              placeholder="Tìm kiếm rau củ hữu cơ, trái cây sạch, gạo lứt..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px 110px 12px 18px',
-                borderRadius: 'var(--radius-full)',
-                border: '1.5px solid var(--color-border)',
-                background: '#FFF',
-                fontSize: '0.9rem',
-                outline: 'none',
-                transition: 'border-color 0.2s, box-shadow 0.2s',
-              }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--color-primary)'}
-              onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
-            />
-            <button
-              type="submit"
-              className="btn-primary"
-              style={{
+          {/* Search Box with Autocomplete */}
+          <div ref={searchContainerRef} style={{ flex: 1, maxWidth: '560px', position: 'relative' }}>
+            <form onSubmit={handleSearch} style={{ position: 'relative', display: 'flex' }}>
+              <input
+                type="text"
+                placeholder="Tìm kiếm rau củ hữu cơ, trái cây sạch, gạo lứt..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                style={{
+                  width: '100%',
+                  padding: '12px 110px 12px 18px',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1.5px solid var(--color-border)',
+                  background: '#FFF',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  transition: 'border-color 0.2s, box-shadow 0.2s',
+                }}
+              />
+              <button
+                type="submit"
+                className="btn-primary"
+                style={{
+                  position: 'absolute',
+                  right: '4px',
+                  top: '4px',
+                  bottom: '4px',
+                  padding: '0 18px',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '0.85rem',
+                }}
+              >
+                {isSearching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />} Tìm kiếm
+              </button>
+            </form>
+
+            {/* Suggestions Dropdown */}
+            {showSuggestions && searchQuery.trim().length >= 2 && (
+              <div style={{
                 position: 'absolute',
-                right: '4px',
-                top: '4px',
-                bottom: '4px',
-                padding: '0 18px',
-                borderRadius: 'var(--radius-full)',
-                fontSize: '0.85rem',
-              }}
-            >
-              <Search size={16} /> Tìm kiếm
-            </button>
-          </form>
+                top: 'calc(100% + 8px)',
+                left: 0,
+                right: 0,
+                background: '#FFF',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: 'var(--shadow-hover)',
+                border: '1px solid var(--color-border)',
+                zIndex: 200,
+                overflow: 'hidden',
+              }}>
+                {isSearching && (
+                  <div style={{ padding: '16px', textAlign: 'center', fontSize: '0.85rem', color: 'var(--color-gray-mid)' }}>
+                    Đang tìm kiếm nông sản...
+                  </div>
+                )}
+
+                {!isSearching && suggestions.length === 0 && (
+                  <div style={{ padding: '20px', textAlign: 'center', fontSize: '0.88rem', color: 'var(--color-gray-mid)' }}>
+                    Không tìm thấy sản phẩm nào khớp với &quot;{searchQuery}&quot;
+                  </div>
+                )}
+
+                {!isSearching && suggestions.length > 0 && (
+                  <div>
+                    <div style={{ padding: '10px 16px', background: 'var(--color-cream)', fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-brown)', textTransform: 'uppercase' }}>
+                      Gợi ý sản phẩm ({suggestions.length})
+                    </div>
+                    <div style={{ maxHeight: '360px', overflowY: 'auto' }}>
+                      {suggestions.map((item) => (
+                        <Link
+                          key={item.id}
+                          href={`/products/${item.slug}`}
+                          onClick={() => setShowSuggestions(false)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            padding: '10px 16px',
+                            borderBottom: '1px solid var(--color-gray-light)',
+                            transition: 'background 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#FAF7F0'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <img
+                            src={item.primary_image?.url || 'https://placehold.co/80x80/FAF7F0/6B4226?text=NS'}
+                            alt={item.name}
+                            style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover' }}
+                          />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-brown-dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {item.name}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--color-gray-mid)' }}>
+                              {item.category?.name || 'Nông sản'} {item.origin ? `• ${item.origin}` : ''}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-red)' }}>
+                              {formatPrice(item.current_price || item.price)}
+                            </div>
+                            {item.discount_percentage > 0 && (
+                              <span className="badge badge-sale" style={{ fontSize: '0.68rem', padding: '2px 6px' }}>
+                                -{item.discount_percentage}%
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                    <Link
+                      href={`/products?search=${encodeURIComponent(searchQuery)}`}
+                      onClick={() => setShowSuggestions(false)}
+                      style={{
+                        display: 'block',
+                        padding: '12px 16px',
+                        textAlign: 'center',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        color: 'var(--color-primary-dark)',
+                        background: '#FFF',
+                        borderTop: '1px solid var(--color-border)',
+                      }}
+                    >
+                      Xem tất cả kết quả cho &quot;{searchQuery}&quot; →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Actions: Auth & Cart */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -300,6 +436,9 @@ export default function Header() {
             </Link>
             <Link href="/products?category=gao-ngu-coc" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-gray-dark)' }}>
               Gạo & Ngũ Cốc
+            </Link>
+            <Link href="/blog" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-primary-dark)' }}>
+              📰 Cẩm Nang Nông Nghiệp
             </Link>
           </div>
 

@@ -1,15 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ShieldCheck, Truck, CreditCard, Banknote, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Truck, CreditCard, Banknote, ArrowLeft, CheckCircle2, AlertCircle, Sparkles, Smartphone } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { fetchApi, formatPrice } from '../../lib/api';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialCoupon = searchParams.get('coupon') || '';
   const { items, totalAmount, clearCart } = useCart();
   const { user } = useAuth();
 
@@ -20,6 +22,12 @@ export default function CheckoutPage() {
     payment_method: 'cod',
     note: '',
   });
+
+  const [couponCode, setCouponCode] = useState(initialCoupon);
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +43,37 @@ export default function CheckoutPage() {
       }));
     }
   }, [user]);
+
+  // Validate coupon
+  const validateCoupon = async (code: string) => {
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const res = await fetchApi('/coupons/validate', {
+        method: 'POST',
+        body: JSON.stringify({ code, subtotal: totalAmount }),
+      });
+      if (res?.valid) {
+        setAppliedCoupon(res.coupon);
+        setDiscountAmount(res.discount_amount || 0);
+      } else {
+        setCouponError(res?.message || 'Mã giảm giá không hợp lệ');
+        setAppliedCoupon(null);
+        setDiscountAmount(0);
+      }
+    } catch (e: any) {
+      setCouponError('Không thể kiểm tra mã giảm giá');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (initialCoupon) {
+      validateCoupon(initialCoupon);
+    }
+  }, [initialCoupon, totalAmount]);
 
   if (items.length === 0) {
     return (
@@ -53,7 +92,7 @@ export default function CheckoutPage() {
   }
 
   const shippingFee = totalAmount >= 300000 ? 0 : 25000;
-  const finalTotal = totalAmount + shippingFee;
+  const finalTotal = Math.max(0, totalAmount - discountAmount + shippingFee);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,17 +100,47 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // Create order via backend API
+      const payload = {
+        ...formData,
+        coupon_code: appliedCoupon ? appliedCoupon.code : (couponCode.trim() || undefined),
+        items: items.map((i) => ({
+          product_id: i.product_id,
+          variant_id: i.variant_id,
+          quantity: i.quantity,
+        })),
+      };
+
       const res = await fetchApi('/orders', {
         method: 'POST',
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (res?.data?.order_code) {
-        // Clear local cart
+        const orderCode = res.data.order_code;
         await clearCart();
-        // Redirect to success / tracking page
-        router.push(`/orders/${res.data.order_code}`);
+
+        // Redirect to Online Payment Gateways if chosen
+        if (formData.payment_method === 'momo') {
+          const payRes = await fetchApi('/payment/momo/create', {
+            method: 'POST',
+            body: JSON.stringify({ order_code: orderCode }),
+          });
+          if (payRes?.pay_url) {
+            window.location.href = payRes.pay_url;
+            return;
+          }
+        } else if (formData.payment_method === 'vnpay') {
+          const payRes = await fetchApi('/payment/vnpay/create', {
+            method: 'POST',
+            body: JSON.stringify({ order_code: orderCode }),
+          });
+          if (payRes?.pay_url) {
+            window.location.href = payRes.pay_url;
+            return;
+          }
+        }
+
+        router.push(`/orders/${orderCode}`);
       } else {
         throw new Error(res?.message || 'Không thể tạo đơn hàng, vui lòng thử lại.');
       }
@@ -132,15 +201,15 @@ export default function CheckoutPage() {
               Thông Tin Nhận Hàng
             </h2>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
-                  Họ và tên người nhận <span style={{ color: 'var(--color-red)' }}>*</span>
+                  Họ và tên người nhận *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Ví dụ: Nguyễn Văn A"
+                  placeholder="Nguyễn Văn A"
                   value={formData.shipping_name}
                   onChange={(e) => setFormData({ ...formData, shipping_name: e.target.value })}
                   style={{
@@ -156,12 +225,12 @@ export default function CheckoutPage() {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
-                  Số điện thoại <span style={{ color: 'var(--color-red)' }}>*</span>
+                  Số điện thoại nhận hàng *
                 </label>
                 <input
                   type="tel"
                   required
-                  placeholder="Ví dụ: 0901234567"
+                  placeholder="0912 345 678"
                   value={formData.shipping_phone}
                   onChange={(e) => setFormData({ ...formData, shipping_phone: e.target.value })}
                   style={{
@@ -177,12 +246,12 @@ export default function CheckoutPage() {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-brown-dark)', marginBottom: '6px' }}>
-                  Địa chỉ giao hàng chi tiết <span style={{ color: 'var(--color-red)' }}>*</span>
+                  Địa chỉ giao hàng chi tiết *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành"
+                  placeholder="Số nhà, ngõ, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
                   value={formData.shipping_address}
                   onChange={(e) => setFormData({ ...formData, shipping_address: e.target.value })}
                   style={{
@@ -224,6 +293,7 @@ export default function CheckoutPage() {
                 </label>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* COD */}
                   <label style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -252,6 +322,67 @@ export default function CheckoutPage() {
                     </div>
                   </label>
 
+                  {/* MoMo */}
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '14px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: formData.payment_method === 'momo' ? '2px solid #A50064' : '1px solid var(--color-border)',
+                    background: formData.payment_method === 'momo' ? '#FDF2F7' : '#FFF',
+                    cursor: 'pointer',
+                  }}>
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      value="momo"
+                      checked={formData.payment_method === 'momo'}
+                      onChange={() => setFormData({ ...formData, payment_method: 'momo' })}
+                    />
+                    <div style={{ width: 24, height: 24, borderRadius: 6, background: '#A50064', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.7rem' }}>
+                      M
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#A50064' }}>
+                        Ví Điện Tử MoMo (Sandbox)
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
+                        Quét mã QR qua ứng dụng MoMo siêu tốc & bảo mật.
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* VNPAY */}
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '14px',
+                    borderRadius: 'var(--radius-sm)',
+                    border: formData.payment_method === 'vnpay' ? '2px solid #0066CC' : '1px solid var(--color-border)',
+                    background: formData.payment_method === 'vnpay' ? '#F0F7FF' : '#FFF',
+                    cursor: 'pointer',
+                  }}>
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      value="vnpay"
+                      checked={formData.payment_method === 'vnpay'}
+                      onChange={() => setFormData({ ...formData, payment_method: 'vnpay' })}
+                    />
+                    <CreditCard size={20} color="#0066CC" />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0066CC' }}>
+                        VNPAY (Thẻ ATM / QR Ngân Hàng Sandbox)
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
+                        Hỗ trợ 40+ ngân hàng Việt Nam, thẻ quốc tế Visa/Master.
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Bank Transfer */}
                   <label style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -272,10 +403,10 @@ export default function CheckoutPage() {
                     <CreditCard size={20} color="var(--color-primary-dark)" />
                     <div>
                       <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--color-brown-dark)' }}>
-                        Chuyển khoản Ngân Hàng (QR Code)
+                        Chuyển khoản Ngân Hàng Trực Tiếp
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--color-gray-mid)' }}>
-                        Quét mã VietQR chuyển khoản nhanh 24/7.
+                        Chuyển khoản theo thông tin tài khoản hiển thị sau khi đặt hàng.
                       </div>
                     </div>
                   </label>
@@ -314,45 +445,104 @@ export default function CheckoutPage() {
               ))}
             </div>
 
+            {/* Coupon Code Section */}
+            <div style={{ borderTop: '1px solid var(--color-gray-light)', paddingTop: '16px', marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-brown)', marginBottom: '6px' }}>
+                Mã Giảm Giá / Khuyến Mãi
+              </label>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <input
+                  type="text"
+                  placeholder="Nhập mã coupon..."
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--color-border)',
+                    fontSize: '0.85rem',
+                    outline: 'none',
+                    textTransform: 'uppercase',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => validateCoupon(couponCode)}
+                  disabled={couponLoading || !couponCode.trim()}
+                  className="btn-primary"
+                  style={{ padding: '8px 14px', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
+                >
+                  {couponLoading ? '...' : 'Áp Dụng'}
+                </button>
+              </div>
+
+              {couponError && (
+                <div style={{ color: 'var(--color-red)', fontSize: '0.78rem', marginTop: '6px' }}>
+                  {couponError}
+                </div>
+              )}
+
+              {appliedCoupon && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#E8F5E9', padding: '6px 10px', borderRadius: '6px', marginTop: '8px', fontSize: '0.82rem', color: '#2E7D32' }}>
+                  <span>Đã dùng mã: <strong>{appliedCoupon.code}</strong></span>
+                  <button
+                    type="button"
+                    onClick={() => { setAppliedCoupon(null); setDiscountAmount(0); setCouponCode(''); }}
+                    style={{ color: '#D32F2F', fontWeight: 700, fontSize: '0.75rem', background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    Gỡ bỏ
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Calculations */}
-            <div style={{ borderTop: '1px solid var(--color-gray-light)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.92rem' }}>
+            <div style={{ borderTop: '1px solid var(--color-gray-light)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.92rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-gray-dark)' }}>
                 <span>Tạm tính:</span>
-                <strong>{formatPrice(totalAmount)}</strong>
+                <span>{formatPrice(totalAmount)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-gray-dark)' }}>
                 <span>Phí vận chuyển:</span>
                 <span>{shippingFee === 0 ? <strong style={{ color: 'var(--color-green)' }}>Miễn phí</strong> : formatPrice(shippingFee)}</span>
               </div>
-              <div style={{
-                borderTop: '2px dashed var(--color-border)',
-                paddingTop: '16px',
-                marginTop: '4px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-              }}>
-                <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-brown-dark)' }}>Tổng thanh toán:</span>
-                <span style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-red)' }}>{formatPrice(finalTotal)}</span>
+              {discountAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-green)' }}>
+                  <span>Giảm giá khuyến mãi:</span>
+                  <strong>-{formatPrice(discountAmount)}</strong>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 800, color: 'var(--color-brown-dark)', borderTop: '1px solid var(--color-gray-light)', paddingTop: '14px', marginTop: '6px' }}>
+                <span>Tổng cộng:</span>
+                <span style={{ color: 'var(--color-red)' }}>{formatPrice(finalTotal)}</span>
               </div>
             </div>
 
-            {/* Submit button */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
               className="btn-primary"
               style={{
                 width: '100%',
+                marginTop: '24px',
                 padding: '16px',
                 fontSize: '1.05rem',
-                borderRadius: 'var(--radius-md)',
-                marginTop: '24px',
-                opacity: loading ? 0.7 : 1,
+                fontWeight: 800,
+                letterSpacing: '0.5px',
+                justifyContent: 'center',
+                boxShadow: 'var(--shadow-md)',
               }}
             >
-              {loading ? 'Đang Xử Lý Đơn Hàng...' : 'Xác Nhận Đặt Hàng COD'}
+              {loading ? 'Đang Xử Lý Đơn Hàng...' : formData.payment_method === 'cod' ? 'Xác Nhận Đặt Hàng (COD)' : `Tiến Hành Thanh Toán (${formData.payment_method.toUpperCase()})`}
             </button>
+
+            {/* Trust badge */}
+            <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--color-gray-mid)' }}>
+              <ShieldCheck size={16} color="var(--color-green)" />
+              <span>Cam kết giao hàng đúng hẹn & bảo mật thông tin</span>
+            </div>
           </div>
         </form>
       </div>

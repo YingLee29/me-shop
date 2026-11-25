@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# ─────────────────────────────────────────────────────
+# Wrapper Capistrano: ./bin/deploy [task]
+# Mặc định: deploy:all
+# Ví dụ:
+#   ./bin/deploy
+#   ./bin/deploy deploy:sync
+#   SERVICE=php ./bin/deploy deploy:logs
+# ─────────────────────────────────────────────────────
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+export ASDF_RUBY_VERSION="${ASDF_RUBY_VERSION:-3.1.3}"
+
+TASK="${1:-deploy:all}"
+shift || true
+
+exec cap production "$TASK" "$@"

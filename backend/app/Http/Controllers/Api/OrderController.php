@@ -118,9 +118,22 @@ class OrderController extends Controller
 
         $order = DB::transaction(function () use ($data, $orderItemsData, $userId) {
             $subtotal  = $orderItemsData->sum(fn($i) => $i->price * $i->quantity);
-            $discount  = 0;
             $shipping  = $subtotal >= 300000 ? 0 : 25000;
-            $total     = $subtotal - $discount + $shipping;
+            $discount  = 0;
+            $appliedCoupon = null;
+
+            if (!empty($data['coupon_code'])) {
+                $coupon = \App\Models\Coupon::where('code', strtoupper(trim($data['coupon_code'])))->first();
+                if ($coupon) {
+                    $check = $coupon->isValidFor($subtotal);
+                    if ($check['valid']) {
+                        $discount = $coupon->calculateDiscount($subtotal, $shipping);
+                        $appliedCoupon = $coupon;
+                    }
+                }
+            }
+
+            $total = max(0, $subtotal - $discount + $shipping);
 
             $order = Order::create([
                 'user_id'          => $userId,
@@ -135,8 +148,19 @@ class OrderController extends Controller
                 'shipping_name'    => $data['shipping_name'],
                 'shipping_phone'   => $data['shipping_phone'],
                 'shipping_address' => $data['shipping_address'],
+                'coupon_code'      => $appliedCoupon?->code,
                 'note'             => $data['note'] ?? null,
             ]);
+
+            if ($appliedCoupon && $discount > 0) {
+                \App\Models\CouponUsage::create([
+                    'coupon_id'       => $appliedCoupon->id,
+                    'user_id'         => $userId,
+                    'order_id'        => $order->id,
+                    'discount_amount' => $discount,
+                ]);
+                $appliedCoupon->increment('used_count');
+            }
 
             // Tạo order items + trừ tồn kho
             foreach ($orderItemsData as $item) {

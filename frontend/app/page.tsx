@@ -4,31 +4,35 @@ import { Sparkles, ArrowRight, ShieldCheck, Truck, Clock, Leaf } from 'lucide-re
 import ProductCard, { Product } from '../components/ProductCard';
 import { fetchApi } from '../lib/api';
 
+import CountdownTimer from '../components/CountdownTimer';
+
 async function getHomePageData() {
   try {
     const [categoriesRes, featuredRes, flashSaleRes] = await Promise.all([
       fetchApi('/categories'),
       fetchApi('/products/featured'),
-      fetchApi('/products/flash-sale'),
+      fetchApi('/flash-sales/current'),
     ]);
 
     return {
       categories: categoriesRes?.data || [],
       featuredProducts: featuredRes?.data || [],
-      flashSaleProducts: flashSaleRes?.data || [],
+      currentFlashSale: flashSaleRes?.data || null,
+      flashSaleProducts: flashSaleRes?.data?.products || [],
     };
   } catch (err) {
     console.error('Error fetching homepage data:', err);
     return {
       categories: [],
       featuredProducts: [],
+      currentFlashSale: null,
       flashSaleProducts: [],
     };
   }
 }
 
 export default async function HomePage() {
-  const { categories, featuredProducts, flashSaleProducts } = await getHomePageData();
+  const { categories, featuredProducts, currentFlashSale, flashSaleProducts } = await getHomePageData();
 
   return (
     <div>
@@ -246,11 +250,14 @@ export default async function HomePage() {
                   ⚡ GIỜ VÀNG GIÁ SỐC
                 </span>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-brown-dark)', margin: 0 }}>
-                  Flash Sale Hôm Nay
+                  {currentFlashSale?.name || 'Flash Sale Hôm Nay'}
                 </h2>
               </div>
-              <div style={{ fontSize: '0.9rem', color: 'var(--color-brown)', fontWeight: 600 }}>
-                Số lượng có hạn trong ngày!
+              <div>
+                <CountdownTimer
+                  endAt={currentFlashSale?.end_at}
+                  initialSeconds={currentFlashSale?.remaining_seconds}
+                />
               </div>
             </div>
 

@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   description: 'Chuyên cung cấp nông sản sạch, rau củ quả VietGAP, gạo sạch, trái cây đặc sản nguồn gốc rõ ràng, giao hàng nhanh trong 2h.',
 };
 
+// Dữ liệu sản phẩm/đơn hàng luôn thay đổi → render động, không prerender lúc build
+// (build không có API/DB nên tránh fetch lúc build)
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
   children,
 }: {

@@ -1,0 +1,191 @@
+name: mocson-product
+
+# ─────────────────────────────────────────────────────
+# 🌿 Mộc Sơn – Production stack (1 EC2, t4g.micro 1GB + 2GB swap)
+# Chạy: docker compose --env-file .env.production -f docker-compose.prod.yml up -d
+# ─────────────────────────────────────────────────────
+
+networks:
+  mocson_net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  backend_storage:
+
+services:
+
+  # ── Nginx: entrypoint duy nhất (80) ──
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: mocson_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/prod:/etc/nginx/conf.d:ro
+      - backend_storage:/var/www/backend/storage:ro
+    depends_on:
+      php:
+        condition: service_started
+      frontend:
+        condition: service_started
+      admin:
+        condition: service_started
+    mem_limit: 64m
+    networks:
+      - mocson_net
+
+  # ── Laravel PHP-FPM ──
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.prod
+    image: mocson-product/php:latest
+    container_name: mocson_php
+    restart: unless-stopped
+    env_file: ./.env.production
+    volumes:
+      - ./.env.production:/var/www/backend/.env:ro
+      - backend_storage:/var/www/backend/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    mem_limit: 256m
+    networks:
+      - mocson_net
+
+  # ── Queue worker ──
+  queue:
+    image: mocson-product/php:latest
+    container_name: mocson_queue
+    restart: unless-stopped
+    env_file: ./.env.production
+    environment:
+      - SKIP_ARTISAN_BOOTSTRAP=1
+    volumes:
+      - ./.env.production:/var/www/backend/.env:ro
+      - backend_storage:/var/www/backend/storage
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    depends_on:
+      php:
+        condition: service_started
+      redis:
+        condition: service_started
+    mem_limit: 160m
+    networks:
+      - mocson_net
+
+  # ── Scheduler ──
+  scheduler:
+    image: mocson-product/php:latest
+    container_name: mocson_scheduler
+    restart: unless-stopped
+    env_file: ./.env.production
+    environment:
+      - SKIP_ARTISAN_BOOTSTRAP=1
+    volumes:
+      - ./.env.production:/var/www/backend/.env:ro
+      - backend_storage:/var/www/backend/storage
+    command: php artisan schedule:work
+    depends_on:
+      php:
+        condition: service_started
+    mem_limit: 96m
+    networks:
+      - mocson_net
+
+  # ── MySQL 8 (tuned cho 1GB RAM) ──
+  mysql:
+    image: mysql:8.0
+    container_name: mocson_mysql
+    restart: unless-stopped
+    command:
+      - --innodb-buffer-pool-size=128M
+      - --performance-schema=OFF
+      - --max-connections=50
+      - --innodb-log-file-size=64M
+      - --table-open-cache=200
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    mem_limit: 512m
+    networks:
+      - mocson_net
+
+  # ── Redis ──
+  redis:
+    image: redis:7-alpine
+    container_name: mocson_redis
+    restart: unless-stopped
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: redis-server --appendonly yes --maxmemory 96mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $$REDIS_PASSWORD ping | grep -q PONG"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    mem_limit: 128m
+    networks:
+      - mocson_net
+
+  # ── Frontend Next.js ──
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/node/Dockerfile.frontend.prod
+      args:
+        NEXT_PUBLIC_API_URL: /api/v1
+    image: mocson-product/frontend:latest
+    container_name: mocson_frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - INTERNAL_API_URL=http://nginx/api/v1
+      - NEXT_PUBLIC_API_URL=/api/v1
+    depends_on:
+      php:
+        condition: service_started
+    mem_limit: 256m
+    networks:
+      - mocson_net
+
+  # ── Admin Next.js ──
+  admin:
+    build:
+      context: .
+      dockerfile: docker/node/Dockerfile.admin.prod
+      args:
+        NEXT_PUBLIC_API_URL: /api/v1
+    image: mocson-product/admin:latest
+    container_name: mocson_admin
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - INTERNAL_API_URL=http://nginx/api/v1
+      - NEXT_PUBLIC_API_URL=/api/v1
+    depends_on:
+      php:
+        condition: service_started
+    mem_limit: 224m
+    networks:
+      - mocson_net

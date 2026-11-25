@@ -107,29 +107,32 @@ class ProductController extends Controller
         return response()->json(['data' => ProductResource::collection($products)]);
     }
 
+
     /**
-     * Tìm kiếm sản phẩm
-     * GET /api/v1/products/search?q=
+     * Tìm kiếm sản phẩm autocomplete
+     * GET /api/v1/products/search?q=...
      */
     public function search(Request $request): JsonResponse
     {
-        $q = $request->get('q', '');
-
-        if (strlen($q) < 2) {
+        $keyword = trim($request->input('q', ''));
+        if (mb_strlen($keyword) < 1) {
             return response()->json(['data' => []]);
         }
 
-        $products = Product::with(['primaryImage'])
+        $products = Product::with(['primaryImage', 'category'])
             ->active()
-            ->where(function ($query) use ($q) {
-                $query->where('name', 'LIKE', "%{$q}%")
-                    ->orWhere('sku', 'LIKE', "%{$q}%")
-                    ->orWhere('short_description', 'LIKE', "%{$q}%");
+            ->where(function ($q) use ($keyword) {
+                $q->where('name', 'like', "%{$keyword}%")
+                  ->orWhere('sku', 'like', "%{$keyword}%")
+                  ->orWhere('origin', 'like', "%{$keyword}%")
+                  ->orWhere('short_description', 'like', "%{$keyword}%");
             })
-            ->take(10)
+            ->take(8)
             ->get();
 
-        return response()->json(['data' => ProductResource::collection($products)]);
+        return response()->json([
+            'data' => ProductResource::collection($products),
+        ]);
     }
 
     // ── Helpers ───────────────────────────────────────────

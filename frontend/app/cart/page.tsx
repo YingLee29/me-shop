@@ -1,13 +1,55 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Trash2, Plus, Minus, ArrowRight, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
-import { formatPrice } from '../../lib/api';
+import { formatPrice, fetchApi } from '../../lib/api';
 
 export default function CartPage() {
   const { items, totalAmount, updateQuantity, removeFromCart, clearCart } = useCart();
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+
+  const shippingFee = totalAmount >= 300000 ? 0 : 25000;
+  const finalTotal = totalAmount + shippingFee;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const res = await fetchApi('/coupons/validate', {
+        method: 'POST',
+        body: JSON.stringify({
+          code: couponCode.trim(),
+          subtotal: totalAmount,
+          shipping_fee: shippingFee,
+        }),
+      });
+
+      if (res.valid) {
+        setAppliedCoupon(res.coupon);
+        setDiscountAmount(res.discount_amount);
+      } else {
+        setCouponError(res.message || 'Mã giảm giá không hợp lệ.');
+      }
+    } catch (err: any) {
+      setCouponError(err.message || 'Không thể kiểm tra mã giảm giá.');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountAmount(0);
+    setCouponCode('');
+    setCouponError(null);
+  };
 
   if (items.length === 0) {
     return (
@@ -40,8 +82,6 @@ export default function CartPage() {
     );
   }
 
-  const shippingFee = totalAmount >= 300000 ? 0 : 25000;
-  const finalTotal = totalAmount + shippingFee;
 
   return (
     <div style={{ padding: '40px 0 80px 0' }}>
@@ -216,7 +256,60 @@ export default function CartPage() {
                 <span>{shippingFee === 0 ? <strong style={{ color: 'var(--color-green)' }}>Miễn phí</strong> : formatPrice(shippingFee)}</span>
               </div>
 
-              {shippingFee > 0 && (
+              {/* Coupon input */}
+              <div style={{ borderTop: '1px solid var(--color-gray-light)', paddingTop: '12px' }}>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--color-brown)', marginBottom: '6px' }}>
+                  Mã Khuyến Mãi / Giảm Giá
+                </label>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <input
+                    type="text"
+                    placeholder="Nhập mã (vd: CHAOBANMOI)..."
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '8px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--color-border)',
+                      fontSize: '0.85rem',
+                      outline: 'none',
+                      textTransform: 'uppercase',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={couponLoading || !couponCode.trim()}
+                    className="btn-primary"
+                    style={{ padding: '8px 14px', fontSize: '0.82rem', whiteSpace: 'nowrap' }}
+                  >
+                    {couponLoading ? '...' : 'Áp Dụng'}
+                  </button>
+                </div>
+
+                {couponError && (
+                  <div style={{ color: 'var(--color-red)', fontSize: '0.78rem', marginTop: '6px' }}>
+                    {couponError}
+                  </div>
+                )}
+
+                {appliedCoupon && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#E8F5E9', padding: '6px 10px', borderRadius: '6px', marginTop: '8px', fontSize: '0.82rem', color: '#2E7D32' }}>
+                    <span>Đã dùng mã: <strong>{appliedCoupon.code}</strong></span>
+                    <button onClick={handleRemoveCoupon} style={{ color: '#D32F2F', fontWeight: 700, fontSize: '0.75rem' }}>Gỡ bỏ</button>
+                  </div>
+                )}
+              </div>
+
+              {discountAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--color-green)' }}>
+                  <span>Giảm giá khuyến mãi:</span>
+                  <strong>-{formatPrice(discountAmount)}</strong>
+                </div>
+              )}
+
+              {shippingFee > 0 && discountAmount === 0 && (
                 <div style={{ fontSize: '0.78rem', color: 'var(--color-primary-dark)', background: 'var(--color-cream)', padding: '8px 12px', borderRadius: 'var(--radius-sm)' }}>
                   💡 Mua thêm {formatPrice(300000 - totalAmount)} để được <strong>FREESHIP</strong>!
                 </div>
@@ -231,12 +324,14 @@ export default function CartPage() {
                 alignItems: 'baseline',
               }}>
                 <span style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-brown-dark)' }}>Tổng cộng:</span>
-                <span style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--color-red)' }}>{formatPrice(finalTotal)}</span>
+                <span style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--color-red)' }}>
+                  {formatPrice(Math.max(0, finalTotal - discountAmount))}
+                </span>
               </div>
             </div>
 
             <Link
-              href="/checkout"
+              href={`/checkout${appliedCoupon ? `?coupon=${appliedCoupon.code}` : ''}`}
               className="btn-primary"
               style={{
                 width: '100%',

@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             CategorySeeder::class,
-            ProductSeeder::class,
+            ProductCatalogSeeder::class,
         ]);
 
         // Tạo tài khoản Admin

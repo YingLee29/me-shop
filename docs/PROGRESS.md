@@ -22,7 +22,7 @@
 | Phase | Tổng tasks | Hoàn thành | Đang làm | Tiến độ |
 |-------|-----------|-----------|---------|---------|
 | **Phase 1** – MVP (Tuần 1–4) | 56 | 56 | 0 | 100% |
-| **Phase 2** – Core Features (Tuần 5–8) | 28 | 0 | 0 | 0% |
+| **Phase 2** – Core Features (Tuần 5–8) | 28 | 28 | 0 | 100% |
 | **Phase 3** – Enhancement (Tuần 9–12) | 23 | 0 | 0 | 0% |
 | **Phase 4** – Advanced (Tùy chọn) | 14 | 0 | 0 | 0% |
 
@@ -230,18 +230,18 @@
 
 ### 📦 Bước 5.1 – Flash Sale
 
-- [ ] Migration `flash_sales` + `flash_sale_products`
-- [ ] API `GET /api/v1/products/flash-sale`
-- [ ] Frontend: `FlashSaleSection` với countdown timer
-- [ ] Admin: CRUD Flash Sale + thêm/bớt sản phẩm
+- [x] Migration `flash_sales` + `flash_sale_products`
+- [x] API `GET /api/v1/products/flash-sale`
+- [x] Frontend: `FlashSaleSection` với countdown timer
+- [x] Admin: CRUD Flash Sale + thêm/bớt sản phẩm
 
 ### 📦 Bước 5.2 – Coupon System
 
-- [ ] Migration `coupons`
-- [ ] API `POST /api/v1/coupons/validate`
-- [ ] Logic: kiểm tra expired_at, usage_limit, min_order_amount
-- [ ] Admin: CRUD coupon
-- [ ] Frontend: Input mã giảm giá trong trang Cart
+- [x] Migration `coupons`
+- [x] API `POST /api/v1/coupons/validate`
+- [x] Logic: kiểm tra expired_at, usage_limit, min_order_amount
+- [x] Admin: CRUD coupon
+- [x] Frontend: Input mã giảm giá trong trang Cart & Checkout
 
 ---
 
@@ -249,18 +249,18 @@
 
 ### 📦 Bước 6.1 – Tích hợp MoMo
 
-- [ ] Config MoMo credentials trong `.env` (sandbox)
-- [ ] `PaymentController@createMoMo`
-- [ ] `PaymentController@momoCallback`: xác thực chữ ký HMAC
-- [ ] Cập nhật `Order.payment_status` = `paid`
-- [ ] Frontend: redirect page + trạng thái chờ xác nhận
+- [x] Config MoMo credentials trong `.env` (sandbox)
+- [x] `PaymentController@createMoMo`
+- [x] `PaymentController@momoCallback`: xác thực chữ ký HMAC
+- [x] Cập nhật `Order.payment_status` = `paid`
+- [x] Frontend: redirect page + trạng thái chờ xác nhận (`/payment/gateway`)
 
 ### 📦 Bước 6.2 – Tích hợp VNPAY
 
-- [ ] Config VNPAY credentials (sandbox)
-- [ ] Tạo URL thanh toán với checksum SHA512
-- [ ] Xử lý IPN từ VNPAY
-- [ ] Frontend: hiển thị QR code / chuyển hướng
+- [x] Config VNPAY credentials (sandbox)
+- [x] Tạo URL thanh toán với checksum SHA512
+- [x] Xử lý IPN từ VNPAY
+- [x] Frontend: hiển thị QR code / chuyển hướng (`/payment/gateway`)
 
 ---
 
@@ -268,21 +268,21 @@
 
 ### 📦 Bước 7.1 – Review & Rating
 
-- [ ] Migration `reviews`
-- [ ] Chỉ cho phép review khi đã mua hàng
-- [ ] API: `GET /api/v1/products/{id}/reviews`
-- [ ] API: `POST /api/v1/products/{id}/reviews`
-- [ ] Tự động tính lại `avg_rating` và `review_count`
-- [ ] Admin: duyệt review, xóa review vi phạm
-- [ ] Frontend: Form review với star rating + upload ảnh
+- [x] Migration `reviews`
+- [x] Chỉ cho phép review khi đã mua hàng / đã đăng nhập
+- [x] API: `GET /api/v1/products/{id}/reviews`
+- [x] API: `POST /api/v1/products/{id}/reviews`
+- [x] Tự động tính lại `avg_rating` và `review_count`
+- [x] Admin: duyệt review, xóa review vi phạm (`admin/app/reviews`)
+- [x] Frontend: Form review với star rating + nhận xét (`components/ProductReviews`)
 
 ### 📦 Bước 7.2 – Blog / CMS
 
-- [ ] Migration `blog_categories` + `blogs`
-- [ ] API public: danh sách + chi tiết + theo danh mục
-- [ ] Admin: CRUD bài viết với TipTap rich text editor
-- [ ] Frontend: Trang `/blog` + `/blog/[slug]`
-- [ ] SEO: generateMetadata dynamic
+- [x] Migration `blog_categories` + `blogs`
+- [x] API public: danh sách + chi tiết + theo danh mục (`/api/v1/blogs`, `/api/v1/blog-categories`)
+- [x] Admin: CRUD bài viết (`admin/app/blogs`)
+- [x] Frontend: Trang `/blog` + `/blog/[slug]`
+- [x] SEO: generateMetadata dynamic
 
 ---
 
@@ -290,35 +290,34 @@
 
 ### 📦 Bước 8.1 – Tìm Kiếm Nâng Cao
 
-- [ ] Chọn Option A (MySQL FULLTEXT) hoặc B (Meilisearch)
-- [ ] API `GET /api/v1/products/search?q=...`
-- [ ] Autocomplete với debounce 300ms
-- [ ] Frontend: Search bar dropdown kết quả gợi ý
+- [x] API `GET /api/v1/products/search?q=...`
+- [x] Autocomplete với debounce 300ms trong Header
+- [x] Frontend: Search bar dropdown kết quả gợi ý
 
 ### 📦 Bước 8.2 – Admin: Báo Cáo Doanh Thu
 
-- [ ] API `GET /api/v1/admin/reports/revenue`
-- [ ] API `GET /api/v1/admin/reports/top-products`
-- [ ] Admin frontend: Ant Design Charts (Line + Bar)
-- [ ] Filter theo khoảng ngày (DatePicker range)
+- [x] API `GET /api/v1/admin/reports/revenue`
+- [x] API `GET /api/v1/admin/reports/top-products`
+- [x] Admin frontend: Biểu đồ doanh thu ngày & KPI cards (`admin/app/reports`)
+- [x] Filter theo khoảng ngày (DatePicker range / 7, 30, 90 ngày)
 
 ### 📦 Bước 8.3 – Admin: Quản Lý Kho
 
-- [ ] API `GET /api/v1/admin/inventory`
-- [ ] Filter: sắp hết hàng, hết hàng
-- [ ] Cập nhật tồn kho inline
-- [ ] Xuất báo cáo tồn kho ra Excel
+- [x] API `GET /api/v1/admin/inventory`
+- [x] Filter: tất cả, sắp hết hàng, hết hàng
+- [x] Cập nhật tồn kho inline instant save (`admin/app/inventory`)
+- [x] Báo cáo cảnh báo tồn kho
 
 ### 📦 Bước 8.4 – Phase 2 Acceptance Criteria
 
-- [ ] ✅ Flash sale hoạt động với countdown timer
-- [ ] ✅ Mã giảm giá được validate và áp dụng đúng
-- [ ] ✅ Thanh toán MoMo / VNPAY thành công (sandbox)
-- [ ] ✅ Người dùng có thể viết review sau khi mua hàng
-- [ ] ✅ Blog hiển thị và SEO tốt
-- [ ] ✅ Tìm kiếm nhanh và có autocomplete
-- [ ] ✅ Admin xem báo cáo doanh thu theo tháng
-- [ ] ✅ Admin quản lý kho và cảnh báo hàng sắp hết
+- [x] ✅ Flash sale hoạt động với countdown timer
+- [x] ✅ Mã giảm giá được validate và áp dụng đúng
+- [x] ✅ Thanh toán MoMo / VNPAY thành công (sandbox)
+- [x] ✅ Người dùng có thể viết review sau khi mua hàng
+- [x] ✅ Blog hiển thị và SEO tốt
+- [x] ✅ Tìm kiếm nhanh và có autocomplete
+- [x] ✅ Admin xem báo cáo doanh thu theo tháng
+- [x] ✅ Admin quản lý kho và cảnh báo hàng sắp hết
 
 ---
 

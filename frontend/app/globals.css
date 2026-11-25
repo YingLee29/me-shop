@@ -169,3 +169,45 @@ input, textarea, select {
   box-shadow: var(--shadow-hover);
   transform: translateY(-4px);
 }
+
+/* ── Nội dung mô tả sản phẩm (HTML từ seeder) ── */
+.product-description h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-brown-dark);
+  margin: 26px 0 10px;
+  line-height: 1.5;
+}
+
+.product-description h3:first-child {
+  margin-top: 0;
+}
+
+.product-description p {
+  margin: 0 0 12px;
+}
+
+.product-description ul,
+.product-description ol {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.product-description li {
+  margin-bottom: 6px;
+}
+
+.product-description li::marker {
+  color: var(--color-primary-dark);
+}
+
+/* ── Utility: ẩn trên mobile, hiện từ tablet ── */
+.hide-mobile-inline {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile-inline {
+    display: inline-flex;
+  }
+}

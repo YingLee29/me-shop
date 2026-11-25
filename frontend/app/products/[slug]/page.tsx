@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ShieldCheck, Truck, RefreshCw, Star, MapPin, Award, CheckCircle } from 'lucide-react';
 import { fetchApi, formatPrice } from '../../../lib/api';
 import ProductDetailClient from './ProductDetailClient';
+import ProductReviews from '../../../components/ProductReviews';
 
 async function getProductBySlug(slug: string) {
   try {
@@ -84,6 +85,7 @@ export default async function ProductDetailPage({
           </div>
 
           <div
+            className="product-description"
             style={{
               fontSize: '0.98rem',
               lineHeight: 1.8,
@@ -126,6 +128,9 @@ export default async function ProductDetailPage({
             </div>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <ProductReviews productId={product.id} />
       </div>
     </div>
   );
