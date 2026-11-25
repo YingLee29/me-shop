@@ -17,7 +17,7 @@ mkdir -p \
 # Chỉ chạy bootstrap Laravel cho container php-fpm (tránh ghi đè cache song song)
 if [ "${SKIP_ARTISAN_BOOTSTRAP:-0}" != "1" ]; then
     php artisan package:discover --ansi >/dev/null 2>&1 || true
-    php artisan storage:link >/dev/null 2>&1 || true
+    [ -e public/storage ] || php artisan storage:link >/dev/null 2>&1 || true
     php artisan config:cache >/dev/null 2>&1 || php artisan config:clear >/dev/null 2>&1 || true
 fi
 
