@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import ContactWidget from '../components/ContactWidget';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import { WishlistProvider } from '../context/WishlistContext';
@@ -75,6 +76,7 @@ export default function RootLayout({
                 <main style={{ flex: 1 }}>{children}</main>
                 <Footer />
               </div>
+              <ContactWidget />
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>

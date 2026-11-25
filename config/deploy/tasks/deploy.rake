@@ -51,6 +51,10 @@ namespace :deploy do
           ADMIN_URL=#{admin_url}
           PUBLIC_SITE_URL=#{app_url}
 
+          NEXT_PUBLIC_ZALO_URL=https://zalo.me/
+          NEXT_PUBLIC_FACEBOOK_URL=https://www.facebook.com/
+          NEXT_PUBLIC_HOTLINE="1900 6868"
+
           ADMIN_EMAIL=admin@mocson.vn
           ADMIN_PASSWORD=#{admin_pass}
 

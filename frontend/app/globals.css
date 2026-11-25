@@ -405,3 +405,172 @@ input, textarea, select {
   margin: 18px 0;
   font-style: italic;
 }
+
+/* ───────────────────────────────────────────────
+   Floating contact widget (Zalo / Messenger / Hotline)
+   ─────────────────────────────────────────────── */
+.contact-widget {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+  font-family: inherit;
+}
+
+.contact-widget__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(14px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+.contact-widget__actions.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.cw-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(31, 92, 58, 0.25);
+  transform: scale(0.86);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.contact-widget__actions.is-open .cw-item {
+  transform: scale(1);
+}
+
+.cw-item:hover,
+.cw-item:focus-visible {
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 12px 26px rgba(31, 92, 58, 0.35);
+  outline: none;
+}
+
+.cw-item--fb { background: #4f8a3d; }
+.cw-item--phone { background: #1f5c3a; }
+.cw-item--zalo { background: #7bae4f; }
+
+.cw-item__zalo {
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: -0.4px;
+  line-height: 1;
+}
+
+.cw-label {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(6px);
+  background: #1f2937;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 6px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.cw-label::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-left-color: #1f2937;
+}
+
+.cw-item:hover .cw-label,
+.cw-item:focus-visible .cw-label {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.cw-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #1f5c3a;
+  color: #fff;
+  box-shadow: 0 10px 26px rgba(31, 92, 58, 0.35);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cw-toggle:hover {
+  transform: scale(1.05);
+}
+
+.cw-toggle.is-open {
+  background: #4a2e1b;
+}
+
+.cw-ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #7bae4f;
+  animation: cw-ping 1.9s cubic-bezier(0, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes cw-ping {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(1.65); opacity: 0; }
+}
+
+@media (max-width: 640px) {
+  .contact-widget {
+    right: 16px;
+    bottom: 16px;
+    gap: 12px;
+  }
+
+  .cw-item {
+    width: 50px;
+    height: 50px;
+  }
+
+  .cw-toggle {
+    width: 54px;
+    height: 54px;
+  }
+
+  .cw-label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cw-ping { animation: none; }
+  .contact-widget__actions,
+  .cw-item,
+  .cw-toggle { transition: none; }
+}

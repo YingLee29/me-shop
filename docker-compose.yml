@@ -124,6 +124,9 @@ services:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://nginx/api/v1}
       - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-http://localhost:5000}
+      - NEXT_PUBLIC_ZALO_URL=${NEXT_PUBLIC_ZALO_URL:-https://zalo.me/}
+      - NEXT_PUBLIC_FACEBOOK_URL=${NEXT_PUBLIC_FACEBOOK_URL:-https://www.facebook.com/}
+      - "NEXT_PUBLIC_HOTLINE=${NEXT_PUBLIC_HOTLINE:-1900 6868}"
       - WATCHPACK_POLLING=true  # Hot reload trong Docker
     depends_on:
       - php
