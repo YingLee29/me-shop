@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# ─────────────────────────────────────────────────────
+# Promote main → production rồi deploy lên EC2
+#
+# Quy ước:
+#   main        = nhánh phát triển (commit tự do)
+#   production  = nhánh deploy (chỉ fast-forward từ main)
+#
+# Dùng:
+#   git switch main
+#   git add -A && git commit -m "..."
+#   ./bin/release
+# ─────────────────────────────────────────────────────
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+if [ "$(git branch --show-current)" != "main" ]; then
+  echo "✗ Phải đang ở nhánh main (hiện tại: $(git branch --show-current))" >&2
+  exit 1
+fi
+
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "✗ Còn thay đổi chưa commit. Commit trước rồi release." >&2
+  exit 1
+fi
+
+echo "→ Push main lên GitHub"
+git push origin main
+
+echo "→ Fast-forward production = main"
+git switch production
+git merge --ff-only main
+git push origin production
+
+echo "→ Deploy production lên EC2"
+./bin/deploy
+
+echo "→ Quay lại main"
+git switch main
+
+echo "✓ Release xong: production đã deploy."

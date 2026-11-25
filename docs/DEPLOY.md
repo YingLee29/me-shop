@@ -105,17 +105,37 @@ ssh -i ~/.ssh/mocson-product-key ubuntu@52.65.121.166 \
 > Build Next.js trên `t4g.micro` khá chậm (5–15 phút/lần) vì chỉ 1 GB RAM.
 > Nếu cần deploy nhanh thường xuyên, nâng lên `t4g.small` (2 GB) là đủ thoải mái.
 
-## 4. Cập nhật code hằng ngày
+## 4. Quy ước nhánh & cập nhật code
+
+| Nhánh | Vai trò |
+|---|---|
+| **`main`** | Nhánh **phát triển** — commit tính năng mới thoải mái |
+| **`production`** | Nhánh **deploy** — chỉ fast-forward từ `main`, không commit trực tiếp |
+
+Quy trình chuẩn:
 
 ```bash
-git switch production
-git add -A && git commit -m "..."   # commit thay đổi
-git push origin production          # backup lên GitHub
+git switch main
+git add -A
+git commit -m "feat: ..."
 
-./bin/deploy                        # push lên EC2 + pull + build + up + migrate
+./bin/release      # main → production + deploy lên EC2
 ```
 
-Nếu chỉ đổi code không cần migrate/seed, có thể chạy từng bước:
+`bin/release` sẽ tự:
+1. Push `main` lên GitHub
+2. Fast-forward `production` = `main` (không tạo merge commit)
+3. Push `production` lên GitHub
+4. Chạy `./bin/deploy` (push EC2 → pull → build → up → migrate → seed)
+5. Quay lại nhánh `main`
+
+Nếu chỉ muốn deploy lại mà không đổi code:
+
+```bash
+./bin/deploy
+```
+
+Nếu cần deploy từng bước:
 
 ```bash
 ./bin/deploy deploy:push
