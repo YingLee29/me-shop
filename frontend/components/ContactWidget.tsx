@@ -81,6 +81,7 @@ export default function ContactWidget() {
       >
         {open ? <X size={22} /> : <MessageCircle size={24} />}
         {!open && <span className="cw-ping" aria-hidden="true" />}
+        {!open && <span className="cw-toggle-label">Liên hệ</span>}
       </button>
     </div>
   );
