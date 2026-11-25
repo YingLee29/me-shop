@@ -2,6 +2,8 @@
 
 set :application, "mocson-product"
 set :deploy_to, "/opt/mocson-product"
+set :bare_repo, "/opt/git/mocson-product.git"
+set :deploy_branch, "production"
 set :compose_file, "docker-compose.prod.yml"
 set :env_file, ".env.production"
 set :keep_releases, 0

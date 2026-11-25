@@ -8,7 +8,7 @@ server "52.65.121.166",
        roles: %w[app],
        ssh_options: { keys: [File.expand_path("~/.ssh/mocson-product-key")] }
 
-set :branch, "main"
+set :branch, "production"
 set :deploy_user, "ubuntu"
 set :deploy_host, "52.65.121.166"
 

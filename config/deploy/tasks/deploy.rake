@@ -101,7 +101,35 @@ namespace :deploy do
     end
   end
 
-  desc "Rsync code từ máy local lên server"
+  desc "Push nhánh production từ máy local lên bare repo trên EC2"
+  task :push do
+    require "shellwords"
+
+    bare_repo = fetch(:bare_repo)
+    branch    = fetch(:deploy_branch)
+    user      = fetch(:deploy_user)
+    host      = fetch(:deploy_host)
+    ssh_key   = fetch(:ssh_key)
+
+    git_ssh = "ssh -i #{ssh_key} -o StrictHostKeyChecking=no"
+
+    run_locally do
+      execute "GIT_SSH_COMMAND=#{Shellwords.escape(git_ssh)} git push --force ssh://#{user}@#{host}#{bare_repo} #{branch}:#{branch}"
+    end
+  end
+
+  desc "Pull code mới nhất trên server (git fetch + reset --hard)"
+  task :pull do
+    deploy_to = fetch(:deploy_to)
+    branch    = fetch(:deploy_branch)
+
+    on roles(:app) do
+      execute "cd #{deploy_to} && git fetch origin && git reset --hard origin/#{branch}"
+      execute "cd #{deploy_to} && git log --oneline -1"
+    end
+  end
+
+  desc "Rsync code từ máy local lên server (phương án dự phòng)"
   task :sync do
     require "shellwords"
 
@@ -222,6 +250,6 @@ namespace :deploy do
     end
   end
 
-  desc "Deploy đầy đủ (env → sync → build → up → migrate → seed)"
-  task all: %i[env sync build up migrate seed optimize status]
+  desc "Deploy đầy đủ (push → pull → build → up → migrate → seed)"
+  task all: %i[env push pull build up migrate seed optimize status]
 end

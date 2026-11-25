@@ -40,13 +40,19 @@ sang máy đó (qua AirDrop/USB/kênh an toàn), `chmod 600`, rồi dùng lệnh
 ## 2. Cấu trúc trên server
 
 ```
-/opt/mocson-product/          ← code (rsync từ máy local)
-├── .env.production           ← secret production (KHÔNG commit, đã .gitignore)
+/opt/git/mocson-product.git    ← bare repo, nhận `git push` từ máy local
+/opt/mocson-product/           ← git clone, branch `production`
+├── .git
+├── .env.production           ← secret production (untracked, được giữ khi deploy)
 ├── docker-compose.prod.yml
 ├── docker/php/Dockerfile.prod
 ├── docker/node/Dockerfile.*.prod
 └── docker/nginx/prod/*.conf
 ```
+
+- Repo GitHub: `git@github.com:YingLee29/me-shop.git`, nhánh **`production`**.
+- Server không cần quyền GitHub: nó pull từ bare repo nội bộ `/opt/git/mocson-product.git`.
+- Khi deploy, máy local push `production` lên bare repo, server `git fetch && git reset --hard`.
 
 Container: `mocson_nginx`, `mocson_php`, `mocson_queue`, `mocson_scheduler`,
 `mocson_mysql`, `mocson_redis`, `mocson_frontend`, `mocson_admin`.
@@ -55,16 +61,17 @@ Chỉ nginx mở port 80 ra ngoài. MySQL/Redis không expose.
 
 ## 3. Deploy bằng Capistrano
 
-Capistrano chạy **trên máy local**, SSH vào server để rsync code + chạy Docker.
-Không cần git trên server, nên deploy được cả thay đổi chưa commit.
+Capistrano chạy **trên máy local**, push nhánh `production` lên bare repo trên
+EC2 rồi SSH vào server để `git pull` + chạy Docker.
 
 ```bash
 cd /home/le/quan-pr/my-shop
+git switch production
 
 # Kiểm tra kết nối
 ./bin/deploy deploy:check
 
-# Deploy đầy đủ
+# Deploy đầy đủ (push → pull → build → up → migrate → seed)
 ./bin/deploy
 ```
 
@@ -75,7 +82,8 @@ Các task riêng lẻ:
 | Lệnh | Việc |
 |---|---|
 | `./bin/deploy deploy:env` | Sinh `.env.production` (nếu chưa có) với secret ngẫu nhiên |
-| `./bin/deploy deploy:sync` | Rsync code local → `/opt/mocson-product` |
+| `./bin/deploy deploy:push` | Push nhánh `production` lên bare repo trên EC2 |
+| `./bin/deploy deploy:pull` | Server `git fetch` + `git reset --hard origin/production` |
 | `./bin/deploy deploy:build` | Build image (tuần tự: php → frontend → admin) |
 | `./bin/deploy deploy:up` | `docker compose up -d` |
 | `./bin/deploy deploy:migrate` | `php artisan migrate --force` |
@@ -84,6 +92,7 @@ Các task riêng lẻ:
 | `./bin/deploy deploy:restart` | Restart container |
 | `./bin/deploy deploy:status` | `docker compose ps` |
 | `SERVICE=php ./bin/deploy deploy:logs` | 150 dòng log của service |
+| `./bin/deploy deploy:sync` | (Dự phòng) rsync code local thay vì git |
 
 Tài khoản admin production nằm trong `.env.production` trên server
 (`ADMIN_EMAIL`, `ADMIN_PASSWORD`):
@@ -99,14 +108,22 @@ ssh -i ~/.ssh/mocson-product-key ubuntu@52.65.121.166 \
 ## 4. Cập nhật code hằng ngày
 
 ```bash
-./bin/deploy deploy:sync
-./bin/deploy deploy:build      # chỉ khi đổi code FE/BE
-./bin/deploy deploy:up
-./bin/deploy deploy:migrate
-./bin/deploy deploy:optimize
+git switch production
+git add -A && git commit -m "..."   # commit thay đổi
+git push origin production          # backup lên GitHub
+
+./bin/deploy                        # push lên EC2 + pull + build + up + migrate
 ```
 
-Hoặc gộp: `./bin/deploy`.
+Nếu chỉ đổi code không cần migrate/seed, có thể chạy từng bước:
+
+```bash
+./bin/deploy deploy:push
+./bin/deploy deploy:pull
+./bin/deploy deploy:build
+./bin/deploy deploy:up
+./bin/deploy deploy:optimize
+```
 
 ## 5. Khi mua domain thật
 
