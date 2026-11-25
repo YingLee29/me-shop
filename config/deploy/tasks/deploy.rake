@@ -253,3 +253,6 @@ namespace :deploy do
   desc "Deploy đầy đủ (push → pull → build → up → migrate → seed)"
   task all: %i[env push pull build up migrate seed optimize status]
 end
+
+desc "Alias tiện dụng: `cap production deploy` = `deploy:all`"
+task deploy: "deploy:all"
