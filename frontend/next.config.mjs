@@ -6,7 +6,11 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   images: {
+    // Ảnh sản phẩm chủ yếu là SVG/ảnh đã tối ưu; tắt optimizer để nhẹ RAM,
+    // không cần native `sharp` trong image Docker ARM64.
+    unoptimized: true,
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",

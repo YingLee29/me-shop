@@ -35,6 +35,9 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+// Dữ liệu lấy từ API lúc request — build Docker không có DB/API
+export const dynamic = 'force-dynamic';
+
 const organizationJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
